@@ -72,7 +72,7 @@
         width:100%;
         height: auto;
         padding:1rem;
-        margin-left:15rem;
+        margin-left:12rem;
     }
     #title-header{
         display: flex;
@@ -80,10 +80,12 @@
         width: 100%;
         max-height:5rem;
         padding:1rem;
-        border-radius: 2rem;
+        border-radius: .7rem;
         align-content: center;
         align-items: center;
         justify-content: center;
+        font-size: .8rem;
+        margin-bottom:-1rem;
     }
     #title-header h1 {
         display: flex;
@@ -96,8 +98,9 @@
         width:100%;
         padding:2rem;
         gap:.5rem;
-        box-shadow:.5rem .3rem 1rem rgba(0,0,0,0.5);
-        border-radius:1rem;
+        border-radius:.7rem;
+        box-shadow:.1rem .1rem 0 black;
+        border:1px solid black;
     }
     #form-container label{
         font-size:17px;

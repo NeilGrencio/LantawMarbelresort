@@ -165,158 +165,141 @@
 </body>
 
 <style>
-    #guest{color:#F78A21;}
-    body{
-        overflow-y:auto;
+    body {
+        overflow-y: auto;
+        font-size: 0.85rem;
     }
-    #layout{
+
+    #layout {
         display: flex;
         flex-direction: row;
-        height:100vh;
+        height: 100vh;
     }
-    #main-layout{
-        width:100%;
+
+    #main-layout {
+        width: 100%;
         height: auto;
-        padding:1rem;
-        margin-left:15rem;
+        padding: 0.75rem;
+        margin-left: 12rem;
     }
-    #add_user-container{
-        display:flex;
+
+    #add_user-container {
+        display: flex;
         flex-direction: column;
-        width:100%;
+        width: 100%;
         height: auto;
-        border-radius:2rem;
-        box-shadow:1rem 0rem 2rem rgba(0,0,0,0.2);
-        background:white;
-        padding:1rem;
+        border-radius: 1rem;
+        box-shadow: 0.5rem 0 1rem rgba(0, 0, 0, 0.1);
+        background: white;
+        padding: 0.75rem;
     }
-    #form-header-1, #form-header-2{
-        width:100%;
-        height:3.5rem;
-        background:rgb(54, 54, 54);
-        color:white;
-        padding-left:1rem;
-        border-radius:1rem;
+
+    #form-header-1, #form-header-2 {
+        width: 100%;
+        height: 2.5rem;
+        background: rgb(54, 54, 54);
+        color: white;
+        padding-left: 0.75rem;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
     }
-    #row1, #row2, #row3, #row4, #row5, #row6, #row7{
-        margin:1rem;
+
+    #row1, #row2, #row3, #row4, #row5, #row6, #row7 {
+        margin: 0.75rem;
         display: flex;
         flex-direction: row;
-        width:100%;
-        gap:2rem;
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 1.5rem;
     }
-    #row1 div, #row2 div, #row3 div, #row5 div, #row6 div, #row7 div{
+
+    #row1 div, #row2 div, #row3 div, #row5 div, #row6 div, #row7 div {
         display: flex;
         flex-direction: column;
-        width:30rem;
+        width: 100%;
+        max-width: 22rem;
     }
-    #row4 div{
-        display:flex;
-        height:20rem;
-        width:auto;
-        gap:2rem;
+
+    #row4 div {
+        display: flex;
+        height: 15rem;
+        width: auto;
+        gap: 1.5rem;
+        flex-wrap: wrap;
     }
-    #row4 img{
+
+    #row4 img {
         display: flex;
         height: auto;
         max-height: 80%;
-        width:auto;
-        min-width: 30%;
+        width: auto;
+        min-width: 25%;
         object-fit: contain;
-        align-content: center;
-        justify-content: center;
-        border:2px solid black;
-        border-radius:2rem;
+        border: 2px solid black;
+        border-radius: 1.5rem;
     }
-    label{
+
+    label {
         display: flex;
-        font-size: 1.5rem;
+        font-size: 0.9rem;
         font-weight: bold;
-        margin-left:.5rem;
+        margin-left: 0.25rem;
     }
-    input{
-        height:2.5rem;
-        width:30rem;
-        font-size:1rem;
-        border-radius: .5rem;
-        padding:.5rem;
+
+    input, select {
+        height: 2.2rem;
+        width: 100%;
+        max-width: 22rem;
+        font-size: 0.85rem;
+        border-radius: 0.4rem;
+        padding: 0.4rem;
     }
-    select{
-        height:2.5rem;
-        width:30rem;
-        font-size:1rem;
-        border-radius: .5rem;
-        padding:.5rem; 
-    }
-    #pfp-preview{
-        display: flex;
-        height:10rem;
-        width: 10rem;
+
+    #pfp-preview {
+        height: 8rem;
+        width: 8rem;
         border-radius: 50%;
         object-fit: cover;
     }
-    #button-container{
+
+    #button-container {
         display: flex;
-        margin-top: 1rem;
-        gap:1rem;
-    }
-    #button-container button, #button-container input{
-        height:2.5rem;
-        width:10rem;
-        font-size:1rem;
-        border-radius: .5rem;
-        padding:.5rem;
-    }
-    #button-container button{
-        background:grey;
-    }
-    #button-container input{
-        background:orange;
-    }
-    .error-message{
-        width:100%;
-        background:red;
-        color:white;
-    }
-    .alert-message{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        position: fixed;
-        right: 50%;
-        transform: translate(50%, 0);
-        bottom: 1rem;
-        height: fit-content;
-        min-height: 10rem;
-        max-height: 30rem;
-        width: fit-content;
-        min-width: 20rem;
-        max-width: 90vw;
-        background: rgb(255, 255, 255);
-        z-index: 1000;
-        border-radius: 1rem;
-        box-shadow: 0 0 1rem rgba(0,0,0,0.5);
-        margin: auto;
-        padding: 1rem;
+        margin-top: 0.75rem;
+        gap: 0.75rem;
         flex-wrap: wrap;
-        word-wrap: break-word;
     }
-    #popup-resend{
-        margin-top:1rem; 
-        padding: .5rem 2rem;
-        background: #ccc; 
-        color: #333; 
+
+    #button-container button, #button-container input {
+        height: 2.2rem;
+        width: 7rem;
+        font-size: 0.85rem;
+        border-radius: 0.4rem;
+        padding: 0.4rem;
+    }
+
+    #button-container button {
+        background: grey;
+        color: white;
         border: none;
-        border-radius: .5rem; 
-        font-size: 1rem;
-        transition:background 0.2s ease;
     }
-    #popup-resend:hover{
-        background: rgb(77, 77, 77);
-        color:white;
-        cursor:pointer;
+
+    #button-container input {
+        background: orange;
+        color: white;
+        border: none;
+    }
+
+    .alert-message {
+        font-size: 0.85rem;
+        padding: 0.75rem;
+    }
+
+    #popup-resend {
+        margin-top: 0.75rem;
+        padding: 0.4rem 1.5rem;
+        font-size: 0.85rem;
     }
 </style>
 

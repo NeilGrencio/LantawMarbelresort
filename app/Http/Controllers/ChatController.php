@@ -16,23 +16,26 @@ class ChatController extends Controller
             ->leftJoin('guest', 'chat.guestID', '=', 'guest.guestID')
             ->leftJoin('staff', 'chat.staffID', '=', 'staff.staffID')
             ->select(
-            'chat.*',
-            DB::raw("DATE_FORMAT(chat.datesent, '%d/%m/%Y %h:%i %p') as datesent"),
-            DB::raw("DATE_FORMAT(chat.datereplied, '%d/%m/%Y %h:%i %p') as datereplied"),
-            DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as g_fullname"),
-            'guest.guestID as gID',
-            'guest.role as g_role',
-            'guest.avatar as g_avatar',
-            DB::raw("CONCAT(staff.firstname, ' ', staff.lastname) as s_fullname"),
-            'staff.staffID as sID',
-            'staff.role as s_role',
-            'staff.avatar as s_avatar',
+                'chat.*',
+                DB::raw("DATE_FORMAT(chat.datesent, '%d/%m/%Y %h:%i %p') as datesent"),
+                DB::raw("DATE_FORMAT(chat.datereplied, '%d/%m/%Y %h:%i %p') as datereplied"),
+
+                DB::raw("COALESCE(CONCAT(guest.firstname, ' ', guest.lastname), 'Unknown Guest') as g_fullname"),
+                'guest.guestID as gID',
+                'guest.role as g_role',
+                DB::raw("COALESCE(guest.avatar, '') as g_avatar"), 
+
+                DB::raw("COALESCE(CONCAT(staff.firstname, ' ', staff.lastname), 'Staff') as s_fullname"),
+                'staff.staffID as sID',
+                'staff.role as s_role',
+                DB::raw("COALESCE(staff.avatar, '') as s_avatar") 
             )
-            ->orderby('chat.chatID','desc')->get();
-            
-        
+            ->orderBy('chat.chatID', 'desc')
+            ->get();
+
         return view('manager/chat', compact('chat'));
     }
+
 
     public function sendChat(Request $request, $chatID){
          $validated = $request->validate([

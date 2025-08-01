@@ -104,7 +104,6 @@ class ManageUserController extends Controller
             'password.regex' => 'Password must be 8 characters, include at least one uppercase character, one lowercase character, one number, and one special character'
         ]);
 
-        session()->forget(['registration_otp', 'mobilenum']);
 
         $avatarPath = $request->file('avatar')->store('avatars', 'public');
 
@@ -133,12 +132,12 @@ class ManageUserController extends Controller
 
             DB::commit();
 
-            return redirect('manager/add_user')->with('success', 'Staff user added successfully');
+            return redirect('manager/user_list')->with('success', 'Staff user added successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return redirect('manager/add_user')->withInput()->with('error', 'Failed to add staff user');
+            return redirect('manager/add_user')->withInput()->with('error', 'Failed to add staff user' . $e->getMessage());
         }
     }
 

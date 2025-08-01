@@ -6,107 +6,113 @@
     <title>Lantaw-Marbel Resort</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <style>
-        *{ box-sizing:border-box;}
-        body{
-            font-family: Robot, sans-serif;
-            padding:0;
-            margin:0;
-            background-color:#E1E5EA ;
-            overflow:hidden;
-        }
-        #sidebar{
-            display: flex;
-            flex-direction: column;
-            height:100%;
-            gap:1rem;
-            color:#ffffff;
-            padding:.5rem;
-            cursor:pointer;
-            transition: width 0.3s ease-in;
-            width: 14.5rem;
-            background: rgb(0, 13, 49);
-            z-index:1000;
-            border-top-right-radius:1rem;
-            position:fixed;
-        }
-        #sidebar div{
-            display: flex;
-            height:2rem;
-            gap:.5rem;
-            cursor: pointer;
-            width:14rem;
-            padding-left:.5rem;
-        }
-        .sidebar-item{transition:all .3s ease-in; gap:.5rem;}
-        .sidebar-item:hover{
-            background:rgb(255, 145, 0);
-            color:black;
-        }
-        .icons{
-            display: flex;
-            gap:.7rem;
-            width:4rem;
-            align-items: center;
-            text-align: center;
-            justify-content: center;
-            font-size:.7rem;
-        }
-        #sidebar :nth-child(5), #sidebar :nth-child(8) {
-            border-top:solid 1px #919191;
-        }
-        #sidebar :nth-child(4), #sidebar :nth-child(7), #sidebar :nth-child(11) {
-            margin-bottom:1rem;
-            border-bottom:solid 1px #919191;
-        }
-        .label {
-            display: inline;
-            text-align: center;
-            align-items: center;
-            justify-content: start;
-            font-size:13px;
-        }
-        #profile-container{
-            display: flex;
-            flex-direction: row;
-            gap:1rem;
-            height:100%;
-            color:white;
-            align-content:center;
-            align-items:center;
-            text-align: center;
-            cursor:pointer;
-            position:relative;
-            bottom:1rem;
-            margin-top:auto;
-            font-size:12px;
-        }
-        #profile-container img{
-            height: 100%;
-            width:3rem;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .drop-down {
-            display: none;
-            flex-direction: column;
-            width: 100%;
-            z-index: 1000;
-            align-items:center;
-            justify-content: center;
-            text-align:start;
-            padding:.2rem;
-            gap:.5rem;
-        }
-        .drop-down ul   {
-            width: 100%;
-            font-size:12px;
-        }
-        .logo-container img{
-            object-fit: contain;
-            height:3rem;
-            width:100%;
-        }
+        * {
+        box-sizing: border-box;
+    }
+    body {
+        font-family: Roboto, sans-serif;
+        padding: 0;
+        margin: 0;
+        background-color: #E1E5EA;
+        overflow: hidden;
+    }
+    #sidebar {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        gap: 0.5rem;
+        color: #ffffff;
+        padding: 0.3rem;
+        cursor: pointer;
+        transition: width 0.3s ease-in;
+        width: 12rem;
+        background: rgb(0, 13, 49);
+        z-index: 1000;
+        border-top-right-radius: 1rem;
+        position: fixed;
+    }
+    #sidebar div {
+        display: flex;
+        height: 1.8rem;
+        gap: 0.4rem;
+        cursor: pointer;
+        width: 100%;
+        padding-left: 0.4rem;
+        align-items: center;
+    }
+    .sidebar-item {
+        transition: all 0.3s ease-in;
+    }
+    .sidebar-item:hover {
+        background: rgb(255, 145, 0);
+        color: black;
+    }
+    .icons {
+        display: flex;
+        gap: 0.4rem;
+        width: 2.5rem;
+        align-items: center;
+        justify-content: center;
+        font-size: .6rem;
+    }
+    .label {
+        font-size: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    #sidebar :nth-child(5),
+    #sidebar :nth-child(8) {
+        border-top: solid 1px #919191;
+    }
+    #sidebar :nth-child(4),
+    #sidebar :nth-child(7),
+    #sidebar :nth-child(11) {
+        margin-bottom: 0.6rem;
+        border-bottom: solid 1px #919191;
+    }
+    #profile-container {
+        display: flex;
+        flex-direction: row;
+        gap: 0.5rem;
+        align-items: center;
+        color: white;
+        text-align: center;
+        cursor: pointer;
+        margin-top: auto;
+        font-size: 11px;
+        padding: 0.4rem 0;
+        margin-bottom:1rem;
+    }
+    #profile-container img {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .drop-down {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        z-index: 1000;
+        align-items: flex-start;
+        padding: 0.3rem;
+        font-size: 11px;
+    }
+    .drop-down ul {
+        width: 100%;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .drop-down li {
+        padding: 0.2rem 0;
+    }
+    .logo-container img {
+        object-fit: contain;
+        height: 2.5rem;
+        width: 100%;
+    }
     </style>
 </head>
 <body>

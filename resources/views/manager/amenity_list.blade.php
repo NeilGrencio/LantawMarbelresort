@@ -36,6 +36,7 @@
                     </div>
                     <div>
                         <h1>{{$amenity->amenityname}}</h1>
+                        <h4>This amenity is {{$amenity->status}}</h4>
                     </div>
                 </div> 
                  @endforeach
@@ -60,7 +61,7 @@
         width:100%;
         height: auto;
         padding:1rem;
-        margin-left:15rem;
+        margin-left:12rem;
     }
     #layout-header {
         display: flex;
@@ -113,8 +114,8 @@
     .amenity-card{
         display:flex;
         flex-direction: row;
-        width:50%;
-        height:15rem;
+        width:100%;
+        height:10rem;
         border-radius:.7rem;
         padding:1rem;
         background:white;
@@ -124,7 +125,7 @@
         border:1px solid black;
         font-weight:900;
         cursor:pointer;
-        transition:background 0.3s ease-in;
+        transition:all 0.3s ease;
     }
     .amenity-card.deactivated {
         background: #dfdfdf;
@@ -134,7 +135,11 @@
         background: rgba(115, 115, 115, 0.9);
         opacity: .5;
     }
-    .amenity-card:hover{background:rgb(194, 194, 194);}
+    .amenity-card:hover{
+        background:rgb(255, 197, 144);
+        border:2px solid orange;
+        box-shadow:.1rem .1rem 0 orange;
+    }
     #amenity-img{
         display: flex;
         height:100%;

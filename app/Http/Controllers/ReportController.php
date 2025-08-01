@@ -20,9 +20,11 @@ class ReportController extends Controller
 
         $query = DB::table('booking')
             ->leftjoin('guest', 'booking.guestID', '=', 'guest.guestID')
-            ->leftjoin('rooms', 'booking.roomID', '=', 'rooms.roomID')
+            ->leftJoin('roombook', 'booking.bookingID', '=', 'roombook.bookingID')
+            ->leftJoin('rooms', 'roombook.roomID', '=', 'rooms.roomID')
             ->leftjoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
-            ->leftjoin('cottages', 'booking.cottageID', '=', 'cottages.cottageID')
+            ->leftJoin('cottagebook', 'booking.bookingID', '=', 'cottagebook.bookingID')
+            ->leftJoin('cottages', 'cottagebook.cottageID', '=', 'cottages.cottageID')
             ->select(
                 'booking.*',
                 DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as guestname"),
@@ -37,17 +39,22 @@ class ReportController extends Controller
 
         $bookings = $query->get();
 
-        $totalsQuery = DB::table('booking');
+        $totalsQuery = DB::table('booking')
+            ->leftJoin('roombook', 'booking.bookingID', '=', 'roombook.bookingID')
+            ->leftJoin('cottagebook', 'booking.bookingID', '=', 'cottagebook.bookingID');
 
         if ($from && $to) {
-            $totalsQuery->whereBetween('bookingcreated', [$from, $to]);
+            $totalsQuery->whereBetween('booking.bookingcreated', [$from, $to]);
         }
 
         $totals = [
-            'total_all' => (clone $totalsQuery)->count(),
-            'total_hotel' => (clone $totalsQuery)->whereNotNull('roomID')->count(),
-            'total_cottage' => (clone $totalsQuery)->whereNotNull('cottageID')->count(),
-            'total_amenity' => (clone $totalsQuery)->whereNotNull('amenityID')->count(),
+            'total_all' => (clone $totalsQuery)->count(DB::raw('DISTINCT booking.bookingID')),
+            'total_hotel' => (clone $totalsQuery)->whereNotNull('roombook.roomID')->count(DB::raw('DISTINCT booking.bookingID')),
+            'total_cottage' => (clone $totalsQuery)->whereNotNull('cottagebook.cottageID')->count(DB::raw('DISTINCT booking.bookingID')),
+            'total_amenity' => (clone DB::table('booking')) // AmenityID is directly in booking table
+                ->when($from && $to, fn($q) => $q->whereBetween('bookingcreated', [$from, $to]))
+                ->whereNotNull('amenityID')
+                ->count(),
         ];
 
         return view('manager.booking_report', compact('bookings', 'totals'));
@@ -58,10 +65,12 @@ class ReportController extends Controller
         $to = $request->query('to');
 
         $query = DB::table('booking')
-            ->leftjoin('guest', 'booking.guestID', '=', 'guest.guestID')
-            ->leftjoin('rooms', 'booking.roomID', '=', 'rooms.roomID')
-            ->leftjoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
-            ->leftjoin('cottages', 'booking.cottageID', '=', 'cottages.cottageID')
+            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->leftJoin('roombook', 'booking.bookingID', '=', 'roombook.bookingID')
+            ->leftJoin('rooms', 'roombook.roomID', '=', 'rooms.roomID')
+            ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
+            ->leftJoin('cottagebook', 'booking.bookingID', '=', 'cottagebook.bookingID')
+            ->leftJoin('cottages', 'cottagebook.cottageID', '=', 'cottages.cottageID')
             ->select(
                 'booking.*',
                 DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as guestname"),
@@ -76,21 +85,30 @@ class ReportController extends Controller
 
         $bookings = $query->get();
 
-        $totalsQuery = DB::table('booking');
+        $totalsQuery = DB::table('booking')
+            ->leftJoin('roombook', 'booking.bookingID', '=', 'roombook.bookingID')
+            ->leftJoin('cottagebook', 'booking.bookingID', '=', 'cottagebook.bookingID');
+
         if ($from && $to) {
-            $totalsQuery->whereBetween('bookingcreated', [$from, $to]);
+            $totalsQuery->whereBetween('booking.bookingcreated', [$from, $to]);
         }
 
         $totals = [
-            'total_all' => (clone $totalsQuery)->count(),
-            'total_hotel' => (clone $totalsQuery)->whereNotNull('roomID')->count(),
-            'total_cottage' => (clone $totalsQuery)->whereNotNull('cottageID')->count(),
-            'total_amenity' => (clone $totalsQuery)->whereNotNull('amenityID')->count(),
+            'total_all' => (clone $totalsQuery)->count(DB::raw('DISTINCT booking.bookingID')),
+            'total_hotel' => (clone $totalsQuery)->whereNotNull('roombook.roomID')->count(DB::raw('DISTINCT booking.bookingID')),
+            'total_cottage' => (clone $totalsQuery)->whereNotNull('cottagebook.cottageID')->count(DB::raw('DISTINCT booking.bookingID')),
+            'total_amenity' => (clone DB::table('booking'))
+                ->when($from && $to, fn($q) => $q->whereBetween('bookingcreated', [$from, $to]))
+                ->whereNotNull('amenityID')
+                ->count(),
         ];
 
-        $pdf = Pdf::loadView('manager.booking_pdf', compact('bookings', 'totals', 'from', 'to'))->setPaper('a4', 'portrait');
+        $pdf = Pdf::loadView('manager.booking_pdf', compact('bookings', 'totals', 'from', 'to'))
+            ->setPaper('a4', 'portrait');
+
         return $pdf->download('booking_report.pdf');
     }
+
 
     public function checkReport(Request $request){
         $from = $request->query('from');

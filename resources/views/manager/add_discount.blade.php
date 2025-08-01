@@ -69,7 +69,7 @@
         width:100%;
         height: auto;
         padding:1rem;
-        margin-left:15rem;
+        margin-left:12rem;
     }
     #title-header{
         display: flex;
@@ -77,10 +77,12 @@
         width: 100%;
         max-height:5rem;
         padding:1rem;
-        border-radius: 2rem;
+        border-radius: .7rem;
         align-content: center;
         align-items: center;
         gap: 1rem;
+        font-size: .8rem;
+        margin-bottom:-1rem;
     }
     #title-header h1 {
         display: flex;
@@ -96,7 +98,8 @@
         width:100%;
         background:white;
         border-radius:.7rem;
-        box-shadow:.2rem .2rem 0 rgba(0,0,0,0.2);
+        box-shadow:.1rem .1rem 0 black;
+        border:1px solid black;
         gap:.5rem;
         padding:1rem;
     }

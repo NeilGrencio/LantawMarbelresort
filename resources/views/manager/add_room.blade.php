@@ -133,7 +133,7 @@
         width:100%;
         height: auto;
         padding:1rem;
-        margin-left:15rem;
+        margin-left:12rem;
     }
     #title-container{
         display: flex;
@@ -158,6 +158,11 @@
         margin-left: auto;
         right: 1rem;
         cursor: pointer;
+        border-radius:.7rem;
+        box-shadow:.1rem .1rem 0 black;
+        border:1px solid black;
+        gap:.5rem;
+        padding:1rem;
     }
     .form-container {
         display: flex;
@@ -167,10 +172,12 @@
         padding:1rem;
         border: 1px solid #ccc;
         border-radius: 1rem;
-        padding: 1rem;
         background-color: #f9f9f9;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        gap:1rem;
+        border-radius:.7rem;
+        box-shadow:.1rem .1rem 0 black;
+        border:1px solid black;
+        gap:.5rem;
+        padding:1rem;
     }
     .room-card {
         display: flex;

@@ -64,7 +64,7 @@
         width:100%;
         height: auto;
         padding:1rem;
-        margin-left:15rem;
+        margin-left:12rem;
     }
     #title-container{
         display: flex;
@@ -76,13 +76,17 @@
         align-content: center;
         align-items: center;
         gap: 1rem;
+        font-size: .8rem;
+        margin-bottom:-1rem;
     }
     #form-container{
         display:flex;
         flex-direction: column;
         background:white;
         padding:1rem;
-        border-radius:2rem;
+        border-radius:.7rem;
+        box-shadow: .1rem .1rem 0 black;
+        border:1px solid black;
         gap:1rem;
     }
     label{
@@ -92,7 +96,7 @@
     input{
         display:flex;
         padding:.5rem;
-        border-radius:.7rem;
+        border-radius:.4rem;
         width:100%;
         padding:.5rem;
     }
