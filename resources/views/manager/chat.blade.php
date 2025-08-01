@@ -116,7 +116,7 @@
         width:100%;
         height: auto;
         padding:.5rem;
-        margin-left:15rem;
+        margin-left:12rem;
         gap:1rem;   
     }
     #title-header{
