@@ -21,7 +21,7 @@ use App\Models\CheckTable;
 use App\Models\RoomBookTable;
 use App\Models\CottageBookTable;
 use App\Models\ChargeTable;
-
+use Illuminate\Types\Relations\Car;
 
 class BookingController extends Controller
 {
@@ -753,7 +753,7 @@ class BookingController extends Controller
     public function checkInBooking(Request $request, $bookingID)
     {
         $today = Carbon::now()->format('m/d/Y');
-
+        $todayDB = Carbon::now()->format('Y-m-d');
         $booking = BookingTable::where('bookingID', $bookingID)
             ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
             ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
@@ -820,7 +820,7 @@ class BookingController extends Controller
             $newTotalPaid = PaymentTable::where('billingID', $billing->billingID)->first();
             $newTotalPaidAmount = $newTotalPaid ? $newTotalPaid->totaltender : 0;
 
-            $billing->totalamount -= $validated['payment'];
+            $billing->totalamount = $validated['payment'];
 
             if ($billing->totalamount < 0) {
                 $billing->totalamount = 0;

@@ -82,7 +82,7 @@
         padding:1rem;
         width:100%;
         transition: width 0.3s ease-in-out;
-        margin-left:15rem;
+        margin-left:12rem;
     }
     #layout-header {
         display: flex;
@@ -134,23 +134,22 @@
         align-items: center;
     }
     #cottage-container{
-        width:25rem;
-        height:30rem;
+        width:20rem;
+        height:23rem;
         display:flex;
         flex-direction:column;
         padding:1rem;
-        border-radius:2rem;
-        /*background: #fff3de; */
+        border-radius:.9rem;
         background:white;
-        box-shadow: 0.1rem .3rem 0rem rgba(0,0,0);
+        box-shadow: .1rem .2em 0rem black;
         border:solid 1px black;
     }
     #image-container img{
         width:100%;
-        height:15rem;
+        height:10rem;
         background:brown;
-        border-top-right-radius: 2rem;
-        border-top-left-radius: 2rem;
+        border-top-right-radius: .7rem;
+        border-top-left-radius: .7rem;
         object-fit: cover;
     }
     #cottage-information{
@@ -177,8 +176,8 @@
     }
     button{
         position: relative;
-        width:9rem;
-        height:4rem;
+        width:auto;
+        height:2rem;
         color:white;
         background:black;
         border:unset;
