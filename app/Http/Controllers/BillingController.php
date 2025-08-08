@@ -21,6 +21,7 @@ class BillingController extends Controller
                         'billing.totalamount',)
                 ->get();
 
+                dd(session('username'));
         return view('receptionist.billing', compact('payments'));
     }
 }

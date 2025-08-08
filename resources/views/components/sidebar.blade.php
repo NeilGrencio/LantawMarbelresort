@@ -216,14 +216,16 @@
             <ul>
                 <li><p data-url="view_profile">View Profile</p></li>
                 <li><p data-url="settings">Settings</p></li>
-                <li><p data-url="darkmode">Darken</p></li>
-                <li><p data-url="log_out">Log Out</p></li>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" style="all:unset; cursor:pointer; font-size:12px;">Log Out</button>
+                </form>
             </ul>
         </div>
 
         <div id="profile-container">
-            <img src="{{ asset("storage/" . session('avatar') ?? 'images/profile-trial.jpg') }}" alt="Profile Avatar">
-            <h2>{{session('username')}}</h2>
+            <img src="{{ asset('storage/' . session('avatar')) }}" alt="Avatar" />
+            <h2>{{ session('username') }}</h2>
             <i class="fas fa-chevron-down fa-lg"></i>
         </div>
     </div>

@@ -25,6 +25,7 @@ Route::get('/', function() {
 })->name('landingpage');
 
 Route::match(['get', 'post'], 'auth/login', [LoginController::class, 'login'])->name('login');
+Route::post('auth/logout', [LoginController::class, 'logout'])->name('logout');
 
         Route::get('manager/dashboard', function() {
             return view('manager/dashboard');

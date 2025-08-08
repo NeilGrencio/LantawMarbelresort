@@ -53,13 +53,14 @@ class LoginController extends Controller
                 ])->onlyInput('username');
             }
 
-            /* Set session
+            // Set session
             $request->session()->put('logged_in', true);
             $request->session()->put('user_id', $user->userID);
             $request->session()->put('username', $user->username);
             $request->session()->put('role', $staff->role);
             $request->session()->put('avatar', $staff->avatar);
-            */
+            $request->session()->regenerate();
+            
 
             // User Agent Info
             $agent = new \Jenssegers\Agent\Agent();
@@ -100,19 +101,28 @@ class LoginController extends Controller
     {
         $userID = session()->get('user_id');
 
-        $session = SessionLogTable::where('userID', $userID)
-                    ->latest('sessioncreated')
-                    ->first();
+        $latestSession = SessionLogTable::where('userID', $userID)
+                            ->latest('sessioncreated')
+                            ->first();
 
-        if ($session && now()->greaterThanOrEqualTo($session->sessionexpired)) {
+        if ($latestSession && now()->greaterThanOrEqualTo($latestSession->sessionexpired)) {
             $request->session()->flush();
-            return redirect('auth/userlogin')->with('error', 'Session expired. You have been logged out.');
+            return redirect('auth/login')->with('error', 'Session expired. You have been logged out.');
         }
 
-        if ($session) {
-            $session->loginstatus = 'Logged-out';
-            $session->save();
-        }
+        $agent = new \Jenssegers\Agent\Agent();
+        $browser = $agent->browser();
+        $browserVersion = $agent->version($browser);
+        $platform = $agent->platform();
+        $platformVersion = $agent->version($platform);
+        
+        SessionLogTable::create([
+            'userID' => $userID,
+            'sessioncreated' => now(),
+            'sessionexpired' => now(),
+            'loginstatus' => 'Logged-out',
+            'useragent' => "$browser $browserVersion on $platform $platformVersion",
+        ]);
 
         Auth::logout();
 
@@ -120,6 +130,8 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
         $request->session()->flush();
 
-        return redirect('auth/userlogin')->with('success', 'Logged out successfully.');
+        return redirect('auth/login')->with('success', 'Logged out successfully.');
     }
+
+
 }

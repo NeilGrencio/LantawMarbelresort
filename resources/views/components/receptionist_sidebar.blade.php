@@ -61,43 +61,42 @@
             justify-content: start;
             font-size:10px;
         }
-        #profile-container{
+        #profile-container {
             display: flex;
             flex-direction: row;
-            gap:1rem;
-            padding:.2rem;
-            height:100%;
-            color:white;
-            align-items:center;
+            gap: 0.5rem;
+            align-items: center;
+            color: white;
             text-align: center;
-            cursor:pointer;
-            position:absolute;
-            bottom:1rem;
-            margin-top:auto;
-            font-size:7px;
+            cursor: pointer;
+            margin-top: auto;
+            font-size: 11px;
+            padding: 0.4rem 0;
+            margin-bottom:1rem;
         }
-        #profile-container img{
-            height: 100%;
-            width:1.5rem;
+        #profile-container img {
+            width: 2.5rem;
+            height: 2.5rem;
             border-radius: 50%;
             object-fit: cover;
         }
-
         .drop-down {
-            position: relative;
             display: none;
             flex-direction: column;
             width: 100%;
             z-index: 1000;
-            align-items:center;
-            justify-content: center;
-            text-align:start;
-            padding:.2rem;
-            gap:.5rem;
+            align-items: flex-start;
+            padding: 0.3rem;
+            font-size: 11px;
         }
-        .drop-down ul   {
+        .drop-down ul {
             width: 100%;
-            font-size:12px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .drop-down li {
+            padding: 0.2rem 0;
         }
         .logo-container img{
             object-fit: contain;
@@ -224,14 +223,16 @@
             <ul>
                 <li><p data-url="view_profile">View Profile</p></li>
                 <li><p data-url="settings">Settings</p></li>
-                <li><p data-url="darkmode">Darken</p></li>
-                <li><p data-url="log_out">Log Out</p></li>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" style="all:unset; cursor:pointer; font-size:12px;">Log Out</button>
+                </form>
             </ul>
         </div>
 
         <div id="profile-container">
-            <img src="{{ asset("storage/" . session('avatar') ?? 'images/profile-trial.jpg') }}" alt="Profile Avatar">
-            <h2>{{session('username')}}</h2>
+            <img src="{{ asset('storage/' . session('avatar')) }}" alt="Avatar" />
+            <h2>{{ session('username') }}</h2>
             <i class="fas fa-chevron-down fa-lg"></i>
         </div>
     </div>
