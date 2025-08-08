@@ -811,7 +811,7 @@ class BookingController extends Controller
             $payment = PaymentTable::create([
                 'totaltender' => $validated['amount_paid'],
                 'totalchange' => $change,
-                'datepayment' => $today,
+                'datepayment' => $todayDB,
                 'guestID' => $booking->guestID,
                 'billingID' => $billing->billingID,
             ]);
@@ -819,8 +819,9 @@ class BookingController extends Controller
             // Check if billing is fully paid
             $newTotalPaid = PaymentTable::where('billingID', $billing->billingID)->first();
             $newTotalPaidAmount = $newTotalPaid ? $newTotalPaid->totaltender : 0;
-
-            $billing->totalamount = $validated['payment'];
+            
+            $billingtotal = (int) $billing->totalamount - (int) $validated['payment'];
+            $billing->totalamount = $billingtotal;
 
             if ($billing->totalamount < 0) {
                 $billing->totalamount = 0;
@@ -828,7 +829,7 @@ class BookingController extends Controller
 
             $billing->save();
 
-            if ($newTotalPaidAmount + $validated['payment'] >= $billing->totalamount) {
+            if ((int) $newTotalPaidAmount + (int) $validated['payment'] >= $billing->totalamount) {
                 $billing->status = 'Paid';
                 $billing->save();
             }
@@ -839,7 +840,7 @@ class BookingController extends Controller
 
             // Create check record
             CheckTable::create([
-                'date' => $today,
+                'date' => $todayDB,
                 'status' => 'Checked In',
                 'guestID' => $booking->guestID,
                 'bookingID' => $bookingID,
@@ -1035,4 +1036,64 @@ class BookingController extends Controller
         return response()->json($events);
     }
 
+    public function walkinBooking(Request $request){
+        $rooms = RoomTable::where('status', 'Available')
+            ->orWhere('status', 'Booked')
+            ->get();
+
+        $cottages = CottageTable::where('status', 'Available')
+            ->orWhere('status', 'Booked')
+            ->get();
+        
+        $amenities = AmenityTable::where('amenityname', 'Kiddy Pool')
+            ->orWhere('status', 'Booked')
+            ->get();
+
+        if($request->isMethod('get')){
+            return view('receptionist/walk-booking', compact('rooms', 'cottages', 'amenities'));
+        }
+
+        if($request->isMethod('post')){
+            $validated = $request->validate([
+            'room' => 'nullable|array',
+            'room.*' => 'integer|exists:rooms,roomID',
+            'cottage' => 'nullable|array',
+            'cottage.*' => 'integer|exists:cottages,cottageID',
+            'amenity' => 'nullable|array',
+            'amenity.*' => 'integer|exists:amenities,amenityID',
+            'guestamount' => 'required|integer|min:1',
+            'amenity_adult_guest' => 'required|integer|min:0',
+            'amenity_child_guest' => 'required|integer|min:0',
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'checkin' => 'required|date',
+            'checkout' => 'required|date|after_or_equal:checkin',
+        ]);
+
+        // Validate at least one item is selected
+        if (empty($validated['room']) && empty($validated['cottage']) && empty($validated['amenity'])) {
+            return redirect()->back()
+                ->with('error', 'Please select at least a room, a cottage, or an amenity.')
+                ->withInput();
+        }
+
+        // Check availability for all selected items
+        $availabilityError = $this->checkAvailability($validated);
+        if ($availabilityError) {
+            return redirect()->back()->with('error', $availabilityError)->withInput();
+        }
+
+        // Calculate prices
+        $prices = $this->calculatePrices($validated);
+
+        // Store booking data in session with proper UUID
+        $bookingSessionID = (string) Str::uuid();
+        session([
+            'booking_data_' . $bookingSessionID => $validated,
+            'booking_prices_' . $bookingSessionID => $prices,
+        ]);
+
+        return redirect()->route('receptionist.booking_receipt', ['sessionID' => $bookingSessionID]);
+        }
+    }
 }

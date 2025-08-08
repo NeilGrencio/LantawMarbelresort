@@ -14,7 +14,7 @@
         @include('components.receptionist_sidebar')
     <div id="main-layout">
         <div id="layout-header">
-            <h1>Booking</h1>
+            <h1>Walk-In Booking</h1>
         </div>
             <form action="{{ url('receptionist/submit_booking') }}" method="POST" enctype="multipart/form-data">
                 @csrf
@@ -187,7 +187,7 @@
     </div>
 </body>
 <style>
-    #booking{color:orange;}
+    #walk-booking{color:orange;}
     #layout{
         display: flex;
         flex-direction: row;
@@ -199,7 +199,7 @@
         padding:1rem;
         width:85%;
         transition: width 0.3s ease-in-out;
-        margin-left:15rem;
+        margin-left:12rem;
         margin-right:.7rem;
         overflow-y: hidden;
         overflow-x: hidden;
@@ -564,7 +564,7 @@
         }
         // ===== Flatpickr Setup =====
         const today = new Date();
-        today.setDate(today.getDate() + 1);
+        today.setDate(today.getDate());
 
         const maxCheckin = new Date(today);
         maxCheckin.setMonth(maxCheckin.getMonth() + 1);

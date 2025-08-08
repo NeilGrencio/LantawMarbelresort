@@ -16,6 +16,7 @@ use App\Services\SemaphoreService;
 use App\Models\UserTable;
 use App\Models\GuestTable;
 use App\Models\StaffTable;
+use App\Models\User;
 
 class ManageUserController extends Controller
 {
@@ -132,7 +133,7 @@ class ManageUserController extends Controller
 
             DB::commit();
 
-            return redirect('manager/user_list')->with('success', 'Staff user added successfully');
+            return redirect()->route('manager.manage_user')->with('success', 'Staff user added successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();

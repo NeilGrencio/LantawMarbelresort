@@ -18,12 +18,12 @@
             display: flex;
             flex-direction: column;
             height:100%;
-            gap:1rem;
+            gap:.5rem;
             color:#ffffff;
             padding:.5rem;
             cursor:pointer;
             transition: width 0.3s ease-in;
-            width: 14.5rem;
+            width: 12rem;
             background: rgb(0, 13, 49);
             z-index:1000;
             border-top-right-radius:1rem;
@@ -34,8 +34,11 @@
             height:2rem;
             gap:.5rem;
             cursor: pointer;
-            width:14rem;
+            width:12rem;
             padding-left:.5rem;
+        }
+        #dashboard{
+            margin-top:1rem;
         }
         .sidebar-item{transition:all .3s ease-in; gap:.5rem;}
         .sidebar-item:hover{
@@ -45,49 +48,43 @@
         .icons{
             display: flex;
             gap:.7rem;
-            width:4rem;
+            width:3rem;
             align-items: center;
             text-align: center;
             justify-content: center;
-            font-size:.7rem;
-        }
-        #sidebar :nth-child(5), #sidebar :nth-child(8) {
-            border-top:solid 1px #919191;
-        }
-        #sidebar :nth-child(4), #sidebar :nth-child(7), #sidebar :nth-child(11) {
-            margin-bottom:1rem;
-            border-bottom:solid 1px #919191;
+            font-size:.6rem;
         }
         .label {
             display: inline;
             text-align: center;
             align-items: center;
             justify-content: start;
-            font-size:13px;
+            font-size:10px;
         }
         #profile-container{
             display: flex;
             flex-direction: row;
             gap:1rem;
+            padding:.2rem;
             height:100%;
             color:white;
-            align-content:center;
             align-items:center;
             text-align: center;
             cursor:pointer;
-            position:relative;
+            position:absolute;
             bottom:1rem;
             margin-top:auto;
-            font-size:12px;
+            font-size:7px;
         }
         #profile-container img{
             height: 100%;
-            width:3rem;
+            width:1.5rem;
             border-radius: 50%;
             object-fit: cover;
         }
 
         .drop-down {
+            position: relative;
             display: none;
             flex-direction: column;
             width: 100%;
@@ -130,20 +127,20 @@
                 <span class="label">Booking</span>
             </div>
         </div>
+        <div id="walk-booking" class="sidebar-item" data-url="{{ url('receptionist/walk-booking') }}">
+            <div class="icons">
+               <i class="fas fa-hotel fa-2x"></i>
+            </div>
+            <div class="label">
+                <span class="label">Walk-In Book</span>
+            </div>
+        </div>
         <div id="check" class="sidebar-item" data-url="{{ url('receptionist/check-in-out') }}">
             <div class="icons">
                <i class="fas fa-door-open fa-2x"></i>
             </div>
             <div class="label">
                 <span class="label">Check-in/out</span>
-            </div>
-        </div>
-        <div id="inquiry" class="sidebar-item" data-url="{{ url('receptionist/chat') }}">
-            <div class="icons">
-                <i class="fa-regular fa-message fa-2x"></i>
-            </div>
-            <div class="label">
-                <span>Inquiry</span>
             </div>
         </div>
 
@@ -155,6 +152,16 @@
                 <span >Day Tour</span>
             </div>
         </div>
+
+        <div id="inquiry" class="sidebar-item" data-url="{{ url('receptionist/chat') }}">
+            <div class="icons">
+                <i class="fa-regular fa-message fa-2x"></i>
+            </div>
+            <div class="label">
+                <span>Inquiry</span>
+            </div>
+        </div>
+
         <div id="guest" class="sidebar-item" data-url="{{ url('manager/guest_list') }}">
             <div class="icons">
                 <i class="fas fa-person-walking-luggage fa-2x"></i>
@@ -163,12 +170,12 @@
                 <span >Guests</span>
             </div>
         </div>
-        <div id="session" class="sidebar-item" data-url="{{ url('manager/session_logs') }}">
+        <div id="session" class="sidebar-item" data-url="{{ url('receptionist/billing') }}">
             <div class="icons">
-            <i class="fas fa-chart-line fa-2x"></i>
+            <i class="fa-regular fa-money-bill-1 fa-2x"></i>
             </div>
             <div class="label">
-                <span >Session Logs</span>
+                <span>Billing</span>
             </div>
         </div>
 

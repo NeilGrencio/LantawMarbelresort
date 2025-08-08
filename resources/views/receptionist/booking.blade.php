@@ -16,10 +16,15 @@
         <div id="main-layout">
             <div id="layout-header">
                 <h1>Booking</h1>
-                <div id="add-container">
-                    <h2 id="add-text">Create Booking</h2>
+                <div class="add-action">
+                    <h2>Walk In Booking</h2>
+                    <i class="fas fa-hotel fa-3x" data-url="{{ url('receptionist/walk-booking') }}" style="cursor:pointer;"></i>
+                </div>
+                <div class="add-action">
+                    <h2>Create Booking</h2>
                     <i id="add-menu" class="fas fa-plus-circle fa-3x" data-url="{{ url('receptionist/create_booking') }}" style="cursor:pointer;"></i>
                 </div>
+
             </div>
             <div class="booking-view">
                 <div class="room-container">
@@ -99,7 +104,7 @@
                         @foreach($bookingconfirmed as $confirmed)
                             <div class="booking-card" data-status="Confirmed" data-url="{{url('receptionist/view_booking/' . $confirmed->bookingID)}}">
                                 <h3>{{ $confirmed->fullname }}</h3>
-                                <p>Check-in: {{ $confirmed->boookingstart }}</p>
+                                <p>Check-in: {{ $confirmed->bookingstart }}</p>
                                 <p>Check-out: {{ $confirmed->bookingend }}</p>
                             </div>
                         @endforeach
@@ -114,7 +119,6 @@
     </div>
 </body>
 <style>
-    /* Your existing styles here */
     #booking{color:orange;}
     #layout{
         display: flex;
@@ -127,7 +131,7 @@
         padding:1rem;
         width:100%;
         transition: width 0.3s ease-in-out;
-        margin-left:15rem;
+        margin-left:12rem;
     } 
     #layout-header{
         display: flex;

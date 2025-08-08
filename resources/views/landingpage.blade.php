@@ -88,7 +88,7 @@
     <div id="toolbar">
         <img src="{{asset('images/logo.png')}}"/>
         <h3>Lantaw Marbel</h3>
-        <button>Log In</button>
+        <button id="loginbutton" data-url="{{url('auth/login')}}">Log In</button>
     </div>
     <div class="parent-container">
         <div id="layout-container">
@@ -115,4 +115,14 @@
     </div>
     
 </body>
+<script>
+    const buttonlogin = document.getElementById('loginbutton');
+
+    if(buttonlogin){
+        buttonlogin.addEventListener('click', function(){
+            let url = this.dataset.url;
+            window.location.href = url;
+        });
+    };
+</script>
 </html>

@@ -26,7 +26,7 @@
         width:85%;
         gap:.5rem;
         transition: width 0.3s ease-in-out;
-        margin-left:15rem;
+        margin-left:12rem;
         margin-right:.7rem;
         overflow-y: hidden;
         overflow-x: hidden;

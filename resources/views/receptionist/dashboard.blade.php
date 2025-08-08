@@ -87,6 +87,11 @@
                 </div>
             </div>
         </div>
+        @if (session('success'))
+            <div class="alert-message">
+                <h2>{{ session('success') }}</h2>
+            </div>
+        @endif
     </div>
 </body>
 
@@ -98,7 +103,7 @@
     }
     #main-layout{
         padding:1rem;
-        margin-left:15rem;
+        margin-left:12rem;
         display:flex;
         flex-direction: row;
         gap:1rem;
@@ -124,10 +129,10 @@
         display:flex;
         flex-direction: row;
         flex-wrap: wrap;
-        gap:1.5rem;
+        gap:1rem;
     }
     .card{
-        width:23rem;
+        width:19rem;
         height:5rem;
         display:flex;
         position: relative;
@@ -173,13 +178,45 @@
     #calendar{
         height:50%;
         width:100%;
-        font-size:.6rem;
+        font-size:.4rem;
+    }
+
+    .alert-message{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: fixed;
+        right: 50%;
+        transform: translate(50%, 0);
+        bottom: 1rem;
+        height: fit-content;
+        min-height: 10rem;
+        max-height: 30rem;
+        width: fit-content;
+        min-width: 20rem;
+        max-width: 90vw;
+        background: rgb(255, 255, 255);
+        z-index: 1000;
+        border-radius: 1rem;
+        box-shadow: 0 0 1rem rgba(0,0,0,0.5);
+        margin: auto;
+        padding: 1rem;
+        flex-wrap: wrap;
+        word-wrap: break-word;
     }
 </style>
 
 <script>
     document.getElementById('dashboard').style = "color:#F78A21;"
     document.addEventListener('DOMContentLoaded', function () {
+        const message = document.querySelector('.alert-message');
+        if (message) {
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3500);
+        }
         let calendarEl = document.getElementById('calendar');
         if (calendarEl) {
             let calendar = new FullCalendar.Calendar(calendarEl, {
@@ -192,14 +229,17 @@
                     window.location.href = `/receptionist/booking`;
                 },
                 eventDidMount: function(info) {
-                    info.el.style.height = '2rem';
-                    info.el.style.lineHeight = '2rem';
+                    info.el.style.height = '1rem';
+                    info.el.style.lineHeight = '1rem';
                     info.el.style.overflow = 'hidden';
-                    info.el.style.whiteSpace = 'nowrap';
+                    info.el.style.whiteSpace = 'wrap';
                     info.el.style.textOverflow = 'ellipsis';
                     info.el.style.border = '1px solid black';
-                    info.el.style.boxShadow = '.1rem .1rem 0 black';
-                    info.el.style.fontSize = '.7rem';
+                    info.el.style.fontSize = '.4rem';
+
+                    info.el.style.zIndex = '999';
+                    info.el.style.position = 'relative';
+                    info.el.style.marginTop = '-.5rem';
                 },
             });
 

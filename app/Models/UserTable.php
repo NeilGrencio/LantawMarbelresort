@@ -18,6 +18,15 @@ class UserTable extends Model
     ];
 
     protected $hidden   = ['password'];
+    
+    public function getAuthIdentifierName()
+    {
+        return 'username';
+    }
+    public function staff()
+    {
+        return $this->hasOne(StaffTable::class, 'userID'); // foreign key on staff table
+    }
 }
 
 
