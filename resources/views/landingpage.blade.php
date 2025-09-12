@@ -5,44 +5,58 @@
     <title>Lantaw Marbel ORMS</title>
     <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
-    <style> 
+    <style>
     *{box-sizing:border-box;}
     body{
         margin:0;
         padding:0;
-        /*background:rgb(255, 182, 47);*/
         background:white;
-        font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif, Helvetica, sans-serif;
+        font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     }
     #toolbar{
         display: flex;
         width:100%;
         height:3rem;
-        padding:0 2rem 0 2rem;
+        padding:0 2rem;
         background:black;
         color:white;
         align-items:center;
-        gap:2rem;
+        gap:1rem;
     }
     #toolbar img{
         object-fit: cover;
         height:100%;
     }
+    #toolbar h3 {
+        margin: 0;
+    }
+    #toolbar .spacer {
+        flex:1; /* pushes buttons to the right */
+    }
     #toolbar button{
-        right: 1;
-        margin-left: auto;
         height:2rem;
-        width:6rem;
-        border: solid 2px orange;
+        padding:0 1rem;
+        border-radius:1rem;
         background:none;
         color:white;
-        border-radius:1rem;
-        transition:background 0.2s ease-in;
+        font-weight:500;
+        transition:all 0.2s ease-in;
     }
-    #toolbar button:hover{
-        cursor:pointer;
-        background:white;
+    #loginbutton {
+        border: 2px solid orange;
+    }
+    #loginbutton:hover{
+        background:orange;
         color:black;
+        cursor:pointer;
+    }
+    #downloadbutton {
+        border: 2px solid green;
+    }
+    #downloadbutton:hover {
+        background:green;
+        color:white;
+        cursor:pointer;
     }
     .parent-container{
         display:flex;
@@ -71,14 +85,12 @@
         flex-direction: column;
         align-items:center;
         justify-content: center;
-        right:1;
-        margin-left:left;
     }
     #layout-container h1{
         margin:0;
         font-size: 90px;
         word-wrap:break-word;
-        justify-content: center;
+        text-align:center;
         color: white;
         text-shadow: 1rem 0px rgba(0, 0, 0, 0.5);
     }
@@ -88,41 +100,39 @@
     <div id="toolbar">
         <img src="{{asset('images/logo.png')}}"/>
         <h3>Lantaw Marbel</h3>
-        <button id="loginbutton" data-url="{{url('auth/login')}}">Log In</button>
+        <div class="spacer"></div>
+        <button id="downloadbutton" data-url="https://lantawmarbelresort.site/public/app-debug.apk">
+            <span>Download App</span>
+        </button>
+        <button id="loginbutton" data-url="{{url('auth/login')}}">
+            <span>Log In</span>
+        </button>
     </div>
     <div class="parent-container">
         <div id="layout-container">
             <img src="{{asset('images/logo.png')}}"/>
-
             <div>
-                <h2> Welcome to the </h2>
-                <h1>LANTAW MARBEL</h1> 
+                <h2>Welcome to the</h2>
+                <h1>LANTAW MARBEL</h1>
                 <h1>ORMS</h1>
-                <p>This is a resort management system built specifically for lantaw-marbel</p>
+                <p>This is a resort management system built specifically for Lantaw-Marbel</p>
             </div>
-        </div> 
-    </div>
-    <div class="parent-container" style="background:rgb(255, 182, 47);">
-        <div>
-
-        </div>
-        <div>
-            
-        </div>
-        <div>
-            
         </div>
     </div>
-    
 </body>
 <script>
     const buttonlogin = document.getElementById('loginbutton');
-
     if(buttonlogin){
         buttonlogin.addEventListener('click', function(){
-            let url = this.dataset.url;
-            window.location.href = url;
+            window.location.href = this.dataset.url;
         });
-    };
+    }
+
+    const buttondownload = document.getElementById('downloadbutton');
+    if(buttondownload){
+        buttondownload.addEventListener('click', function(){
+            window.location.href = this.dataset.url;
+        });
+    }
 </script>
 </html>

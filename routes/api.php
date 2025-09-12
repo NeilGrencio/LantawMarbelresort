@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomMobile;
+use App\Http\Controllers\Api\AmenityController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,5 +22,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // Mobile API routes
 Route::prefix('mobile')->group(function () {
-    Route::get('rooms', [RoomMobile::class, 'roomList']);
+    Route::get('/rooms', [RoomMobile::class, 'roomList']);
+    Route::get('/amenities', [AmenityController::class, 'index']);
 });
