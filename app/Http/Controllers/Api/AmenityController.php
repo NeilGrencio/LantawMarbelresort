@@ -11,13 +11,10 @@ class AmenityController extends Controller
 
     public function index()
     {
-$amenities = AmenityTable::all()->map(function ($amenity) {
-    $amenity->image = url('uploads/' . $amenity->image);
-    return $amenity;
-});
-        return response()->json([
-            'status' => 'success',
-            'data' => $amenities
-        ], 200);
+        $amenities = AmenityTable::all()->map(function ($amenity) {
+            $amenity->image = url('uploads/' . $amenity->image);
+            return $amenity;
+        });
+        return response()->json($amenities);
     }
 }

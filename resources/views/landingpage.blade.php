@@ -101,7 +101,7 @@
         <img src="{{asset('images/logo.png')}}"/>
         <h3>Lantaw Marbel</h3>
         <div class="spacer"></div>
-        <button id="downloadbutton" data-url="https://lantawmarbelresort.site/public/app-debug.apk">
+        <button id="downloadbutton" data-url="https://lantawmarbelresort.site/app-debug.apk">
             <span>Download App</span>
         </button>
         <button id="loginbutton" data-url="{{url('auth/login')}}">
