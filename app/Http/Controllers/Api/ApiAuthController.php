@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log; // <-- Add this
 use App\Models\User;
 use App\Models\GuestTable;
+use Illuminate\Support\Facades\Validator;
 
 class ApiAuthController extends Controller
 {
