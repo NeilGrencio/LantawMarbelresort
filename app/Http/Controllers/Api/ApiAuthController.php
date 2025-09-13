@@ -153,13 +153,13 @@ class ApiAuthController extends Controller
             ], 401);
         }
 
-        $token = $user->createToken('api_token')->plainTextToken;
+        // $token = $user->createToken('api_token')->plainTextToken;
         Log::info('Login successful', ['user_id' => $user->id]);
 
         return response()->json([
             'success'      => true,
             'message'      => 'Login successful',
-            'access_token' => $token,
+            // 'access_token' => $token,
             'token_type'   => 'Bearer',
             'user'         => $user,
             'guest'        => $user->guest ?? null
