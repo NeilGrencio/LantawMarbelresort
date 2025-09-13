@@ -17,6 +17,7 @@ use App\Http\Controllers\RoomMobile;
 use App\Http\Controllers\DayTourController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\Api\AmenityController;
+use App\Http\Controllers\Api\MenuController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -237,6 +238,13 @@ Route::get('receptionist/sendsmtp', [ManageUserController::class, 'send']);
 //For Mobile
 // Route::get('mobile/rooms', [RoomMobile::class, 'roomList']);
 
-    Route::get('mobile/rooms', [RoomMobile::class, 'roomList']);
-    Route::get('mobile/amenities', [AmenityController::class, 'index']);
+    use App\Http\Controllers\Api\ApiAuthController;
+
+// Route::post('mobile/signup', [ApiAuthController::class, 'signup']);
+// Route::post('mobile/login', [ApiAuthController::class, 'login']);
+
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::post('mobile/logout', [ApiAuthController::class, 'logout']);
+// });
+
 require __DIR__ . '/auth.php';

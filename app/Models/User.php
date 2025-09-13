@@ -7,10 +7,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-   protected $table = 'users';
+    protected $table = 'users';
 
     protected $fillable = [
-        'username', 'password', 'status'
+        'username',
+        'password',
+        'status'
     ];
 
     protected $hidden = [
@@ -21,5 +23,9 @@ class User extends Authenticatable
     public function getAuthIdentifierName()
     {
         return 'username';
+    }
+    public function guest()
+    {
+        return $this->hasOne(GuestTable::class, 'userID', 'id');
     }
 }
