@@ -144,7 +144,7 @@ class ApiAuthController extends Controller
         if (!Hash::check($validatedData['password'], $user->password)) {
             Log::warning('Login failed - password mismatch', [
                 'username' => $validatedData['username'],
-                'input_password' => $validatedData['password'],
+                'input_password' =>Hash::make($validatedData['password']),
                 'stored_hash' => $user->password
             ]);
             return response()->json([
