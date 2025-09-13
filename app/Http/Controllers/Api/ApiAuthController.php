@@ -16,7 +16,8 @@ class ApiAuthController extends Controller
     // Signup
     public function signup(Request $request)
     {
-        $validatedData = $request->validate([
+        Log::info('Signup request received', ['headers' => $request->headers->all()]);
+        $validator = Validator::make($request->all(), [
             'username'  => 'required|string|min:5|max:20|unique:users,username',
             'password'  => [
                 'required',
@@ -33,10 +34,16 @@ class ApiAuthController extends Controller
             'birthday'  => 'nullable|date',
             'validID'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'avatar'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ], [
-            'password.regex' => 'Password must include uppercase, lowercase, number, and special character.',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $validatedData = $validator->validated();
         DB::beginTransaction();
 
         try {
