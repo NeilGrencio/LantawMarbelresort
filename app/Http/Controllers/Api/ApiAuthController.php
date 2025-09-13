@@ -29,7 +29,7 @@ class ApiAuthController extends Controller
             'cpassword' => 'required|same:password',
             'firstname' => 'required|string|max:255',
             'lastname'  => 'required|string|max:255',
-            'mobilenum' => 'nullable|digits:10',
+            'mobilenum' => 'nullable|string|max:11',
             'email'     => 'nullable|email|unique:guest,email',
             'gender'    => 'required|string|max:255',
             'birthday'  => 'nullable|date',
@@ -107,37 +107,44 @@ class ApiAuthController extends Controller
     }
 
 
-    // Login
     public function login(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'username' => 'required|string',
             'password' => 'required|string'
         ]);
 
-        $user = User::where('username', $request->username)->first();
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $validator->errors()
+            ], 422);
+        }
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            Log::warning('Login failed', ['username' => $request->username]);
+        $validatedData = $validator->validated();
+        $user = User::where('username', $validatedData['username'])->first();
+
+        if (!$user || !Hash::check($validatedData['password'], $user->password)) {
+            Log::warning('Login failed', ['username' => $validatedData['username']]);
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid credentials'
             ], 401);
         }
 
-        // Optional: generate API token
         $token = $user->createToken('api_token')->plainTextToken;
         Log::info('Login successful', ['user_id' => $user->id]);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Login successful',
+            'success'      => true,
+            'message'      => 'Login successful',
             'access_token' => $token,
             'token_type'   => 'Bearer',
             'user'         => $user,
             'guest'        => $user->guest ?? null
         ]);
     }
+
 
     // Logout
     public function logout(Request $request)
