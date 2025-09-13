@@ -106,15 +106,17 @@ class ApiAuthController extends Controller
         }
     }
 
-
     public function login(Request $request)
     {
+        Log::info('Login attempt received', ['request' => $request->all()]);
+
         $validator = Validator::make($request->all(), [
             'username' => 'required|string',
             'password' => 'required|string'
         ]);
 
         if ($validator->fails()) {
+            Log::warning('Login validation failed', ['errors' => $validator->errors()]);
             return response()->json([
                 'success' => false,
                 'errors'  => $validator->errors()
@@ -124,11 +126,30 @@ class ApiAuthController extends Controller
         $validatedData = $validator->validated();
         $user = User::where('username', $validatedData['username'])->first();
 
-        if (!$user || !Hash::check($validatedData['password'], $user->password)) {
-            Log::warning('Login failed', ['username' => $validatedData['username']]);
+        if (!$user) {
+            Log::warning('Login failed - user not found', ['username' => $validatedData['username']]);
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials (user not found)'
+            ], 401);
+        }
+
+        Log::info('User found for login', [
+            'user_id' => $user->id,
+            'username' => $user->username,
+            'hashed_password_in_db' => $user->password,
+            'raw_password_from_request' => $validatedData['password']
+        ]);
+
+        if (!Hash::check($validatedData['password'], $user->password)) {
+            Log::warning('Login failed - password mismatch', [
+                'username' => $validatedData['username'],
+                'input_password' => $validatedData['password'],
+                'stored_hash' => $user->password
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials (password mismatch)'
             ], 401);
         }
 
@@ -144,6 +165,7 @@ class ApiAuthController extends Controller
             'guest'        => $user->guest ?? null
         ]);
     }
+
 
 
     // Logout
