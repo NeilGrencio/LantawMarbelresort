@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\RoomMobile;
+use App\Http\Controllers\Api\BookingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,3 +31,9 @@ Route::get('/menus', [MenuController::class, 'index']);
 Route::post('/signup', [ApiAuthController::class, 'signup']);
 Route::post('/login', [ApiAuthController::class, 'login']);
 
+Route::prefix('bookings')->group(function () {
+    Route::get('/guest/{guestID}', [BookingController::class, 'getByGuest']);
+    Route::get('/{id}', [BookingController::class, 'show']);
+    Route::post('/', [BookingController::class, 'store']);
+    Route::put('/{id}', [BookingController::class, 'update']);
+});
