@@ -18,9 +18,9 @@ use App\Http\Controllers\RoomMobile;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
 
 // Mobile API routes
 Route::get('/rooms', [RoomMobile::class, 'roomList']);
