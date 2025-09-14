@@ -15,15 +15,15 @@ use Illuminate\Support\Facades\Log;
 class BookingController extends Controller
 {
     // ✅ GET all bookings by guestID
- public function getByGuest($guestID)
+public function getByGuest($guestID)
     {
         try {
             $bookings = BookingTable::with([
-                'Guest:id,guestID,firstname,lastname,email',
-                'AmenityBook.amenity:id,amenityID,amenityname',
-                'roomBookings.Room:id,roomID,roomname',
-                'cottageBookings.Cottage:id,cottageID,cottagename',
-                'billing:id,bookingID,totalamount,status'
+                'Guest:guestID,firstname,lastname,email',
+                'AmenityBook.amenity:amenityID,amenityname',
+                'roomBookings.Room:roomID,roomname',
+                'cottageBookings.Cottage:cottageID,cottagename',
+                'billing:bookingID,totalamount,status'
             ])
             ->where('guestID', $guestID)
             ->get([
@@ -51,6 +51,51 @@ class BookingController extends Controller
                 'guestID' => $guestID,
                 'error'   => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'error'   => 'Failed to encode JSON',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ✅ GET booking by bookingID (excluding blobs)
+    public function show($id)
+    {
+        try {
+            $booking = BookingTable::with([
+                'Guest:guestID,firstname,lastname,email',
+                'AmenityBook.amenity:amenityID,amenityname',
+                'roomBookings.Room:roomID,roomname',
+                'cottageBookings.Cottage:cottageID,cottagename',
+                'billing:bookingID,totalamount,status'
+            ])
+            ->select([
+                'bookingID',
+                'guestID',
+                'guestamount',
+                'childguest',
+                'adultguest',
+                'totalprice',
+                'bookingcreated',
+                'bookingstart',
+                'bookingend',
+                'status'
+            ])
+            ->findOrFail($id);
+
+            Log::info("✅ show success", [
+                'bookingID' => $id,
+                'data'      => $booking->toArray(),
+            ]);
+
+            return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
+        } catch (\Exception $e) {
+            Log::error("❌ JSON encoding failed in show()", [
+                'bookingID' => $id,
+                'error'     => $e->getMessage(),
+                'trace'     => $e->getTraceAsString(),
             ]);
 
             return response()->json([
