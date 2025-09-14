@@ -10,48 +10,74 @@ use App\Models\AmenityBookingTable;
 use App\Models\BillingTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
     // ✅ GET all bookings by guestID
     public function getByGuest($guestID)
     {
-        $bookings = BookingTable::with([
-            'Guest',
-            'AmenityBook.amenity',
-            'roomBookings.Room',
-            'cottageBookings.Cottage',
-            'billing.payments',
-            'billing.charge',
-            'billing.guest'
-        ])->where('guestID', $guestID)->get();
+        try {
+            $bookings = BookingTable::with([
+                'Guest',
+                'AmenityBook.amenity',
+                'roomBookings.Room',
+                'cottageBookings.Cottage',
+                'billing.payments',
+                'billing.charge',
+                'billing.guest'
+            ])->where('guestID', $guestID)->get();
 
-        // Force all string values into valid UTF-8
-        $cleaned = $bookings->map(function ($booking) {
-            return collect($booking->toArray())->map(function ($value) {
-                return is_string($value)
-                    ? mb_convert_encoding($value, 'UTF-8', 'UTF-8')
-                    : $value;
-            });
-        });
+            $json = $bookings->toJson(JSON_UNESCAPED_UNICODE);
 
-        return response()->json($cleaned, 200, [], JSON_UNESCAPED_UNICODE);
+            return response($json, 200)
+                ->header('Content-Type', 'application/json; charset=UTF-8');
+        } catch (\Exception $e) {
+            Log::error("❌ JSON encoding failed in getByGuest()", [
+                'guestID' => $guestID,
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'raw'     => isset($bookings) ? $bookings->toArray() : null,
+            ]);
+
+            return response()->json([
+                'error'   => 'Failed to encode JSON',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     // ✅ GET booking by bookingID
     public function show($id)
     {
-        $booking = BookingTable::with([
-            'Guest',
-            'AmenityBook.amenity',
-            'roomBookings.Room',
-            'cottageBookings.Cottage',
-            'billing.payments',
-            'billing.charge',
-            'billing.guest'
-        ])->findOrFail($id);
+        try {
+            $booking = BookingTable::with([
+                'Guest',
+                'AmenityBook.amenity',
+                'roomBookings.Room',
+                'cottageBookings.Cottage',
+                'billing.payments',
+                'billing.charge',
+                'billing.guest'
+            ])->findOrFail($id);
 
-        return response()->json($booking);
+            $json = $booking->toJson(JSON_UNESCAPED_UNICODE);
+
+            return response($json, 200)
+                ->header('Content-Type', 'application/json; charset=UTF-8');
+        } catch (\Exception $e) {
+            Log::error("❌ JSON encoding failed in show()", [
+                'bookingID' => $id,
+                'error'     => $e->getMessage(),
+                'trace'     => $e->getTraceAsString(),
+                'raw'       => isset($booking) ? $booking->toArray() : null,
+            ]);
+
+            return response()->json([
+                'error'   => 'Failed to encode JSON',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     // ✅ POST create booking + related tables
@@ -59,7 +85,6 @@ class BookingController extends Controller
     {
         DB::beginTransaction();
         try {
-            // 1. Create booking
             $booking = BookingTable::create($request->only([
                 'guestamount',
                 'childguest',
@@ -72,7 +97,6 @@ class BookingController extends Controller
                 'guestID'
             ]));
 
-            // 2. Save room bookings
             if ($request->has('rooms')) {
                 foreach ($request->rooms as $roomID) {
                     RoomBookTable::create([
@@ -82,7 +106,6 @@ class BookingController extends Controller
                 }
             }
 
-            // 3. Save cottage bookings
             if ($request->has('cottages')) {
                 foreach ($request->cottages as $cottageID) {
                     CottageBookTable::create([
@@ -92,7 +115,6 @@ class BookingController extends Controller
                 }
             }
 
-            // 4. Save amenity bookings
             if ($request->has('amenities')) {
                 foreach ($request->amenities as $amenity) {
                     AmenityBookingTable::create([
@@ -104,7 +126,6 @@ class BookingController extends Controller
                 }
             }
 
-            // 5. Save billing
             if ($request->has('billing')) {
                 BillingTable::create([
                     'totalamount' => $request->billing['totalamount'],
@@ -116,9 +137,15 @@ class BookingController extends Controller
             }
 
             DB::commit();
+
             return response()->json($booking, 201);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error("❌ Store booking failed", [
+                'request' => $request->all(),
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -141,7 +168,6 @@ class BookingController extends Controller
                 'guestID'
             ]));
 
-            // Update related tables (simple approach: delete & reinsert)
             RoomBookTable::where('bookingID', $id)->delete();
             CottageBookTable::where('bookingID', $id)->delete();
             AmenityBookingTable::where('booking_id', $id)->delete();
@@ -191,6 +217,12 @@ class BookingController extends Controller
             return response()->json($booking);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error("❌ Update booking failed", [
+                'bookingID' => $id,
+                'request'   => $request->all(),
+                'error'     => $e->getMessage(),
+                'trace'     => $e->getTraceAsString(),
+            ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
