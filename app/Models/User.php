@@ -27,6 +27,6 @@ class User extends Authenticatable
     }
     public function guest()
     {
-        return $this->hasOne(GuestTable::class, 'userID');
+        return $this->hasOne(GuestTable::class, 'userID','userID');
     }
 }

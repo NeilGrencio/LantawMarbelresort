@@ -18,6 +18,6 @@ class GuestTable extends Model
     ];
 
     public function Users(){
-        return $this->belongsTo(UserTable::class, 'userID');
+        return $this->belongsTo(User::class, 'userID');
     }
 }
