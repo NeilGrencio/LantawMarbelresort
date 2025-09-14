@@ -8,16 +8,22 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('amenity_booking_table', function (Blueprint $table) {
-            $table->id();
+            $table->id(); // Primary key (auto-increment bigint)
+
             $table->unsignedBigInteger('amenity_id');
             $table->unsignedBigInteger('booking_id');
             $table->date('date');
             $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
             $table->timestamps();
 
-            // Foreign keys (optional if you already have amenities/bookings tables)
-            // $table->foreign('amenity_id')->references('id')->on('amenities')->onDelete('cascade');
-            // $table->foreign('booking_id')->references('id')->on('bookings')->onDelete('cascade');
+            // Foreign keys
+            $table->foreign('amenity_id')
+                  ->references('amenityID')->on('amenities')
+                  ->onDelete('cascade');
+
+            $table->foreign('booking_id')
+                  ->references('bookingID')->on('booking')
+                  ->onDelete('cascade');
         });
     }
 
