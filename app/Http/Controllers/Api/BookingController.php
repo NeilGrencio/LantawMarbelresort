@@ -15,33 +15,42 @@ use Illuminate\Support\Facades\Log;
 class BookingController extends Controller
 {
     // ✅ GET all bookings by guestID
-    public function getByGuest($guestID)
+ public function getByGuest($guestID)
     {
         try {
             $bookings = BookingTable::with([
-                'Guest',
-                'AmenityBook.amenity',
-                'roomBookings.Room',
-                'cottageBookings.Cottage',
-                'billing.payments',
-                'billing.charge',
-                'billing.guest'
-            ])->where('guestID', $guestID)->get();
-
+                'Guest:id,guestID,firstname,lastname,email',
+                'AmenityBook.amenity:id,amenityID,amenityname',
+                'roomBookings.Room:id,roomID,roomname',
+                'cottageBookings.Cottage:id,cottageID,cottagename',
+                'billing:id,bookingID,totalamount,status'
+            ])
+            ->where('guestID', $guestID)
+            ->get([
+                'bookingID',
+                'guestID',
+                'guestamount',
+                'childguest',
+                'adultguest',
+                'totalprice',
+                'bookingcreated',
+                'bookingstart',
+                'bookingend',
+                'status'
+            ]);
 
             Log::info("✅ getByGuest success", [
                 'guestID' => $guestID,
                 'count'   => $bookings->count(),
-                'data'    => $bookings->toArray(),
+                'sample'  => $bookings->take(1)->toArray(), // log only sample to avoid overload
             ]);
 
-        return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
+            return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             Log::error("❌ JSON encoding failed in getByGuest()", [
                 'guestID' => $guestID,
                 'error'   => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
-                'raw'     => isset($bookings) ? $bookings->toArray() : null,
             ]);
 
             return response()->json([
@@ -50,42 +59,6 @@ class BookingController extends Controller
             ], 500);
         }
     }
-
-    // ✅ GET booking by bookingID
-    public function show($id)
-    {
-        try {
-            $booking = BookingTable::with([
-                'Guest',
-                'AmenityBook.amenity',
-                'roomBookings.Room',
-                'cottageBookings.Cottage',
-                'billing.payments',
-                'billing.charge',
-                'billing.guest'
-            ])->findOrFail($id);
-
-            Log::info("✅ show success", [
-                'bookingID' => $id,
-                'data'      => $booking->toArray(),
-            ]);
-
-        return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
-        } catch (\Exception $e) {
-            Log::error("❌ JSON encoding failed in show()", [
-                'bookingID' => $id,
-                'error'     => $e->getMessage(),
-                'trace'     => $e->getTraceAsString(),
-                'raw'       => isset($booking) ? $booking->toArray() : null,
-            ]);
-
-            return response()->json([
-                'error'   => 'Failed to encode JSON',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-
     // ✅ POST create booking + related tables
     public function store(Request $request)
     {
