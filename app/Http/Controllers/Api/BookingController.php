@@ -35,7 +35,7 @@ class BookingController extends Controller
                 'data'    => $bookings->toArray(),
             ]);
 
-return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             Log::error("❌ JSON encoding failed in getByGuest()", [
                 'guestID' => $guestID,
@@ -70,7 +70,7 @@ return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
                 'data'      => $booking->toArray(),
             ]);
 
-return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             Log::error("❌ JSON encoding failed in show()", [
                 'bookingID' => $id,
