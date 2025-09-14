@@ -16,14 +16,6 @@ return new class extends Migration {
             $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
             $table->timestamps();
 
-            // Foreign keys
-            $table->foreign('amenity_id')
-                  ->references('amenityID')->on('amenities')
-                  ->onDelete('cascade');
-
-            $table->foreign('booking_id')
-                  ->references('bookingID')->on('booking')
-                  ->onDelete('cascade');
         });
     }
 
