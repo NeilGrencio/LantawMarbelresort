@@ -18,7 +18,7 @@ class BookingTable extends Model
         return $this->belongsTo(GuestTable::class, 'guestID');
     }
     public function AmenityBook(){
-        return $this->hasMany(AmenityBookingTable::class, 'booking_id');
+        return $this->hasMany(AmenityBookingTable::class, 'booking_id','bookingID');
     }
     public function roomBookings()
     {
