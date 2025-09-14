@@ -30,6 +30,12 @@ class BookingController extends Controller
 
             $json = $bookings->toJson(JSON_UNESCAPED_UNICODE);
 
+            Log::info("✅ getByGuest success", [
+                'guestID' => $guestID,
+                'count'   => $bookings->count(),
+                'data'    => $bookings->toArray(),
+            ]);
+
             return response($json, 200)
                 ->header('Content-Type', 'application/json; charset=UTF-8');
         } catch (\Exception $e) {
@@ -62,6 +68,11 @@ class BookingController extends Controller
             ])->findOrFail($id);
 
             $json = $booking->toJson(JSON_UNESCAPED_UNICODE);
+
+            Log::info("✅ show success", [
+                'bookingID' => $id,
+                'data'      => $booking->toArray(),
+            ]);
 
             return response($json, 200)
                 ->header('Content-Type', 'application/json; charset=UTF-8');
@@ -137,6 +148,11 @@ class BookingController extends Controller
             }
 
             DB::commit();
+
+            Log::info("✅ store success", [
+                'request' => $request->all(),
+                'created' => $booking->toArray(),
+            ]);
 
             return response()->json($booking, 201);
         } catch (\Exception $e) {
@@ -214,6 +230,13 @@ class BookingController extends Controller
             }
 
             DB::commit();
+
+            Log::info("✅ update success", [
+                'bookingID' => $id,
+                'request'   => $request->all(),
+                'updated'   => $booking->toArray(),
+            ]);
+
             return response()->json($booking);
         } catch (\Exception $e) {
             DB::rollBack();
