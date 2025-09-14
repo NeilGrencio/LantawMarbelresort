@@ -10,7 +10,7 @@ class MenuController extends Controller
 {
     public function index()
     {
-        $menus = MenuTable::where('status','available')->map(function ($menu) {
+        $menus = MenuTable::where('status','available')->get()->map(function ($menu) {
             $menu->image = url('uploads/' . $menu->image);
             return $menu;
         });

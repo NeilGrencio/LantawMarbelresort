@@ -11,7 +11,7 @@ use App\Models\RoomTable;
 class RoomMobile extends Controller
 {
     public function roomList(){
-        $rooms = RoomTable::where('status','available');
+        $rooms = RoomTable::where('status','available')->get();
         foreach($rooms as $room){
             $room->image_url = asset('storage/room_images/' . $room->image);
         }
