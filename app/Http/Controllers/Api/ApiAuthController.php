@@ -124,7 +124,7 @@ class ApiAuthController extends Controller
         }
 
         $validatedData = $validator->validated();
-        $user = User::where('username', $validatedData['username'])->first();
+        $user = User::with('guest')->where('username', $validatedData['username'])->first();
 
         if (!$user) {
             Log::warning('Login failed - user not found', ['username' => $validatedData['username']]);
@@ -144,7 +144,7 @@ class ApiAuthController extends Controller
         if (!Hash::check($validatedData['password'], $user->password)) {
             Log::warning('Login failed - password mismatch', [
                 'username' => $validatedData['username'],
-                'input_password' =>Hash::make($validatedData['password']),
+                'input_password' => Hash::make($validatedData['password']),
                 'stored_hash' => $user->password
             ]);
             return response()->json([
@@ -161,8 +161,16 @@ class ApiAuthController extends Controller
             'message'      => 'Login successful',
             // 'access_token' => $token,
             'token_type'   => 'Bearer',
-            'user'         => $user,
-            'guest'        => $user->guest ?? null
+            'user' => [
+                'id' => $user->userid,
+                'username' => $user->username,
+            ],
+            'guest' => $user->guest ? [
+                'guestID' => $user->guest->guestID,
+                'firstname' => $user->guest->firstname,
+                'lastname' => $user->guest->lastname,
+                'email' => $user->guest->email,
+            ] : null
         ]);
     }
 
