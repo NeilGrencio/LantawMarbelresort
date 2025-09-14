@@ -21,7 +21,7 @@ public function getByGuest($guestID)
             $bookings = BookingTable::with([
                 'Guest:guestID,firstname,lastname,email',
                 'AmenityBook.amenity:amenityID,amenityname',
-                'roomBookings.Room:roomID,roomname',
+                'roomBookings.Room:roomID,roomnum',
                 'cottageBookings.Cottage:cottageID,cottagename',
                 'billing:bookingID,totalamount,status'
             ])
