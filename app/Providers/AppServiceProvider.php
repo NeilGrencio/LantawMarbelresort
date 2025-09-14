@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('avatar', Session::get('avatar'));
         });
         if (file_exists(base_path('routes/api.php'))) {
-            Route::prefix('api')
+            Route::prefix('mobile')
                 ->middleware('api')
                 ->group(base_path('routes/api.php'));
         }
