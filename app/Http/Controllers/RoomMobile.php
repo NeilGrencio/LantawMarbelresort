@@ -10,8 +10,8 @@ use App\Models\RoomTable;
 
 class RoomMobile extends Controller
 {
-    public function roomList(){ 
-        $rooms = RoomTable::all();
+    public function roomList(){
+        $rooms = RoomTable::where('status','available');
         foreach($rooms as $room){
             $room->image_url = asset('storage/room_images/' . $room->image);
         }
