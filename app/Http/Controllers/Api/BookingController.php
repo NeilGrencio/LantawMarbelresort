@@ -28,7 +28,6 @@ class BookingController extends Controller
                 'billing.guest'
             ])->where('guestID', $guestID)->get();
 
-            $json = $bookings->toJson(JSON_UNESCAPED_UNICODE);
 
             Log::info("✅ getByGuest success", [
                 'guestID' => $guestID,
@@ -36,8 +35,7 @@ class BookingController extends Controller
                 'data'    => $bookings->toArray(),
             ]);
 
-            return response($json, 200)
-                ->header('Content-Type', 'application/json; charset=UTF-8');
+return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             Log::error("❌ JSON encoding failed in getByGuest()", [
                 'guestID' => $guestID,
@@ -67,15 +65,12 @@ class BookingController extends Controller
                 'billing.guest'
             ])->findOrFail($id);
 
-            $json = $booking->toJson(JSON_UNESCAPED_UNICODE);
-
             Log::info("✅ show success", [
                 'bookingID' => $id,
                 'data'      => $booking->toArray(),
             ]);
 
-            return response($json, 200)
-                ->header('Content-Type', 'application/json; charset=UTF-8');
+return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             Log::error("❌ JSON encoding failed in show()", [
                 'bookingID' => $id,
