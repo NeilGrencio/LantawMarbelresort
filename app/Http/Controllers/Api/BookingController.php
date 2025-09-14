@@ -26,7 +26,16 @@ class BookingController extends Controller
             'billing.guest'
         ])->where('guestID', $guestID)->get();
 
-        return response()->json($bookings);
+        // Force all string values into valid UTF-8
+        $cleaned = $bookings->map(function ($booking) {
+            return collect($booking->toArray())->map(function ($value) {
+                return is_string($value)
+                    ? mb_convert_encoding($value, 'UTF-8', 'UTF-8')
+                    : $value;
+            });
+        });
+
+        return response()->json($cleaned, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     // ✅ GET booking by bookingID
@@ -52,9 +61,15 @@ class BookingController extends Controller
         try {
             // 1. Create booking
             $booking = BookingTable::create($request->only([
-                'guestamount', 'childguest', 'adultguest',
-                'totalprice', 'bookingcreated', 'bookingend',
-                'bookingstart', 'status', 'guestID'
+                'guestamount',
+                'childguest',
+                'adultguest',
+                'totalprice',
+                'bookingcreated',
+                'bookingend',
+                'bookingstart',
+                'status',
+                'guestID'
             ]));
 
             // 2. Save room bookings
@@ -115,9 +130,15 @@ class BookingController extends Controller
         try {
             $booking = BookingTable::findOrFail($id);
             $booking->update($request->only([
-                'guestamount', 'childguest', 'adultguest',
-                'totalprice', 'bookingcreated', 'bookingend',
-                'bookingstart', 'status', 'guestID'
+                'guestamount',
+                'childguest',
+                'adultguest',
+                'totalprice',
+                'bookingcreated',
+                'bookingend',
+                'bookingstart',
+                'status',
+                'guestID'
             ]));
 
             // Update related tables (simple approach: delete & reinsert)
