@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\RoomMobile;
 use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\CottageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,7 +28,7 @@ use App\Http\Controllers\Api\BookingController;
 Route::get('/rooms', [RoomMobile::class, 'roomList']);
 Route::get('/amenities', [AmenityController::class, 'index']);
 Route::get('/menus', [MenuController::class, 'index']);
-
+Route::get('/cottages', [CottageController::class, 'index']);
 Route::post('/signup', [ApiAuthController::class, 'signup']);
 Route::post('/login', [ApiAuthController::class, 'login']);
 

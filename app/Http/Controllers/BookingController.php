@@ -138,8 +138,8 @@ class BookingController extends Controller
             }
             return response()->json($events);
         }
-    
-        public function bookingListView(){
+    public function bookingListView(){
+
             $bookings = BookingTable::with(['guest', 'roomBookings', 'cottageBookings'])
                 ->withCount([
                         'roomBookings as roomcount',
@@ -156,7 +156,6 @@ class BookingController extends Controller
 
             return view('receptionist.booking_list', compact('bookings'));
         }
-    
     public function createBooking(){
        $rooms = RoomTable::where('status', 'Available')->get();
        $cottages = CottageTable::where('status', 'Available')->get();
