@@ -10,7 +10,7 @@ class CottageController extends Controller
 {
      public function index()
     {
-        $cottages = CottageTable::where('status', 'available')
+        $cottages = CottageTable::where('status', ['available','booked'])
             ->get()
             ->map(function ($cottage) {
                 $cottage->image = url('uploads/' . $cottage->image);
