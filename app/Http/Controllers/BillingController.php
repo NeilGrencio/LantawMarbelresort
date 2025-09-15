@@ -19,7 +19,8 @@ class BillingController extends Controller
                 ->select('payment.totaltender',
                         DB::raw('CONCAT(guest.firstname, " ", guest.lastname) AS guestname'),
                         'billing.totalamount',)
-                ->get();
+                ->orderBy('paymentID', 'desc')
+                ->paginate(10);
 
         return view('receptionist.billing', compact('payments'));
     }

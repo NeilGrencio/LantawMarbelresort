@@ -103,6 +103,29 @@
             height:3rem;
             width:100%;
         }
+
+        .booking-popUp{
+            display: none; 
+            position: absolute;
+            left: 100%;
+            top: 0;
+            background: rgb(0, 13, 49);
+            border-radius: 0.5rem;
+            flex-direction: column;
+            padding: 0.5rem;
+            z-index: 2000;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 10rem;
+            height:5rem;
+            transition:all .2s ease;
+        }
+        #booking:hover .booking-popUp{
+            display: flex;
+        }
+        #booking {
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -125,14 +148,7 @@
             <div class="label">
                 <span class="label">Booking</span>
             </div>
-        </div>
-        <div id="walk-booking" class="sidebar-item" data-url="{{ url('receptionist/walk-booking') }}">
-            <div class="icons">
-               <i class="fas fa-hotel fa-2x"></i>
-            </div>
-            <div class="label">
-                <span class="label">Walk-In Book</span>
-            </div>
+            
         </div>
         <div id="check" class="sidebar-item" data-url="{{ url('receptionist/check-in-out') }}">
             <div class="icons">
@@ -143,7 +159,7 @@
             </div>
         </div>
 
-        <div id="daytour" class="sidebar-item" data-url="{{ url('receptionist/daytour') }}">
+        <div id="daytour" class="sidebar-item" data-url="{{ url('receptionist/daytourDashboard') }}">
             <div class="icons">
                   <i class="fas fa-sun fa-2x"></i>
             </div>
@@ -178,44 +194,12 @@
             </div>
         </div>
 
-        <div id="rooms" class="sidebar-item" data-url="{{ url('manager/room_list') }}">
-            <div class="icons">
-                <i class="fas fa-bed fa-2x"></i>
-            </div>
-            <div class="label">
-                <span>Rooms</span>
-            </div>
-        </div>
-        <div id="amenities" class="sidebar-item" data-url="{{ url('manager/amenity_list') }}">
-            <div class="icons">
-                <i class="fas fa-person-swimming fa-2x"></i>
-            </div>
-            <div class="label">
-                <span>Amenities</span>
-            </div>
-        </div>
-        <div id="cottages" class="sidebar-item" data-url="{{ url('manager/cottage_list') }}">
-            <div class="icons">
-                <i class="fas fa-campground fa-2x"></i>
-            </div>
-            <div class="label">
-                <span >Cottages</span>
-            </div>
-        </div>
-        <div id="menu" class="sidebar-item" data-url="{{ url('manager/menu_list') }}">
+        <div id="menu" class="sidebar-item" data-url="{{ url('receptionist/order') }}">
             <div class="icons">
                 <i class="fas fa-utensils fa-2x"></i>
             </div>
             <div class="label">
-                <span>Menu</span>
-            </div>
-        </div>
-        <div id="report" class="sidebar-item" data-url="{{ url('manager/report') }}">
-            <div class="icons">
-                <i class="fas fa-chart-simple fa-2x"></i>
-            </div>
-            <div class="label">
-                <span>Report</span>
+                <span>Order</span>
             </div>
         </div>
         
@@ -240,16 +224,15 @@
 <script>
 
     document.addEventListener('DOMContentLoaded', () => {
-        const toggleButton = document.getElementById('sidebar-container'); // now correctly points to the toggle
+        const toggleButton = document.getElementById('sidebar-container'); 
         const sidebar = document.getElementById('sidebar');
-        const body = document.body; // fallback for layout expansion if no #main-layout
+        const body = document.body;
 
         const sidebarItems = sidebar.querySelectorAll('[data-url]');
         const labels = sidebar.querySelectorAll('.label');
         const profile = document.getElementById('profile-container');
         const dropdown = document.querySelector('.drop-down');
 
-        // Toggle dropdown visibility when profile is clicked
         profile.addEventListener('click', function () {
             if (dropdown.style.display === 'flex') {
                 dropdown.style.display = 'none';
@@ -258,14 +241,12 @@
             }
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function (event) {
             if (!profile.contains(event.target)) {
                 dropdown.style.display = 'none';
             }
         });
 
-        // Handle navigation clicks inside the dropdown
         document.querySelectorAll('.drop-down div').forEach(item => {
             item.addEventListener('click', function () {
                 const url = this.dataset.url;
@@ -277,10 +258,18 @@
 
         sidebarItems.forEach(item => {
             item.addEventListener('click', (e) => {
-                e.stopPropagation(); // prevent sidebar toggle from closing it
+                e.stopPropagation(); 
                 const targetURL = item.dataset.url;
                 if (targetURL) {
                     window.location.href = targetURL;
+                }
+            });
+        });
+        document.querySelectorAll('.booking-popUp-select').forEach(item => {
+            item.addEventListener('click', () => {
+                const url = item.dataset.url;
+                if (url) {
+                    window.location.href = url;
                 }
             });
         });

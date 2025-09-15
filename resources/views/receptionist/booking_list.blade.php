@@ -9,10 +9,8 @@
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head>
-<style>
     <style>
-    #booking{color:orange;}
+        #booking{color:orange;}
     #layout{
         display: flex;
         flex-direction: row;
@@ -47,31 +45,15 @@
         align-items: center;
         gap: 1rem;
     }
-    #add-container {
+    .add-action{
         display: flex;
+        flex-direction: column;
         align-items: center;
-        position: relative;
+        justify-content: space-evenly;
         cursor: pointer;
-        gap:1rem;
-    }
-    #add-text {
-        opacity: 0;
-        visibility: hidden;
-        width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        transition: all 0.3s ease;
-        padding: 0.3rem 0.6rem;
-        margin-left: 0.5rem;
-        border-radius: 5px;
     }
 
-    #add-container:hover #add-text {
-        opacity: 1;
-        visibility: visible;
-        width: auto;
-    }
-    .table-wrapper{
+    .table-container{
         display: flex;
         flex-direction: row;
         width: 100%;
@@ -170,88 +152,80 @@
         margin: 0 0.5rem;
         padding: 0;
     }
-    .filter-wrapper{
-        width:100%;
-        height:3rem;
-        display:flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        gap:.5rem;
-    }
-    .filter-card{
-        background:white;
-        padding:.5rem;
-        border-radius:.4rem;
-        box-shadow:.1rem .1rem 0 black;
-        transition:all .2s ease;
-    }
-    .filter-card:hover{
-        background:orange;
-        cursor:pointer;
-        transform: translateY(10);
-    }
 
-</style>
-
+    </style>
+</head>
 <body>
     <div id="layout">
         @include('components.receptionist_sidebar')
         <div id="main-layout">
             <div id="layout-header">
-                <h1>Billing</h1>
-            </div>
-            <div class="billing-container">
-                <div class="filter-wrapper">
-                    <div class="filter-card" data-filter="all">
-                        <strong>All</strong>
-                    </div>
-                    <div class="filter-card" data-filter="booking">
-                        <strong>Booking</strong>
-                    </div>
-                        <div class="filter-card">
+                <h1>Booking List</h1>
+                <div id="add-container">
+                    <div class="add-action">
+                        <i id="add-action-btn" class="fa-solid fa-calendar-days fa-2x" data-url="{{url('receptionist/booking')}}"></i>
+                        <small>Calendar View</small>
                     </div>
                 </div>
+            </div>
 
-                <!--Table-->
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Billing #</th>
-                                <th>Name</th>
-                                <th>Amount Tendered</th>
-                                <th>Balance Remaining</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php $count = 0 ?>
-                            @foreach($payments as $bill)
-                                <?php $count++ ?>
+            <!----------TABLE VIEW STARTS HERE--------->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Booking #</th>
+                            <th>Guest Name</th>
+                            <th>Guest Count</th>
+                            <th>Room Count</th>
+                            <th>Cottage Count</th>
+                            <th>Amenity</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Total Amount</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @php $count = 0; @endphp
+                        @foreach($bookings as $booking)
+                        @php $count++; @endphp
                             <tr>
                                 <td>{{ $count}}</td>
-                                <td>{{ $bill->guestname }}</td>
-                                <td>{{ $bill->totaltender }}</td>
-                                <td>{{ $bill->totalamount }}</td>
+                                <td>{{ $booking->guestname}}</td>
+                                <td>{{ $booking->guestamount }}</td>
+                                <td>{{ $booking->roomcount }}</td>
+                                <td>{{ $booking->cottagecount }}</td>
+                                <td>{{ $booking->amenityname }}</td>
+                                <td>{{ $booking->bookingstart }}</td>
+                                <td>{{ $booking->bookingend }}</td>
+                                <td>{{ $booking->totalprice }}</td>
+                                <td>{{ $booking->type }}</td>
+                                <td>{{ $booking->status }}</td>
+                                <td>
+                                    <a href="{{ url('receptionist/edit_booking', ['id' => $booking->bookingID]) }}">Edit</a> |
+                                    <a href="{{ url('receptionist/cancel_booking', ['id' => $booking->bookingID]) }}">Cancel</a>
+                                </td>
                             </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <div id="page-container">
-                    {{ $payments->links() }}
-                </div>
-
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </div>
+            <div id="page-container">
+                {{ $bookings->links() }}
+            </div>
 </body>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const message = document.querySelector('.alert-message');
-        if (message) {
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 3500);
-        }
+    document.addEventListener("DOMContentLoaded", function(){
+        const calendar_view = document.getElementById('add-action-btn')
+        if(calendar_view){
+            const url = calendar_view.dataset.url;
+            calendar_view.addEventListener('click', function(){
+                window.location.href = url;
+            });
+        };
     });
 </script>

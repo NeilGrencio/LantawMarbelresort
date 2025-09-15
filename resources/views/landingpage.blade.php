@@ -12,6 +12,7 @@
         padding:0;
         background:white;
         font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        overflow:hidden;
     }
     #toolbar{
         display: flex;
@@ -25,13 +26,14 @@
     }
     #toolbar img{
         object-fit: cover;
-        height:100%;
+        height:2rem;
+        width:auto;
     }
     #toolbar h3 {
         margin: 0;
     }
     #toolbar .spacer {
-        flex:1; /* pushes buttons to the right */
+        flex:1;
     }
     #toolbar button{
         height:2rem;
@@ -62,23 +64,20 @@
         display:flex;
         flex-direction: row;
         width:100%;
-        height:70%;
-        padding:5rem;
+        height:95%;
+        padding:2rem;
     }
     #layout-container{
         display:flex;
-        height:30rem;
+        height:100%;
         width:100%;
-        padding:0 4rem 0 0;
         align-items: center;
-        background: rgb(198, 227, 250);
-        border-radius:2rem;
-        box-shadow: 1rem 1rem 0rem rgb(0, 167, 0);
     }
     #layout-container img{
         object-fit: contain;
-        height: 80%;
-        width:50%;
+        height: 90%;
+        width:70%;
+        border-radius:.7rem;
     }
     #layout-container div{
         display:flex;
@@ -91,9 +90,61 @@
         font-size: 90px;
         word-wrap:break-word;
         text-align:center;
-        color: white;
-        text-shadow: 1rem 0px rgba(0, 0, 0, 0.5);
+        color: orange;
     }
+    @media (max-width: 1024px) {
+        #layout-container {
+            flex-direction: column;
+            text-align: center;
+        }
+        #layout-container img {
+            width: 80%;
+            height: auto;
+            margin-bottom: 1rem;
+        }
+        #layout-container h1 {
+            font-size: 60px;
+        }
+        .parent-container {
+            padding: 1rem;
+        }
+        #toolbar {
+            padding: 0 1rem;
+        }
+    }
+    @media (max-width: 600px) {
+        #toolbar {
+            flex-wrap: nowrap;
+            gap: 0.5rem;
+            height: auto;
+        }
+        #toolbar img {
+            height: 1.5rem;
+            width: auto;
+        }
+        #toolbar h3 {
+            font-size: 14px;
+        }
+        #toolbar button {
+            height: 1.8rem;
+            font-size: 9px;
+            width:auto;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        #layout-container h1 {
+            font-size: 40px;
+        }
+        #layout-container img {
+            width: 100%;
+            height: auto;
+            border-radius: .5rem;
+        }
+        .parent-container {
+            padding: 0.5rem;
+        }
+    }
+
     </style>
 </head>
 <body>
@@ -110,12 +161,12 @@
     </div>
     <div class="parent-container">
         <div id="layout-container">
-            <img src="{{asset('images/logo.png')}}"/>
+            <img src="{{asset('images/landing_page_image.jpg')}}"/>
             <div>
                 <h2>Welcome to the</h2>
-                <h1>LANTAW MARBEL</h1>
-                <h1>ORMS</h1>
-                <p>This is a resort management system built specifically for Lantaw-Marbel</p>
+                <h1>LANTAW MARBEL<br/>
+                    RESORT</h1>
+                <p>Download the mobile application for guest access!</p>
             </div>
         </div>
     </div>

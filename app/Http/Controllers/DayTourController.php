@@ -12,6 +12,7 @@ use App\Models\DiscountTable;
 use App\Models\QRTable;
 use App\Models\PaymentTable;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use thiagoalessio\TesseractOCR\TesseractOCR;
 use Illuminate\Support\Facades\Storage;
 
 class DayTourController extends Controller
@@ -22,6 +23,50 @@ class DayTourController extends Controller
 
         return view('receptionist/daytour', compact('amenities', 'discount'));
     }
+    /*
+    public function checkValidID($validID){
+        if ($validID) {
+            $imagePath = $validID->getRealPath();
+            $ocrText = (new TesseractOCR($imagePath))->lang('eng')->run();
+
+            $requiredHeaders1 = [
+                'REPUBLIKA NG PILIPINAS',
+                'Republic of the Philippines',
+                'PAMBANSANG PAGKAKAKILANLAN',
+                'Philippine Identification'
+            ];
+            $requiredHeaders2 = [
+                'REPUBLIKA NG PILIPINAS',
+                'Republic of the Philippines',
+                'PAMBANSANG PAGKAKAKILANLAN',
+                'Philippine Identification Card'
+            ];
+            $allPossibleHeaders = array_merge($requiredHeaders1, $requiredHeaders2);
+
+            $headerFound = true;
+            foreach ($allPossibleHeaders as $header) {
+                if (stripos($ocrText, $header) === false) {
+                    $headerFound = false;
+                    break;
+                }
+            }
+
+            $pcnFound = preg_match('/\s?\d{4}-\d{4}-\d{4}-\d{4}/', $ocrText);
+
+            if (!$headerFound || !$pcnFound) {
+                return redirect('manager/add_user')
+                    ->withInput()
+                    ->withErrors(['validID' => 'The uploaded ID is not a valid Philippine National ID.'])
+                    ->with('ocrtext', $ocrText);
+            }
+        }
+
+        // Store files
+        $validIDPath = $validID->store('valid_ids', 'public');
+
+        return $validIDPath;
+    }
+    */
 
     public function createDayTour(Request $request)
     {
@@ -72,13 +117,16 @@ class DayTourController extends Controller
                 ]
             );
 
+            $adultcount = $validated['amenity_adult_guest'] ?? 0;
+            $childcount = $validated['amenity_child_guest'] ?? 0;
+
             foreach ($validated['amenity'] ?? [] as $selectedAmenity) {
                 $amenity = AmenityTable::where('amenityID', $selectedAmenity)->firstOrFail();
-
-                $totalAdult = $amenity->adultprice * $validated['amenity_adult_guest'];
-                $totalChild = $amenity->childprice * $validated['amenity_child_guest'];
+                
+                $totalAdult = $amenity->adultprice * $adultcount;
+                $totalChild = $amenity->childprice * $childcount;
                 $totalAmount = $totalAdult + $totalChild;
-
+                
                 $discountID = $validated['discount'] ?? null;
 
                 if (!is_null($discountID)) {
@@ -111,23 +159,27 @@ class DayTourController extends Controller
 
                 $qrSvg = QrCode::format('svg')->size(300)->generate($text);
 
-                Storage::disk('public')->put($qrFilename, $qrSvg);
+                // save QR SVG to storage
+                if (!Storage::disk('public')->exists($qrFilename)) {
+                    Storage::disk('public')->put($qrFilename, $qrSvg);
+                }
+
+                // get the full path or URL
+                $qrPath = Storage::url($qrFilename);
+
 
                 QRTable::create([
-                    'qrcode' => $qrFilename,
+                    'qrcode' => $qrPath,
                     'accessdate' => Carbon::now()->toDateString(),
                     'amenityID' => $amenity->amenityID,
                     'guestID' => $guest->guestID,
                 ]);
             }
 
-            return view('receptionist/daytourDashboard', [
-                'success' => 'Daytour created successfully.',
-                'qrcodes' => QRTable::with(['guest', 'amenity'])
-                    ->where('guestID', $guest->guestID)
-                    ->whereDate('accessdate', Carbon::today())
-                    ->get()
-            ]);
+            return redirect()
+                ->route('receptionist.daytour_dashboard')
+                ->with('success', 'Daytour successfully created!');
+
 
         } catch (\Exception $e) {
             return back()->with('error', 'Daytour failed to create: ' . $e->getMessage());
@@ -135,8 +187,14 @@ class DayTourController extends Controller
     }
 
     public function daytourDashboard(){
-        $qrcode = QRTable::select('qrcodes.*')->get();
-        return view('receptionist/daytourDashboard', compact('qrcode'));
+        $today = Carbon::now()->toDateString();
+        $amenity = AmenityTable::get();
+        $qrcode = QRTable::with(['guest','amenity'])->orderBy('qrID','desc')->get();
+        $recent = QRTable::with(['guest','amenity'])
+                    ->whereDate('accessdate', $today)
+                    ->orderBy('qrID','desc')
+                    ->get();
+        return view('receptionist/daytourDashboard', compact('amenity', 'qrcode', 'recent'));
     }
 
 }

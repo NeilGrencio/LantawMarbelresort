@@ -196,7 +196,7 @@ Route::get('receptionist/dashboard', function () {
 });
 
 Route::get('receptionist/booking', [BookingController::class, 'bookingList'])->name('receptionist.booking');
-
+Route::get('receptionist/booking_list', [BookingController::class, 'bookingListView'])->name('receptionist.booking_list');
 Route::get('receptionist/create_booking', [BookingController::class, 'createBooking'])->name('receptionist.create_booking');
 
 Route::post('receptionist/submit_booking', [BookingController::class, 'submitBooking'])->name('receptionist.submit_booking');

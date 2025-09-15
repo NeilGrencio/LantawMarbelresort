@@ -34,7 +34,7 @@
         width:85%;
         height:100vh;
         transition: width 0.3s ease-in-out;
-        margin-left:15rem;
+        margin-left:12rem;
         margin-right:.7rem;
         overflow-y: auto;
         overflow-x: hidden;
@@ -55,18 +55,74 @@
         gap: 1rem;
         font-size: .7rem;
     }
-    .qrcode-card {
+    .qr-container{
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap:.5rem;
+        width: 100%;
+        height: auto;
+        padding: .5rem;
+        border-radius: .7rem;
+        margin-top: 1rem;
+        align-items: center;
+        align-content: center;
+    }
+    .qr-card {
+        display: flex;
+        flex-direction: column;
+        width:24%;
         border: 1px solid #ddd;
-        border-radius: 10px;
+        border-radius: 7px;
         padding: 1rem;
         margin-bottom: 1rem;
         background: #f9f9f9;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        box-shadow: .1rem 2px 0 black;
+        align-items:center;
+        justify-content: center;
     }
-    .qrcode-card img {
+    .qr-card img {
         width: 150px;
         height: 150px;
         object-fit: contain;
+    }
+    .qr-label{
+        width:100%;
+        height:3rem;
+        background:black;
+        color:white;
+        display: flex;
+        align-items:center;
+        padding:.5rem;
+        border-radius:.5rem;
+    }
+    p{
+        display: flex;
+        margin-bottom:.5rem;
+        font-size:.7rem;
+        align-self: start;
+    }
+    .amenity-container{
+        display:flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap:.5rem;
+    }
+    .amenity-card{
+        display: flex;
+        background:white;
+        border-radius:.4rem;
+        box-shadow:.1rem .1rem 0 black;
+        padding:.4rem;
+    }
+    .add-action{
+        display:flex;
+        flex-direction: column;
+        align-items:center;
+        justify-content:space-evenly;
+        height:100%;
+        font-size: .8rem;
     }
 </style>
 </head>
@@ -75,27 +131,60 @@
     @include('components.receptionist_sidebar')
     <div id="main-layout">
         <div id="layout-header">
-            <h1>Day Tour Management</h1>
+            <h1>Day Tour QR Codes</h1>
+            <div class="add-action">
+                <i id="add-action" class="fas fa-plus-circle fa-2x" data-url="{{ url('receptionist/daytour') }}" style="cursor:pointer;"></i>
+                <small>Create Day Tour</small>
+            </div>
         </div>
         @if(session('success'))
             <div class="alert alert-success mt-4">
                 {{ session('success') }}
             </div>
         @endif
-
-        @if(isset($qrcode) && $qrcode->isNotEmpty())
-            <h2 class="text-xl font-semibold mt-6">Generated QR Codes</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                @foreach($qrcode as $qr)    
-                    <div class="bg-white rounded shadow p-4">
-                        <p><strong>Guest:</strong> {{ $qr->guest->firstname }} {{ $qr->guest->lastname }}</p>
-                        <p><strong>Amenity:</strong> {{ $qr->amenity->amenityname }}</p>
-                        <p><strong>Access Date:</strong> {{ $qr->accessdate }}</p>
-                        <img src="{{ asset('storage/' . $qr->qrcode) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
-                    </div>
-                @endforeach
+        <div class="amenity-container">
+            @foreach($amenity as $a)
+            <div class="amenity-card">
+                <small>{{$a->amenityname}} is currently <strong>{{$a->status}}</strong></small>
             </div>
-        @endif
+            @endforeach
+        </div>
+        <div class="qr-container">
+            <div class="qr-label"><h2>Today</h2></div>
+            @foreach($recent as $rec)
+                <div class="qr-card">
+                    <img src="{{ asset('storage/' . $rec->qrcode) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
+                    <p><strong>Guest:</strong>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{ $rec->guest->firstname }} {{ $rec->guest->lastname }}</p>
+                    <p><strong>Amenity:</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       {{ $rec->amenity->amenityname }}</p>
+                    <p><strong>Access Date:</strong> &nbsp;&nbsp;&nbsp;&nbsp;{{ $rec->accessdate }}</p>
+                    
+                </div>
+            @endforeach
+            <div class="qr-label"><h2>All QRCODES</h2></div>
+            @foreach($qrcode as $qr)    
+                <div class="qr-card">
+                    <img src="{{ asset('storage/' . $qr->qrcode) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
+                    <p><strong>Guest:</strong>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{ $qr->guest->firstname }} {{ $qr->guest->lastname }}</p>
+                    <p><strong>Amenity:</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       {{ $qr->amenity->amenityname }}</p>
+                    <p><strong>Access Date:</strong> &nbsp;&nbsp;&nbsp;&nbsp;{{ $qr->accessdate }}</p>
+                    
+                </div>
+            @endforeach
+        </div>
     </div>
 </div>
 </body>
+<script>
+   document.addEventListener("DOMContentLoaded", function() {
+    const createDayTour = document.getElementById('add-action');
+    
+    if (createDayTour) { 
+        const url = createDayTour.dataset.url;
+
+        createDayTour.addEventListener('click', function() {
+            window.location.href = url;
+        });
+    }
+});
+
+</script>

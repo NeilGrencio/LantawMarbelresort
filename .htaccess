@@ -22,6 +22,16 @@
     RewriteCond %{REQUEST_URI} ^/storage/
     RewriteRule ^ - [L]
 
+# --- Allow API routes explicitly ---
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_URI} ^/api
+    RewriteRule ^ - [L]
+</IfModule>
+
+# --- Disable mod_security for API (if allowed) ---
+<IfModule mod_security.c>
+    SecRuleEngine Off
+</IfModu
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f

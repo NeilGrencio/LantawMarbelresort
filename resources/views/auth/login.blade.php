@@ -17,7 +17,7 @@
     }
 
     body {
-      background: url('images/large_logo.png') center/cover no-repeat;
+      background: url("{{ asset('images/large_logo.png') }}") center/cover no-repeat;
       font-family: 'Roboto', sans-serif;
       height: 100vh;
       width: 100%;
