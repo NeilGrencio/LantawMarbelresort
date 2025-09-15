@@ -16,13 +16,19 @@
         <div id="main-layout">
             <div id="layout-header">
                 <h1>Booking</h1>
-                <div class="add-action">
-                    <h2>Walk In Booking</h2>
-                    <i class="fas fa-hotel fa-3x" data-url="{{ url('receptionist/walk-booking') }}" style="cursor:pointer;"></i>
-                </div>
-                <div class="add-action">
-                    <h2>Create Booking</h2>
-                    <i id="add-menu" class="fas fa-plus-circle fa-3x" data-url="{{ url('receptionist/create_booking') }}" style="cursor:pointer;"></i>
+                <div id="add-container">
+                    <div class="add-action">
+                        <i id="add-action" class="fa-solid fa-list-ol fa-2x" data-url="{{ url('receptionist/booking_list') }}" style="cursor:pointer;"></i>
+                        <small>Booking List</small>
+                    </div>
+                    <div class="add-action">
+                        <i id="add-action" class="fas fa-hotel fa-2x" data-url="{{ url('receptionist/walk-booking') }}" style="cursor:pointer;"></i>
+                        <small>Walk In Booking</small>
+                    </div>
+                    <div class="add-action">
+                        <i id="add-action" id="add-menu" class="fas fa-plus-circle fa-2x" data-url="{{ url('receptionist/create_booking') }}" style="cursor:pointer;"></i>
+                        <small>Normal Booking</small>
+                    </div>  
                 </div>
 
             </div>
@@ -115,6 +121,11 @@
                     <h2>{{ session('success') }}</h2>
                 </div>
             @endif
+            @if (session('error'))
+                <div class="alert-message">
+                    <h2>{{ session('error') }}</h2>
+                </div>
+            @endif
         </div>
     </div>
 </body>
@@ -154,29 +165,12 @@
         align-items: center;
         gap: 1rem;
     }
-    #add-container {
+    .add-action{
         display: flex;
+        flex-direction: column;
         align-items: center;
-        position: relative;
+        justify-content: space-evenly;
         cursor: pointer;
-        gap:1rem;
-    }
-    #add-text {
-        opacity: 0;
-        visibility: hidden;
-        width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        transition: all 0.3s ease;
-        padding: 0.3rem 0.6rem;
-        margin-left: 0.5rem;
-        border-radius: 5px;
-    }
-
-    #add-container:hover #add-text {
-        opacity: 1;
-        visibility: visible;
-        width: auto;
     }
     .booking-view {
         display: flex;
@@ -202,7 +196,7 @@
         overflow-x:hidden;
     }
     #filter-container{
-        height:5rem;
+        height:2rem;
         width:100%;
         gap:.5rem;
         display: flex;
@@ -304,7 +298,7 @@
         flex-direction: row;
         gap: .5rem;
         margin-bottom: .5rem;
-        height:3rem;
+        height:2rem;
         width: 100%;   
     }
     .filter-card.active {
@@ -363,12 +357,12 @@
             }, 3500);
         }
         // ===== Redirect on Add Booking Click =====
-        const addBtn = document.getElementById('add-menu');
-        if (addBtn) {
-            addBtn.addEventListener('click', function () {
+        const addBtns = document.querySelectorAll('#add-action');
+        addBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
                 window.location.href = this.dataset.url;
             });
-        }
+        });
 
         // ===== Booking Filter (Today, Pending, Confirmed) =====
         const bookingFilterCards = document.querySelectorAll('.booking-filter .filter-card');
