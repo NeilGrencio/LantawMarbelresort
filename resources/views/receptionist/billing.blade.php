@@ -71,6 +71,126 @@
         visibility: visible;
         width: auto;
     }
+    .table-wrapper{
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        height: auto;
+        padding: .5rem;
+        border-radius: .7rem;
+        margin-top: 1rem;
+        align-items: center;
+        align-content: center;
+        background: white;
+        box-shadow: .1rem .1rem 0 black;
+        overflow-x: auto;
+    }
+    table{
+        width: 100%;
+        font-size:.7rem;
+        border-collapse: collapse;
+        transition: all 0.3s ease-in;
+    }
+    th, td{
+        padding: 10px;
+        text-align: center;
+    }
+    thead{
+        background:orange;
+        color:white;
+        justify-content: center;
+        align-items: center;
+    }
+    tbody{
+        justify-content: center;
+        align-items: center;
+    }
+
+    #page-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+    }
+    .pagination {
+        display: flex;
+        gap: 0.5rem;
+        list-style: none;
+        padding: 0;
+        background: transparent;
+        align-items: center;
+    }
+    .page-item {
+        display: flex;
+        align-items: center;
+    }
+    .page-link,
+    .pagination span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2.5rem;
+        min-height: 2.5rem;
+        padding: 0.5rem 0.75rem;
+        background: #fff;
+        color: #F78A21;
+        text-decoration: none;
+        border: 1.5px solid #F78A21;
+        border-radius: 50%;
+        font-size: 1.1rem;
+        font-weight: 500;
+        transition: background 0.2s, color 0.2s, border 0.2s;
+        margin: 0 0.15rem;
+    }
+    .page-item.active .page-link,
+    .page-link:hover {
+        background: #F78A21;
+        color: #fff;
+        border-color: #F78A21;
+    }
+    .page-item.disabled .page-link,
+    .page-item.disabled span {
+        color: #ccc;
+        pointer-events: none;
+        background: #f8f9fa;
+        border-color: #eee;
+    }
+    .page-item.disabled {
+        display: none !important;
+    }
+    .pagination .page-status {
+        background: transparent;
+        border: none;
+        color: #333;
+        font-size: 1rem;
+        font-weight: 400;
+        border-radius: 0;
+        min-width: unset;
+        min-height: unset;
+        margin: 0 0.5rem;
+        padding: 0;
+    }
+    .filter-wrapper{
+        width:100%;
+        height:3rem;
+        display:flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap:.5rem;
+    }
+    .filter-card{
+        background:white;
+        padding:.5rem;
+        border-radius:.4rem;
+        box-shadow:.1rem .1rem 0 black;
+        transition:all .2s ease;
+    }
+    .filter-card:hover{
+        background:orange;
+        cursor:pointer;
+        transform: translateY(10);
+    }
 
 </style>
 
@@ -89,7 +209,8 @@
                     <div class="filter-card" data-filter="booking">
                         <strong>Booking</strong>
                     </div>
-                    <div class="filter-card">
+                        <div class="filter-card">
+                    </div>
                 </div>
 
                 <!--Table-->
@@ -97,6 +218,7 @@
                     <table>
                         <thead>
                             <tr>
+                                <th>Billing #</th>
                                 <th>Name</th>
                                 <th>Amount Tendered</th>
                                 <th>Balance Remaining</th>
@@ -104,8 +226,11 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <?php $count = 0 ?>
                             @foreach($payments as $bill)
+                                <?php $count++ ?>
                             <tr>
+                                <td>{{ $count}}</td>
                                 <td>{{ $bill->guestname }}</td>
                                 <td>{{ $bill->totaltender }}</td>
                                 <td>{{ $bill->totalamount }}</td>
@@ -117,6 +242,9 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+                <div id="page-container">
+                    {{ $payments->links() }}
                 </div>
 
             </div>
