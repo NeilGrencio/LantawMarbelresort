@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 
 class CottageController extends Controller
 {
-     public function index()
+    public function index()
     {
-        $cottages = CottageTable::where('status', ['Available','Booked'])
+        $cottages = CottageTable::whereIn('status', ['available', 'booked'])
             ->get()
             ->map(function ($cottage) {
                 $cottage->image = url('uploads/' . $cottage->image);
