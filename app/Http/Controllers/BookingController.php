@@ -138,7 +138,23 @@ class BookingController extends Controller
             }
             return response()->json($events);
         }
-    
+    public function bookingListView(){
+            $bookings = BookingTable::with(['guest', 'roomBookings', 'cottageBookings'])
+                ->withCount([
+                        'roomBookings as roomcount',
+                        'cottageBookings as cottagecount',
+                    ])
+                 ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+                 ->leftjoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
+                ->select(
+                    'booking.*', 'amenities.amenityname',
+                    DB::raw("CONCAT(CONVERT(guest.firstname USING utf8mb4), ' ', CONVERT(guest.lastname USING utf8mb4)) AS guestname")
+                )
+                ->orderBy('bookingID', 'desc')
+                ->paginate(10);
+
+            return view('receptionist.booking_list', compact('bookings'));
+        }
     public function createBooking(){
        $rooms = RoomTable::where('status', 'Available')->get();
        $cottages = CottageTable::where('status', 'Available')->get();
