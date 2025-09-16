@@ -158,16 +158,15 @@ class BookingController extends Controller
             }
 
             // Save billing
-            if ($request->has('billing')) {
-                BillingTable::create([
-                    'totalamount' => $request->billing['totalamount'],
-                    'datebilled'  => $request->billing['datebilled'],
-                    'status'      => $request->billing['status'],
-                    'bookingID'   => $booking->bookingID,
-                    'guestID'     => $booking->guestID,
-                ]);
-            }
-
+            // if ($request->has('billing') && !empty($request->billing)) {
+            //     BillingTable::create([
+            //         'totalamount' => $request->billing['totalamount'] ?? 0,
+            //         'datebilled'  => $request->billing['datebilled'] ?? now(),
+            //         'status'      => $request->billing['status'] ?? 'unpaid',
+            //         'bookingID'   => $booking->bookingID,
+            //         'guestID'     => $booking->guestID,
+            //     ]);
+            // }
             DB::commit();
 
             Log::info("✅ store success", [
