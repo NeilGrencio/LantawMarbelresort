@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "463e53810129e6f89f95736020e550de",
+    "content-hash": "488ead8428051cd6534bacff4b93615d",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -3166,16 +3166,16 @@
         },
         {
             "name": "paymongo/paymongo-php",
-            "version": "v0.0.0",
+            "version": "dev-development",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paymongo/paymongo-php.git",
-                "reference": "48ce4f38b366d8ca73f426cd3b04fe1d7d59f5bd"
+                "reference": "e5cb9de93b71ec0ae93ee1c96c3d14360a4db855"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paymongo/paymongo-php/zipball/48ce4f38b366d8ca73f426cd3b04fe1d7d59f5bd",
-                "reference": "48ce4f38b366d8ca73f426cd3b04fe1d7d59f5bd",
+                "url": "https://api.github.com/repos/paymongo/paymongo-php/zipball/e5cb9de93b71ec0ae93ee1c96c3d14360a4db855",
+                "reference": "e5cb9de93b71ec0ae93ee1c96c3d14360a4db855",
                 "shasum": ""
             },
             "require": {
@@ -3187,6 +3187,7 @@
             "require-dev": {
                 "phpunit/phpunit": "^9.1"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -3206,9 +3207,9 @@
             ],
             "support": {
                 "issues": "https://github.com/paymongo/paymongo-php/issues",
-                "source": "https://github.com/paymongo/paymongo-php/tree/v0.0.0"
+                "source": "https://github.com/paymongo/paymongo-php/tree/development"
             },
-            "time": "2022-11-21T06:10:32+00:00"
+            "time": "2023-08-18T03:34:41+00:00"
         },
         {
             "name": "phpoption/phpoption",
@@ -9141,7 +9142,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "paymongo/paymongo-php": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

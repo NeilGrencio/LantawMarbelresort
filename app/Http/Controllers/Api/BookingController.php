@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 class BookingController extends Controller
 {
     // ✅ GET all bookings by guestID
-public function getByGuest($guestID)
+    public function getByGuest($guestID)
     {
         try {
             $bookings = BookingTable::with([
@@ -25,19 +25,19 @@ public function getByGuest($guestID)
                 'cottageBookings.Cottage:cottageID,cottagename',
                 'billing:bookingID,totalamount,status'
             ])
-            ->where('guestID', $guestID)
-            ->get([
-                'bookingID',
-                'guestID',
-                'guestamount',
-                'childguest',
-                'adultguest',
-                'totalprice',
-                'bookingcreated',
-                'bookingstart',
-                'bookingend',
-                'status'
-            ]);
+                ->where('guestID', $guestID)
+                ->get([
+                    'bookingID',
+                    'guestID',
+                    'guestamount',
+                    'childguest',
+                    'adultguest',
+                    'totalprice',
+                    'bookingcreated',
+                    'bookingstart',
+                    'bookingend',
+                    'status'
+                ]);
 
             Log::info("✅ getByGuest success", [
                 'guestID' => $guestID,
@@ -71,19 +71,19 @@ public function getByGuest($guestID)
                 'cottageBookings.Cottage:cottageID,cottagename',
                 'billing:bookingID,totalamount,status'
             ])
-            ->select([
-                'bookingID',
-                'guestID',
-                'guestamount',
-                'childguest',
-                'adultguest',
-                'totalprice',
-                'bookingcreated',
-                'bookingstart',
-                'bookingend',
-                'status'
-            ])
-            ->findOrFail($id);
+                ->select([
+                    'bookingID',
+                    'guestID',
+                    'guestamount',
+                    'childguest',
+                    'adultguest',
+                    'totalprice',
+                    'bookingcreated',
+                    'bookingstart',
+                    'bookingend',
+                    'status'
+                ])
+                ->findOrFail($id);
 
             Log::info("✅ show success", [
                 'bookingID' => $id,
@@ -109,47 +109,55 @@ public function getByGuest($guestID)
     {
         DB::beginTransaction();
         try {
-            $booking = BookingTable::create($request->only([
-                'guestamount',
-                'childguest',
-                'adultguest',
-                'totalprice',
-                'bookingcreated',
-                'bookingend',
-                'bookingstart',
-                'status',
-                'guestID'
-            ]));
+            // Normalize request keys to match DB columns
+            $bookingData = [
+                'guestamount'    => $request->input('guestamount'),
+                'childguest'     => $request->input('childGuest'),  // map camelCase → snakeCase
+                'adultguest'     => $request->input('adultGuest'),
+                'totalprice'     => $request->input('totalPrice'),
+                'bookingcreated' => now(),
+                'bookingend'     => $request->input('bookingEnd'),
+                'bookingstart'   => $request->input('bookingStart'),
+                'status'         => $request->input('status', 'pending'),
+                'guestID'        => $request->input('guestID'),
+            ];
 
-            if ($request->has('rooms')) {
-                foreach ($request->rooms as $roomID) {
+            $booking = BookingTable::create($bookingData);
+
+            // Save rooms
+            if ($request->has('roomBookings')) {
+                foreach ($request->roomBookings as $room) {
                     RoomBookTable::create([
                         'bookingID' => $booking->bookingID,
-                        'roomID' => $roomID,
+                        'roomID'    => $room['roomID'],
+                        'price'     => $room['price'] ?? null,
                     ]);
                 }
             }
 
-            if ($request->has('cottages')) {
-                foreach ($request->cottages as $cottageID) {
+            // Save cottages
+            if ($request->has('cottageBookings')) {
+                foreach ($request->cottageBookings as $cottage) {
                     CottageBookTable::create([
                         'bookingID' => $booking->bookingID,
-                        'cottageID' => $cottageID,
+                        'cottageID' => $cottage['cottageID'],
                     ]);
                 }
             }
 
-            if ($request->has('amenities')) {
-                foreach ($request->amenities as $amenity) {
+            // Save amenities
+            if ($request->has('amenityBook')) {
+                foreach ($request->amenityBook as $amenity) {
                     AmenityBookingTable::create([
                         'booking_id' => $booking->bookingID,
-                        'amenity_id' => $amenity['id'],
-                        'date' => $amenity['date'] ?? now(),
-                        'status' => $amenity['status'] ?? 'pending',
+                        'amenity_id' => $amenity['amenityID'],
+                        'date'       => $amenity['date'] ?? now(),
+                        'status'     => $amenity['status'] ?? 'pending',
                     ]);
                 }
             }
 
+            // Save billing
             if ($request->has('billing')) {
                 BillingTable::create([
                     'totalamount' => $request->billing['totalamount'],
@@ -178,6 +186,7 @@ public function getByGuest($guestID)
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
     // ✅ PUT update booking + related tables
     public function update(Request $request, $id)

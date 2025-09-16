@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\RoomMobile;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\CottageController;
+use App\Http\Controllers\Api\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,8 +32,8 @@ Route::get('/menus', [MenuController::class, 'index']);
 Route::get('/cottages', [CottageController::class, 'index']);
 Route::post('/signup', [ApiAuthController::class, 'signup']);
 Route::post('/login', [ApiAuthController::class, 'login']);
-Route::post('/gcash/create-payment', [App\Http\Controllers\Api\PaymentController::class, 'createGcashPayment']);
-
+Route::post('/gcash/create-payment', [PaymentController::class, 'createGcashPayment']);
+Route::post('/webhook/paymongo', [PaymentController::class, 'handleWebhook']);
 Route::prefix('bookings')->group(function () {
     Route::get('/guest/{guestID}', [BookingController::class, 'getByGuest']);
     Route::get('/{id}', [BookingController::class, 'show']);
