@@ -31,6 +31,7 @@ Route::get('/menus', [MenuController::class, 'index']);
 Route::get('/cottages', [CottageController::class, 'index']);
 Route::post('/signup', [ApiAuthController::class, 'signup']);
 Route::post('/login', [ApiAuthController::class, 'login']);
+Route::post('/gcash/create-payment', [App\Http\Controllers\Api\PaymentController::class, 'createGcashPayment']);
 
 Route::prefix('bookings')->group(function () {
     Route::get('/guest/{guestID}', [BookingController::class, 'getByGuest']);
