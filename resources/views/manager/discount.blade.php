@@ -13,13 +13,28 @@
         <div id="main-layout">
             <div id="layout-header">
                 <h1>Discounts</h1>
-                <div id="add-container" data-url="{{ url('manager/add_discount') }}">
-                    <h2 id="add-text">Add a Discount</h2>
-                    <i id="add-menu" class="fas fa-plus-circle fa-3x" style="cursor:pointer;"></i>
+
+                <div class="button-group">
+                        <div id="add-container" data-url="{{ url('manager/add_discount') }}">
+                            <h2 id="add-text">Add a Discount</h2>
+                            <i id="add-user" class="fas fa-plus-circle fa-3x" style="cursor:pointer;"></i>
+                        </div>
+                    <div class="search-container">
+                        <form action="{{ route('manager.search_discount') }}" method="GET">
+                            <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
+                            <button type="submit">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            @if(request()->has('search') && request('search') !== '')
+                                <a href="{{ route('manager.search_discount') }}" class="reset-btn">Clear Search</a>
+                            @endif
+                        </form>
+                    </div>
                 </div>
+
             </div>
             <div class="table-container">
-                <table>
+                <table id="discount-table">
                     <thead>
                         <th>#</th>
                         <th>Name</th>
@@ -96,56 +111,128 @@
         width:100%;
         height: auto;
         padding:1rem;
-        margin-left:15rem;
-        gap:1rem;
+        margin-left:12rem;
+        gap:.5rem;
     }
     #layout-header {
         display: flex;
+        flex-direction: row;
         align-items: center;
         justify-content: space-between;
         width: 100%;
-        height:5%;
+        height: 8%;
         padding: 1rem 3rem 1rem 2rem;
-        background: white; 
-        border-radius: 2rem;
-        font-size: 70%;
+        background: white;
+        border-radius: .7rem;
+        font-size: .6rem;
+        border: 1px solid black;
+        box-shadow: .1rem .1rem 0 black;
         gap: 1rem;
     }
+    .search-container .reset-btn {
+        padding: 10px 15px;
+        background-color: #e53935;
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        margin-left: 10px;
+        transition: background-color 0.3s ease;
+        font-size: 14px;
+    }
+
+    .search-container .reset-btn:hover {
+        background-color: #b71c1c;
+    }
+
+    .button-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
     #add-container {
         display: flex;
         align-items: center;
-        position: relative;
+        gap: 0.5rem;
         cursor: pointer;
-        gap:1rem;
+        color: #333;
+        transition: color 0.3s ease;
     }
-
+    #add-container:hover {
+        color: #F78A21;
+    }
     #add-text {
-        opacity: 0;
-        visibility: hidden;
-        width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        transition: all 0.3s ease;
-        padding: 0.3rem 0.6rem;
-        margin-left: 0.5rem;
-        border-radius: 5px;
-    }
-
-    #add-container:hover #add-text {
         opacity: 1;
         visibility: visible;
         width: auto;
+        margin-left: 0.5rem;
     }
-    table{
-        width:100%;
-        height:80%;
-        background:white;
-        border-radius:.7rem;
+
+    .search-container {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        margin: 15px 0;
+    }
+
+    .search-container form {
+        display: flex;
+        align-items: center;
+    }
+
+    .search-container input[type="text"] {
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 25px 0 0 25px;
+        outline: none;
+        width: 250px;
+        font-size: 14px;
+    }
+
+    .search-container button {
+        padding: 10px 15px;
+        border-left: none;
+        background-color: #000000;
+        color: white;
+        border-radius: 0 25px 25px 0;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .search-container button:hover {
+        background-color: #F78A21;
+        border: 1px solid #F78A21;
+    }
+    .table-container {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        height: auto;
+        padding: .5rem;
+        border-radius: .7rem;
+        margin-top: 1rem;
+        align-items: center;
+        background: white;
+        box-shadow: .1rem .1rem 0 black;
+        overflow-x: auto;
+    }
+    #discount-table{
+        width: 100%;
+        font-size: .8rem;
+        border-collapse: collapse;
+        transition: all 0.3s ease-in;
     }
     thead{
-        background:#F78A21;
-        font-size:1rem;
-        height: 2rem;
+       background-color: #F78A21;
+        color: #fff;
+        padding: 10px;
+        text-align: center;
+        height:1.7rem;
+    }
+    td{
+        padding: 10px;
+        text-align: center;
+        height:1.7rem;
     }
     .action-toggle{
         cursor:pointer;
@@ -153,11 +240,13 @@
     .action-dropdown{
         display:none;
         flex-direction:column;
-        background:grey;
-        height:8rem;
+        background:rgb(236, 236, 236);
+        border:1px solid black;
+        border-radius:.7rem;
+        height:8.5rem;
         width:10rem;
-        padding: .5rem .5rem 0 .5rem;
-        right:7rem;
+        padding: .5rem;
+        right:9rem;
         position: absolute;
         cursor:pointer;
         z-index:1;
@@ -166,7 +255,9 @@
         display:flex;
         flex-direction: row;
         width:100%;
-        background:white;
+        background:rgb(255, 255, 255);
+        border:solid 1px black;
+        border-radius:.5rem;
         cursor:pointer;
         font-size:.7rem;
         justify-content:space-evenly;
@@ -175,13 +266,8 @@
         transition:all .3s ease;
     }
     .action-dropdown div:hover {
-        background:rgb(88, 88, 88);
+        background: #F78A21;
         color:white;
-    }
-    td{
-        height: 2rem;
-        text-align:center;
-        position: relative;
     }
     .available{
         background-color:white;
