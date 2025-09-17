@@ -41,6 +41,12 @@ Route::get('manager/manage_user', [ManageUserController::class, 'userList'])->na
 
 //Search user
 Route::get('manager/search_user', [SearchUserController::class, 'search'])->name('manager.search_user');
+Route::get('manager/search_guest', [SearchUserController::class, 'searchGuest'])->name('manager.search_guest');
+Route::get('manager/search_discount', [SearchUserController::class, 'searchDiscount'])->name('manager.search_discount');
+Route::get('manager/search_room', [SearchUserController::class, 'searchRoom'])->name('manager.search_room');
+Route::get('manager/search_amenity', [SearchUserController::class, 'searchAmenity'])->name('manager.search_amenity');
+Route::get('manager/search_cottage', [SearchUserController::class, 'searchCottage'])->name('manager.search_cottage');
+Route::get('manager/search_menu', [SearchUserController::class, 'searchMenu'])->name('manager.search_menu');
 
 // Display add user form
 Route::get('manager/add_user', [ManageUserController::class, 'showForm'])->name('manager.add_user.form');
@@ -195,6 +201,15 @@ Route::get('receptionist/dashboard', function () {
     return view('receptionist/dashboard');
 });
 
+/// Search Function
+Route::get('receptionist/search_booking',[SearchUserController::class, 'searchBooking'])->name('receptionist.search_booking');
+Route::get('receptionist/search_daytour',[SearchUserController::class, 'searchDaytour'])->name('receptionist.search_daytour');
+Route::get('receptionist/search_guest',[SearchUserController::class, 'searchGuestReceptionist'])->name('receptionist.search_guest');
+Route::get('receptionist/search_billing',[SearchUserController::class, 'searchBilling'])->name('receptionist.search_billing');
+Route::get('receptionist/search_menu',[SearchUserController::class, 'searchMenuReceptionist'])->name('receptionist.search_menu');
+
+// Booking Routes
+
 Route::get('receptionist/booking', [BookingController::class, 'bookingList'])->name('receptionist.booking');
 Route::get('receptionist/booking_list', [BookingController::class, 'bookingListView'])->name('receptionist.booking_list');
 Route::get('receptionist/create_booking', [BookingController::class, 'createBooking'])->name('receptionist.create_booking');
@@ -233,6 +248,10 @@ Route::match(['POST', 'GET'], 'receptionist/checkin/{bookingID}', [BookingContro
 Route::match(['POST', 'GET'], 'receptionist/checkout/{bookingID}', [BookingController::class, 'checkOutBooking'])->name('receptionist.checkout');
 Route::get('receptionist/billing', [BillingController::class, 'billingList'])->name('receptionist.billing_list');
 Route::get('receptionist/sendsmtp', [ManageUserController::class, 'send']);
+
+// Receptionist Guest Routes
+Route::get('receptionist/guest_list', [ManageGuestController::class, 'guestListReceptionist'])->name('receptionist.guest_list');
+Route::get('receptionist/view_guest/{guestID}', [ManageGuestController::class, 'viewGuestReceptionist'])->name('receptionist.view_guest');
 
 
 //For Mobile
