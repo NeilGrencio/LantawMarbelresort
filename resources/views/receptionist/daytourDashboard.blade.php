@@ -40,21 +40,106 @@
         overflow-x: hidden;
         gap:.5rem;
     } 
-    #layout-header{
+    #layout-header {
         display: flex;
         flex-direction: row;
-        width: 100%;
-        height:4rem;
-        padding:1rem;
-        background:white;
-        border-radius: .7rem;
-        border:1px solid black;
-        box-shadow:.1rem .1rem 0 black;
         align-items: center;
-        justify-content: space-between; 
+        justify-content: space-between;
+        width: 100%;
+        height: 8%;
+        padding: 1rem 3rem 1rem 2rem;
+        background: white;
+        border-radius: .7rem;
+        font-size: .6rem;
+        border: 1px solid black;
+        box-shadow: .1rem .1rem 0 black;
         gap: 1rem;
-        font-size: .7rem;
     }
+    .add-action{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+        cursor: pointer;
+        font-size: .8rem;
+    }
+
+    .search-container .reset-btn {
+        padding: 10px 15px;
+        background-color: #e53935;
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        margin-left: 10px;
+        transition: background-color 0.3s ease;
+        font-size: 14px;
+    }
+
+    .search-container .reset-btn:hover {
+        background-color: #b71c1c;
+    }
+    .button-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    #add-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        color: #333;
+        transition: color 0.3s ease;
+    }
+    #add-container:hover {
+        color: #F78A21;
+    }
+    #add-text {
+        opacity: 1;
+        visibility: visible;
+        width: auto;
+        margin-left: 0.5rem;
+    }
+
+    .search-container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        margin: 15px 0;
+        gap: 1rem;
+    }
+
+
+    .search-container form {
+        display: flex;
+        align-items: center;
+    }
+
+    .search-container input[type="text"] {
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 25px 0 0 25px;
+        outline: none;
+        width: 250px;
+        font-size: 14px;
+    }
+
+    .search-container button {
+        padding: 10px 15px;
+        border-left: none;
+        background-color: #000000;
+        color: white;
+        border-radius: 0 25px 25px 0;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .search-container button:hover {
+        background-color: #F78A21;
+        border: 1px solid #F78A21;
+    }
+
     .qr-container{
         display: flex;
         flex-direction: row;
@@ -132,11 +217,27 @@
     <div id="main-layout">
         <div id="layout-header">
             <h1>Day Tour QR Codes</h1>
-            <div class="add-action">
-                <i id="add-action" class="fas fa-plus-circle fa-2x" data-url="{{ url('receptionist/daytour') }}" style="cursor:pointer;"></i>
-                <small>Create Day Tour</small>
+
+            <div class="search-container">
+                <form action="{{ route('receptionist.search_daytour') }}" method="GET">
+                    <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
+                    <button type="submit">
+                        <i class="fa fa-search"></i>
+                    </button>
+                    @if(request()->has('search') && request('search') !== '')
+                        <a href="{{ route('receptionist.search_daytour') }}" class="reset-btn">Clear Search</a>
+                    @endif
+                </form>
+
+                <div class="add-action" style="margin-left: 1rem;">
+                    <i id="add-action" class="fas fa-plus-circle fa-2x" 
+                    data-url="{{ url('receptionist/daytour') }}" 
+                    style="cursor:pointer;"></i>
+                    <small>Create Day Tour</small>
+                </div>
             </div>
         </div>
+
         @if(session('success'))
             <div class="alert alert-success mt-4">
                 {{ session('success') }}

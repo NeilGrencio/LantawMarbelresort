@@ -177,7 +177,7 @@
             </div>
         </div>
 
-        <div id="guest" class="sidebar-item" data-url="{{ url('manager/guest_list') }}">
+        <div id="guest" class="sidebar-item" data-url="{{ url('receptionist/guest_list') }}">
             <div class="icons">
                 <i class="fas fa-person-walking-luggage fa-2x"></i>
             </div>

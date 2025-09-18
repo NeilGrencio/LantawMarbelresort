@@ -1,23 +1,23 @@
 <body>
     <div id="layout">
-        @include('components.sidebar')
+        @include('components.receptionist_sidebar')
         <div id="main-layout">
             <div id="layout-header">
                 <h1>Guest List</h1>
 
                 <div class="button-group">
-                        <div id="add-container" data-url="{{ url('manager/add_guest') }}">
+                        <div id="add-container" data-url="{{ url('receptionist/add_guest') }}">
                             <h2 id="add-text">Add Guest</h2>
                             <i id="add-user" class="fas fa-plus-circle fa-3x"  style="cursor:pointer;"></i>
                         </div>
                     <div class="search-container">
-                        <form action="{{ route('manager.search_guest') }}" method="GET">
+                        <form action="{{ route('receptionist.search_guest') }}" method="GET">
                             <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
                             <button type="submit">
                                 <i class="fa fa-search"></i>
                             </button>
                             @if(request()->has('search') && request('search') !== '')
-                                <a href="{{ route('manager.search_guest') }}" class="reset-btn">Clear Search</a>
+                                <a href="{{ route('receptionist.search_guest') }}" class="reset-btn">Clear Search</a>
                             @endif
                         </form>
                     </div>
@@ -60,7 +60,7 @@
                                 <img src="{{ asset('storage/' . $guests->avatar) }}"/>
                             </td>
                             <td style="cursor: pointer;" >
-                                <div class="view" data-url="{{ route('manager.view_guest', ['guestID' => $guests->guestID])}}">
+                                <div class="view" data-url="{{ route('receptionist.view_guest', ['guestID' => $guests->guestID])}}">
                                     <span>View</span>
                                     <i class="fa-regular fa-eye fa-lg"></i>
                                 </div>

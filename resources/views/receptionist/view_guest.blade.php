@@ -9,7 +9,7 @@
 </head>
 <body>
     <div id="layout">
-        @include('components.sidebar')
+        @include('components.receptionist_sidebar')
         <div id="main-layout">
             <h1>Create Guest Information</h1>
 
@@ -73,14 +73,6 @@
                         <input id="txtbirthday" type="date" name="birthday"
                             value="{{ $guest->birthday }}" readonly>
                         </div>
-                        <div>
-                            <label for="role">Role:</label> 
-                            <select id="txtrole" name="role" disabled>
-                                <option value="" disabled selected>Select Role</option>
-                                <option value="Guest" {{ $guest->role == 'Guest' ? 'selected' : '' }}>Hotel Guest</option>
-                                <option value="Day Tour Guest" {{ $guest->role == 'Day Tour Guest' ? 'selected' : '' }}>Day Tour Guest</option>
-                            </select>  
-                        </div>
                     </div>
 
                     {{-- Valid ID --}}
@@ -99,6 +91,14 @@
                         <div>
                             <label for="txtusername">Username:</label> 
                             <input id="txtusername" type="text" placeholder="Username" name="username" value="{{$user->username}}">
+                        </div>
+                        <div>
+                            <label for="role">Role:</label> 
+                            <select id="txtrole" name="role" disabled>
+                                <option value="" disabled selected>Select Role</option>
+                                <option value="Guest" {{ $guest->role == 'Guest' ? 'selected' : '' }}>Hotel Guest</option>
+                                <option value="Day Tour Guest" {{ $guest->role == 'Day Tour Guest' ? 'selected' : '' }}>Day Tour Guest</option>
+                            </select>  
                         </div>
                          
                     </div>

@@ -16,11 +16,27 @@
             @endphp
             <div id="layout-header">
                 <h1 id="h2">Room List | Total Room : {{ $count }}</h1>
-                <div id="add-container">
-                    <h2 id="add-text">Add Room</h2>
-                    <i id="add-menu" class="fas fa-plus-circle fa-3x" data-url="{{ url('manager/add_room') }}" style="cursor:pointer;"></i>
+                
+                <div class="right-actions">
+                    <div id="add-container" data-url="{{ url('manager/add_room') }}">
+                        <h2 id="add-text">Add a Room</h2>
+                        <i id="add-user" class="fas fa-plus-circle fa-3x" style="cursor:pointer;"></i>
+                    </div>
+
+                    <div class="search-container">
+                        <form action="{{ route('manager.search_room') }}" method="GET">
+                            <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
+                            <button type="submit">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            @if(request()->has('search') && request('search') !== '')
+                                <a href="{{ route('manager.search_room') }}" class="reset-btn">Clear Search</a>
+                            @endif
+                        </form>
+                    </div>
                 </div>
             </div>
+
 
             <div class="room-container">
                 @foreach($rooms as $room)
@@ -123,25 +139,114 @@
     #main-layout {
         width: 100%;
         padding: 1rem;
-        margin-left: 15rem;
+        margin-left: 12rem;
     }
 
     #layout-header {
-        height:3rem;
         display: flex;
         align-items: center;
+        font-size:.7rem;
         justify-content: space-between;
+        width: 100%;
+        height: 8%;
+        padding: 1rem 2rem;
         background: white;
-        padding: 1rem;
         border-radius: .7rem;
-        font-size:.7rem;   
+        border: 1px solid black;
+        box-shadow: .1rem .1rem 0 black;
+        gap: 1rem;
     }
+    .right-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
     #add-container {
         display: flex;
         align-items: center;
-        position: relative;
+        gap: 0.5rem;
         cursor: pointer;
+        color: #333;
+        transition: color 0.3s ease;
+    }
+    #add-container:hover {
+        color: #F78A21;
+    }
+
+    .search-container .reset-btn {
+        padding: 10px 15px;
+        background-color: #e53935;
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        margin-left: 10px;
+        transition: background-color 0.3s ease;
+        font-size: 14px;
+    }
+
+    .search-container .reset-btn:hover {
+        background-color: #b71c1c;
+    }
+
+    .button-group {
+        display: flex;
+        align-items: center;
         gap: 1rem;
+    }
+
+    #add-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        color: #333;
+        transition: color 0.3s ease;
+    }
+    #add-container:hover {
+        color: #F78A21;
+    }
+    #add-text {
+        opacity: 1;
+        visibility: visible;
+        width: auto;
+        margin-left: 0.5rem;
+    }
+
+    .search-container {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        margin: 15px 0;
+    }
+
+    .search-container form {
+        display: flex;
+        align-items: center;
+    }
+
+    .search-container input[type="text"] {
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 25px 0 0 25px;
+        outline: none;
+        width: 250px;
+        font-size: 14px;
+    }
+
+    .search-container button {
+        padding: 10px 15px;
+        border-left: none;
+        background-color: #000000;
+        color: white;
+        border-radius: 0 25px 25px 0;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .search-container button:hover {
+        background-color: #F78A21;
+        border: 1px solid #F78A21;
     }
     .room-container {
         display: flex;
@@ -276,7 +381,7 @@
         const manageBtn = document.querySelectorAll('.manageBtn');
         const dropdowns = document.querySelectorAll('.dropdown-content');
         const message = document.querySelector('.alert-message');
-        const addRoom = document.getElementById('add-menu');
+        const addRoom = document.getElementById('add-container');
 
         if (message) {
             setTimeout(() => {

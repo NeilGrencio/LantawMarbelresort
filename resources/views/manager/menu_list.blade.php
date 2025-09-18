@@ -13,10 +13,24 @@
         <div id="main-layout">
             <div id="layout-header">
                 <h1 id="h2">Menu Items</h1>
-                <div id="add-container">
-                    <h2 id="add-text">Add Menu Item</h2>
-                    <i id="add-menu" class="fas fa-plus-circle fa-3x" data-url="{{ url('manager/add_menu') }}" style="cursor:pointer;"></i>
-                </div>
+                <div class="button-group">
+                        <div id="add-container" data-url="{{ url('manager/add_menu') }}">
+                            <h2 id="add-text">Add User</h2>
+                            <i id="add-user" class="fas fa-plus-circle fa-3x"  style="cursor:pointer;"></i>
+                        </div>
+                    <div class="search-container">
+                        <form action="{{ route('manager.search_menu') }}" method="GET">
+                            <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
+                            <button type="submit">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            @if(request()->has('search') && request('search') !== '')
+                                <a href="{{ route('manager.search_menu') }}" class="reset-btn">Clear Search</a>
+                            @endif
+                        </form>
+                    </div>
+                    
+                    </div>
             </div>
             <div class="navbar">
                 <div class="navbar-item" data-filter="All"><h3>All</h3></div>
@@ -90,44 +104,96 @@
         padding:1rem;
         width:100%;
         transition: width 0.3s ease-in-out;
-        margin-left:15rem;
+        margin-left:12rem;
     }
     #layout-header {
         display: flex;
+        flex-direction: row;
         align-items: center;
         justify-content: space-between;
         width: 100%;
-        height:5%;
+        height: 8%;
         padding: 1rem 3rem 1rem 2rem;
-        background: white; 
-        border-radius: 2rem;
-        font-size: 70%;
+        background: white;
+        border-radius: .7rem;
+        font-size: .6rem;
+        border: 1px solid black;
+        box-shadow: .1rem .1rem 0 black;
         gap: 1rem;
     }
-     #add-container {
+
+    .search-container .reset-btn {
+        padding: 10px 15px;
+        background-color: #e53935;
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        margin-left: 10px;
+        transition: background-color 0.3s ease;
+        font-size: 14px;
+    }
+
+    .search-container .reset-btn:hover {
+        background-color: #b71c1c;
+    }
+    .button-group {
         display: flex;
         align-items: center;
-        position: relative;
+        gap: 1rem;
+    }
+
+    #add-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
         cursor: pointer;
-        gap:1rem;
+        color: #333;
+        transition: color 0.3s ease;
     }
-
+    #add-container:hover {
+        color: #F78A21;
+    }
     #add-text {
-        opacity: 0;
-        visibility: hidden;
-        width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        transition: all 0.3s ease;
-        padding: 0.3rem 0.6rem;
-        margin-left: 0.5rem;
-        border-radius: 5px;
-    }
-
-    #add-container:hover #add-text {
         opacity: 1;
         visibility: visible;
         width: auto;
+        margin-left: 0.5rem;
+    }
+
+    .search-container {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        margin: 15px 0;
+    }
+
+    .search-container form {
+        display: flex;
+        align-items: center;
+    }
+
+    .search-container input[type="text"] {
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 25px 0 0 25px;
+        outline: none;
+        width: 250px;
+        font-size: 14px;
+    }
+
+    .search-container button {
+        padding: 10px 15px;
+        border-left: none;
+        background-color: #000000;
+        color: white;
+        border-radius: 0 25px 25px 0;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .search-container button:hover {
+        background-color: #F78A21;
+        border: 1px solid #F78A21;
     }
     .navbar{
         display:flex;
@@ -275,88 +341,71 @@
     }
 </style>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const manageButtons = document.querySelectorAll('#manage-button');
-        const filterButtons = document.querySelectorAll('.navbar-item');
-        const menuCards = document.querySelectorAll('.menu-card');
-        const dropdownButtons = document.querySelectorAll('.drop-down div');
-        const addMenu = document.getElementById('add-menu');
-        const message = document.querySelector('.alert-message');
+document.addEventListener('DOMContentLoaded', function () {
+    const filterButtons = Array.from(document.querySelectorAll('.navbar-item'));
+    const menuCards = Array.from(document.querySelectorAll('.menu-card'));
 
-        if (message) {
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 2500);
+    function normalize(s) {
+        return (s || '').toString().trim().toLowerCase();
+    }
+
+    function applyFilter(filter) {
+        const f = normalize(filter);
+        menuCards.forEach(card => {
+            const rawType = card.dataset.type || card.getAttribute('data-type') || '';
+            const types = rawType.split(',').map(t => normalize(t));
+            const matches = (f === 'all') || types.includes(f);
+            card.style.display = matches ? '' : 'none';
+        });
+    }
+
+    if (filterButtons.length) {
+        const allBtn = filterButtons.find(b => normalize(b.dataset.filter) === 'all') || filterButtons[0];
+        filterButtons.forEach(b => b.classList.remove('active'));
+        if (allBtn) {
+            allBtn.classList.add('active');
+            applyFilter(allBtn.dataset.filter || allBtn.textContent);
         }
+    }
 
-        addMenu.addEventListener('click', function(){
-            window.location.href = this.dataset.url;
-        });
-
-        // Default: highlight first nav item
-        if (filterButtons.length > 0) {
-            filterButtons[0].classList.add('active');
-        }
-
-        // Filter logic
-        filterButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const filter = this.getAttribute('data-filter');
-
-                // Highlight the active button
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-
-                // Show/hide cards
-                menuCards.forEach(card => {
-                    const type = card.getAttribute('data-type');
-                    card.style.display = (filter === 'All' || filter === type) ? 'block' : 'none';
-                });
-            });
-        });
-
-        // Manage dropdown toggle
-        manageButtons.forEach(button => {
-            button.addEventListener('click', function (event) {
-                event.stopPropagation(); // Prevent closing dropdown immediately
-
-                const menuCard = this.closest('.menu-card');
-                const dropdown = menuCard.querySelector('.drop-down');
-
-                // Close other dropdowns
-                document.querySelectorAll('.drop-down').forEach(dd => {
-                    if (dd !== dropdown) dd.style.display = 'none';
-                });
-
-                // Toggle current dropdown
-                dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
-            });
-        });
-
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', function () {
-            document.querySelectorAll('.drop-down').forEach(dropdown => {
-                dropdown.style.display = 'none';
-            });
-        });
-
-        // Prevent dropdown itself from closing on click
-        document.querySelectorAll('.drop-down').forEach(dropdown => {
-            dropdown.addEventListener('click', function (event) {
-                event.stopPropagation();
-            });
-        });
-
-        dropdownButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const url = this.dataset.url;
-                if (url) {
-                    window.location.href = url;
-                }
-            });
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            filterButtons.forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+            const filter = button.dataset.filter || button.textContent || 'All';
+            applyFilter(filter);
         });
     });
+
+    document.querySelectorAll('#manage-button').forEach(button => {
+        button.addEventListener('click', function (event) {
+            event.stopPropagation();
+            const menuCard = this.closest('.menu-card');
+            const dropdown = menuCard.querySelector('.drop-down');
+            document.querySelectorAll('.drop-down').forEach(dd => {
+                if (dd !== dropdown) dd.style.display = 'none';
+            });
+            dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
+        });
+    });
+
+    document.addEventListener('click', function () {
+        document.querySelectorAll('.drop-down').forEach(dropdown => {
+            dropdown.style.display = 'none';
+        });
+    });
+
+    document.querySelectorAll('.drop-down').forEach(dropdown => {
+        dropdown.querySelectorAll('div[data-url]').forEach(item => {
+            item.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                const url = this.dataset.url;
+                if (url) window.location.href = url;
+            });
+        });
+        dropdown.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+        });
+    });
+});
 </script>
-
-
-
