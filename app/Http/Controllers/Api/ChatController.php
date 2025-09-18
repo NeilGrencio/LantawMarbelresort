@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ChatTable;
+use Illuminate\Validation\ValidationException;
 
 class ChatController extends Controller
 {
@@ -14,12 +15,13 @@ class ChatController extends Controller
         $chats = ChatTable::with(['guest', 'staff'])->get();
         return response()->json($chats);
     }
+
+    // Get all chats for a specific guest
     public function getByGuest($guestID)
     {
-        // Get all chats for a specific guest
         $chats = ChatTable::with(['guest', 'staff'])
             ->where('guestID', $guestID)
-            ->orderBy('datesent', 'asc') // optional: sort by date
+            ->orderBy('datesent', 'asc')
             ->get();
 
         if ($chats->isEmpty()) {
@@ -28,6 +30,7 @@ class ChatController extends Controller
 
         return response()->json($chats);
     }
+
     // Show a single chat
     public function show($id)
     {
@@ -41,19 +44,26 @@ class ChatController extends Controller
     // Create a new chat
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'chat' => 'required|string',
-            'datesent' => 'required|date',
-            'reply' => 'nullable|string',
-            'datereplied' => 'nullable|date',
-            'status' => 'required|string',
-            'guestID' => 'required|integer|exists:guest,guestID',
-            'staffID' => 'nullable|integer|exists:staff,staffID'
-        ]);
+        try {
+            $validated = $request->validate([
+                'chat' => 'required|string',
+                'datesent' => 'required|date',
+                'reply' => 'nullable|string',
+                'datereplied' => 'nullable|date',
+                'status' => 'required|string',
+                'guestID' => 'required|integer|exists:guest,guestID',
+                'staffID' => 'nullable|integer|exists:staff,staffID'
+            ]);
 
-        $chat = ChatTable::create($validated);
+            $chat = ChatTable::create($validated);
+            return response()->json($chat, 201);
 
-        return response()->json($chat, 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
     // Update a chat
@@ -64,19 +74,26 @@ class ChatController extends Controller
             return response()->json(['message' => 'Chat not found'], 404);
         }
 
-        $validated = $request->validate([
-            'chat' => 'sometimes|string',
-            'datesent' => 'sometimes|date',
-            'reply' => 'nullable|string',
-            'datereplied' => 'nullable|date',
-            'status' => 'sometimes|string',
-            'guestID' => 'sometimes|integer|exists:guest,guestID',
-            'staffID' => 'nullable|integer|exists:staff,staffID'
-        ]);
+        try {
+            $validated = $request->validate([
+                'chat' => 'sometimes|string',
+                'datesent' => 'sometimes|date',
+                'reply' => 'nullable|string',
+                'datereplied' => 'nullable|date',
+                'status' => 'sometimes|string',
+                'guestID' => 'sometimes|integer|exists:guest,guestID',
+                'staffID' => 'nullable|integer|exists:staff,staffID'
+            ]);
 
-        $chat->update($validated);
+            $chat->update($validated);
+            return response()->json($chat);
 
-        return response()->json($chat);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
     // Delete a chat
