@@ -201,11 +201,16 @@ Route::get('receptionist/dashboard', function () {
     return view('receptionist/dashboard');
 });
 
+
+/// Search Function
 Route::get('receptionist/search_booking',[SearchUserController::class, 'searchBooking'])->name('receptionist.search_booking');
 Route::get('receptionist/search_daytour',[SearchUserController::class, 'searchDaytour'])->name('receptionist.search_daytour');
 Route::get('receptionist/search_guest',[SearchUserController::class, 'searchGuestReceptionist'])->name('receptionist.search_guest');
 Route::get('receptionist/search_billing',[SearchUserController::class, 'searchBilling'])->name('receptionist.search_billing');
 Route::get('receptionist/search_menu',[SearchUserController::class, 'searchMenuReceptionist'])->name('receptionist.search_menu');
+
+
+// Booking Routes
 
 Route::get('receptionist/booking', [BookingController::class, 'bookingList'])->name('receptionist.booking');
 Route::get('receptionist/booking_list', [BookingController::class, 'bookingListView'])->name('receptionist.booking_list');
@@ -251,7 +256,6 @@ Route::get('receptionist/view_guest/{guestID}', [ManageGuestController::class, '
 Route::get('receptionist/add_guest', [ManageGuestController::class, 'addGuest'])->name('receptionist.add_guest');
 Route::post('receptionist/add_guest', [ManageGuestController::class, 'submitGuest'])->name('receptionist.submit_guest');
 
-
 //For Mobile
 // Route::get('mobile/rooms', [RoomMobile::class, 'roomList']);
 
@@ -264,4 +268,4 @@ Route::post('receptionist/add_guest', [ManageGuestController::class, 'submitGues
 //     Route::post('mobile/logout', [ApiAuthController::class, 'logout']);
 // });
 
-require __DIR__ . '/auth.php';
+require __DIR__ . '/auth.php
