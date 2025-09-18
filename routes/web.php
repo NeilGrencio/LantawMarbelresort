@@ -268,4 +268,4 @@ Route::post('receptionist/add_guest', [ManageGuestController::class, 'submitGues
 //     Route::post('mobile/logout', [ApiAuthController::class, 'logout']);
 // });
 
-require __DIR__ . '/auth.php
+require __DIR__ . '/auth.php';
