@@ -141,6 +141,26 @@ class ManageGuestController extends Controller
 
         return view('manager/view_guest', compact('guest', 'user'));
     }
+    
+    public function viewGuest($guestID){
+        $guest = GuestTable::where('guestID', $guestID)->first();
+        $user = $guest->Users;
+
+        return view('manager/view_guest', compact('guest', 'user'));
+    }
+
+    public function guestListReceptionist()
+    {
+        $guest = GuestTable::paginate(10);
+        return view('receptionist.guest_list_receptionist', compact('guest'));
+    }
+
+    public function viewGuestReceptionist($guestID){
+        $guest = GuestTable::where('guestID', $guestID)->first();
+        $user = $guest->Users;
+
+        return view('receptionist/view_guest', compact('guest', 'user'));
+    }
 
     public function viewGuest($guestID){
         $guest = GuestTable::where('guestID', $guestID)->first();
