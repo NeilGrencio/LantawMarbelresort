@@ -40,3 +40,4 @@ Route::prefix('bookings')->group(function () {
     Route::post('/', [BookingController::class, 'store']);
     Route::put('/{id}', [BookingController::class, 'update']);
 });
+Route::apiResource('chats', ChatController::class);

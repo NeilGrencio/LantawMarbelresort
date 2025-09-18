@@ -10,43 +10,43 @@ class PaymentController extends Controller
 {
     public function createGcashPayment(Request $request)
     {
-        $amount = $request->input('amount') * 100; // PayMongo uses centavos
+        // $amount = $request->input('amount') * 100; // PayMongo uses centavos
 
-        // ✅ use Client, not Paymongo
-        $paymongo = new Client(env('PAYMONGO_SECRET_KEY'));
+        // // ✅ use Client, not Paymongo
+        // $paymongo = new Client(env('PAYMONGO_SECRET_KEY'));
 
-        $paymentIntent = $paymongo->paymentIntents()->create([
-            'amount' => $amount,
-            'payment_method_allowed' => ['gcash'],
-            'currency' => 'PHP',
-        ]);
+        // $paymentIntent = $paymongo->paymentIntents()->create([
+        //     'amount' => $amount,
+        //     'payment_method_allowed' => ['gcash'],
+        //     'currency' => 'PHP',
+        // ]);
 
-        $paymentMethod = $paymongo->paymentMethods()->create([
-            'type' => 'gcash',
-            'details' => [
-                'email' => $request->input('email'),
-            ],
-        ]);
+        // $paymentMethod = $paymongo->paymentMethods()->create([
+        //     'type' => 'gcash',
+        //     'details' => [
+        //         'email' => $request->input('email'),
+        //     ],
+        // ]);
 
-        $attach = $paymongo->paymentIntents()->attach(
-            $paymentIntent['data']['id'],
-            $paymentMethod['data']['id']
-        );
+        // $attach = $paymongo->paymentIntents()->attach(
+        //     $paymentIntent['data']['id'],
+        //     $paymentMethod['data']['id']
+        // );
 
-        return response()->json([
-            'checkout_url' => $attach['data']['attributes']['next_action']['redirect']['url']
-        ]);
+        // return response()->json([
+        //     'checkout_url' => $attach['data']['attributes']['next_action']['redirect']['url']
+        // ]);
     }
 
     public function handleWebhook(Request $request)
     {
-        $event = $request->all();
+        // $event = $request->all();
 
-        if (isset($event['data']['attributes']['status']) &&
-            $event['data']['attributes']['status'] === 'succeeded') {
-            // ✅ Mark booking as booked in DB
-        }
+        // if (isset($event['data']['attributes']['status']) &&
+        //     $event['data']['attributes']['status'] === 'succeeded') {
+        //     // ✅ Mark booking as booked in DB
+        // }
 
-        return response()->json(['ok' => true]);
+        // return response()->json(['ok' => true]);
     }
 }
