@@ -47,8 +47,8 @@ class ChatController extends Controller
             'reply' => 'nullable|string',
             'datereplied' => 'nullable|date',
             'status' => 'required|string',
-            'guestID' => 'required|integer|exists:guest_table,guestID',
-            'staffID' => 'nullable|integer|exists:staff_table,staffID'
+            'guestID' => 'required|integer|exists:guest,guestID',
+            'staffID' => 'nullable|integer|exists:staff,staffID'
         ]);
 
         $chat = ChatTable::create($validated);
@@ -70,8 +70,8 @@ class ChatController extends Controller
             'reply' => 'nullable|string',
             'datereplied' => 'nullable|date',
             'status' => 'sometimes|string',
-            'guestID' => 'sometimes|integer|exists:guest_table,guestID',
-            'staffID' => 'nullable|integer|exists:staff_table,staffID'
+            'guestID' => 'sometimes|integer|exists:guest,guestID',
+            'staffID' => 'nullable|integer|exists:staff,staffID'
         ]);
 
         $chat->update($validated);
