@@ -42,3 +42,4 @@ Route::prefix('bookings')->group(function () {
     Route::put('/{id}', [BookingController::class, 'update']);
 });
 Route::apiResource('chats', ChatController::class);
+Route::get('chats/guest/{guestID}', [ChatController::class, 'getByGuest']);

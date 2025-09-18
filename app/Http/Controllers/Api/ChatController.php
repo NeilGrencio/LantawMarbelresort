@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ChatTable;
+
 class ChatController extends Controller
 {
     // List all chats
@@ -13,7 +14,20 @@ class ChatController extends Controller
         $chats = ChatTable::with(['guest', 'staff'])->get();
         return response()->json($chats);
     }
+    public function getByGuest($guestID)
+    {
+        // Get all chats for a specific guest
+        $chats = ChatTable::with(['guest', 'staff'])
+            ->where('guestID', $guestID)
+            ->orderBy('datesent', 'asc') // optional: sort by date
+            ->get();
 
+        if ($chats->isEmpty()) {
+            return response()->json(['message' => 'No chats found for this guest'], 404);
+        }
+
+        return response()->json($chats);
+    }
     // Show a single chat
     public function show($id)
     {
