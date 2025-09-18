@@ -14,19 +14,24 @@
             <div id="layout-header">
                 <h1 id="h2">User List</h1>
                 <div class="button-group">
-                    <div id="add-container">
-                        <h2 id="add-text">Add User</h2>
-                        <i id="add-user" class="fas fa-plus-circle fa-3x" data-url="{{ url('manager/add_user') }}" style="cursor:pointer;"></i>
-                    </div>
-                <div class="search-container">
-                        <form action="{{ route('manager.search_user') }}" method="GET" class="search-form">
-                             <input id="search" type="text" placeholder="Search.." name="search"> 
-                             <button type="submit"><i class="fa fa-search"></i></button> 
+                        <div id="add-container" data-url="{{ url('manager/add_user') }}">
+                            <h2 id="add-text">Add User</h2>
+                            <i id="add-user" class="fas fa-plus-circle fa-3x"  style="cursor:pointer;"></i>
+                        </div>
+                    <div class="search-container">
+                        <form action="{{ route('manager.search_user') }}" method="GET">
+                            <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
+                            <button type="submit">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            @if(request()->has('search') && request('search') !== '')
+                                <a href="{{ route('manager.search_user') }}" class="reset-btn">Clear Search</a>
+                            @endif
                         </form>
                     </div>
-                
+                    
+                    </div>
                 </div>
-            </div>
             
             <div id="table-container">
                 <table id="user-table">
@@ -164,68 +169,79 @@
         box-shadow: .1rem .1rem 0 black;
         gap: 1rem;
     }
+
+    .search-container .reset-btn {
+        padding: 10px 15px;
+        background-color: #e53935;
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        margin-left: 10px;
+        transition: background-color 0.3s ease;
+        font-size: 14px;
+    }
+
+    .search-container .reset-btn:hover {
+        background-color: #b71c1c;
+    }
     .button-group {
         display: flex;
         align-items: center;
-        gap: .5rem;
+        gap: 1rem;
     }
+
     #add-container {
         display: flex;
         align-items: center;
-        position: relative;
+        gap: 0.5rem;
         cursor: pointer;
+        color: #333;
+        transition: color 0.3s ease;
+    }
+    #add-container:hover {
+        color: #F78A21;
     }
     #add-text {
-        opacity: 0;
-        visibility: hidden;
-        width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        transition: all 0.3s ease;
-        padding: 0.3rem 0.6rem;
-        margin-left: 0.5rem;
-        border-radius: 5px;
-    }
-    #add-container:hover #add-text {
         opacity: 1;
         visibility: visible;
         width: auto;
+        margin-left: 0.5rem;
     }
+
     .search-container {
-        display: block;
-        align-items: center;
+        display: flex;
         justify-content: center;
-        gap: 0.5rem;
+        align-content: center;
+        margin: 15px 0;
     }
-    .search-container button {
+
+    .search-container form {
+        display: flex;
         align-items: center;
-        justify-content: center;
-        height: 100%;
-        width: 3rem;
-        padding-top: 1.3rem;
-        background: none;
-        font-size: 25px;
-        text-align: center;
-        border: none;
-        cursor: pointer;
-        border-radius: 50%;
     }
-    .search-container:hover #search,
-    .search-container:focus-within #search {
-        width: 15rem;
-        opacity: 1;
-        visibility: visible;
-    }
-    #search {
-        height: 2rem;
+
+    .search-container input[type="text"] {
+        padding: 10px 15px;
         border: 1px solid #ccc;
-        padding: 6px 10px;
-        border-radius: 2rem;
-        overflow: hidden;
-        transition: width 0.3s ease, opacity 0.3s ease;
-        width: 0;
-        opacity: 0;
-        visibility: hidden;
+        border-radius: 25px 0 0 25px;
+        outline: none;
+        width: 250px;
+        font-size: 14px;
+    }
+
+    .search-container button {
+        padding: 10px 15px;
+        border-left: none;
+        background-color: #000000;
+        color: white;
+        border-radius: 0 25px 25px 0;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .search-container button:hover {
+        background-color: #F78A21;
+        border: 1px solid #F78A21;
     }
     #table-container {
         display: flex;
@@ -400,7 +416,7 @@
         }, 2500);
     }
 
-    document.getElementById('add-user').addEventListener('click', function() {
+    document.getElementById('add-container').addEventListener('click', function() {
         window.location.href = this.dataset.url;
     });
 

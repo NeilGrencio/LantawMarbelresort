@@ -3,20 +3,29 @@
         @include('components.sidebar')
         <div id="main-layout">
             <div id="layout-header">
-                <h1>Guest List</h2>
+                <h1>Guest List</h1>
 
-                <div class="search-container">
-                    <form action="{{ route('manager.search_user') }}" method="GET" class="search-form">
-                        <input type="text" placeholder="Search.." name="search">
-                        <button type="submit"><i class="fa fa-search"></i></button>
-                    </form>
+                <div class="button-group">
+                        <div id="add-container" data-url="{{ url('manager/add_guest') }}">
+                            <h2 id="add-text">Add Guest</h2>
+                            <i id="add-user" class="fas fa-plus-circle fa-3x"  style="cursor:pointer;"></i>
+                        </div>
+                    <div class="search-container">
+                        <form action="{{ route('manager.search_guest') }}" method="GET">
+                            <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
+                            <button type="submit">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            @if(request()->has('search') && request('search') !== '')
+                                <a href="{{ route('manager.search_guest') }}" class="reset-btn">Clear Search</a>
+                            @endif
+                        </form>
+                    </div>
                 </div>
+
+            </div>
             
-                <i id="add-guest" class="fas fa-plus-circle fa-3x" data-url="{{ url('manager/add_guest') }}" style="curosr:pointer;"></i>
-        
-            </div> 
-            
-            <div class="table-contianer">
+            <div class="table-container">
                 <table id="guest-table">
                     <theader>
                         <th>#</th>
@@ -81,103 +90,155 @@
     </div>            
 </body>
 <style>
-    #guest{color:#F78A21;}
-    #layout{
-        display: flex;
-        flex-direction: row;
-        height:100vh;
+   #guest {
+        color: #F78A21;
     }
-    #main-layout{
-        display:flex;
-        flex-direction: column;
-        padding:1rem;
-        width:100%;
-        transition: width 0.3s ease-in-out;
-        margin-left:15rem;
-    } 
-    #layout-header{
+    #layout {
         display: flex;
         flex-direction: row;
+        height: 100vh;
+    }
+    #main-layout {
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
         width: 100%;
-        height:auto;
-        padding:1rem;
-        background:white;
-        border-radius: 2rem;
+        transition: width 0.3s ease-in-out;
+        margin-left: 12rem;
+    }
+    #layout-header {
+        display: flex;
+        flex-direction: row;
         align-items: center;
-        justify-content: space-evenly; 
+        justify-content: space-between;
+        width: 100%;
+        height: 8%;
+        padding: 1rem 3rem 1rem 2rem;
+        background: white;
+        border-radius: .7rem;
+        font-size: .6rem;
+        border: 1px solid black;
+        box-shadow: .1rem .1rem 0 black;
         gap: 1rem;
     }
+    .search-container .reset-btn {
+        padding: 10px 15px;
+        background-color: #e53935;
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        margin-left: 10px;
+        transition: background-color 0.3s ease;
+        font-size: 14px;
+    }
+
+    .search-container .reset-btn:hover {
+        background-color: #b71c1c;
+    }
+
+    .button-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    #add-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        color: #333;
+        transition: color 0.3s ease;
+    }
+    #add-container:hover {
+        color: #F78A21;
+    }
+    #add-text {
+        opacity: 1;
+        visibility: visible;
+        width: auto;
+        margin-left: 0.5rem;
+    }
+
     .search-container {
         display: flex;
-        margin-left:auto;
-        right:1rem;
-        gap:0.5rem;
-        margin-top:1rem;
-        align-items: center;
         justify-content: center;
+        align-content: center;
+        margin: 15px 0;
     }
+
+    .search-container form {
+        display: flex;
+        align-items: center;
+    }
+
+    .search-container input[type="text"] {
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 25px 0 0 25px;
+        outline: none;
+        width: 250px;
+        font-size: 14px;
+    }
+
     .search-container button {
-        height:3.2rem;
-        padding: 6px 10px;
-        margin-right:1rem;
-        background: #ddd;
-        font-size: 17px;
-        border: none;
+        padding: 10px 15px;
+        border-left: none;
+        background-color: #000000;
+        color: white;
+        border-radius: 0 25px 25px 0;
         cursor: pointer;
+        transition: background-color 0.3s ease;
     }
-    .search-container button:hover   {
-        background: #ccc;
+
+    .search-container button:hover {
+        background-color: #F78A21;
+        border: 1px solid #F78A21;
     }
-    input[type=text] {
-        height:3rem;
-        width:15rem;
-        border: 1px solid #ccc;  
-        padding:6px 10px;
-    } 
-    #add-guest{
-        width:5rem;
-        height:3rem;
-        cursor: pointer;
-    }
-    .table-container{
+
+    .table-container {
         display: flex;
         flex-direction: row;
         width: 100%;
-        height:auto;
-        padding:1rem;
-        background:white;
-        border-radius: 2rem;
+        height: auto;
+        padding: .5rem;
+        border-radius: .7rem;
+        margin-top: 1rem;
         align-items: center;
-        align-content: center;
-        margin-top:1rem;
+        background: white;
+        box-shadow: .1rem .1rem 0 black;
+        overflow-x: auto;
     }
     #guest-table {
         width: 100%;
+        font-size: .7rem;
         border-collapse: collapse;
-        margin-top: 1rem;
+        transition: all 0.3s ease-in;
     }
-    #guest-table th, #guest-table td {
+    #guest-table th, 
+    #guest-table td {
         padding: 10px;
         text-align: center;
     }
-
     #guest-table th {
         background-color: #F78A21;
+        color: #fff;
     }
-
     #guest-table img {
         border-radius: 50%;
-        object-fit: cover;
+        object-fit: contain;
         width: 40px;
         height: 40px;
         display: block;
         margin: 0 auto;
     }
-    #page-container{
-        display:flex;
+
+    #page-container {
+        display: flex;
         flex-direction: row;
         align-items: center;
         justify-content: center;
+        margin-top: 1rem;
     }
     .pagination {
         display: flex;
@@ -221,9 +282,9 @@
         background: #f8f9fa;
         border-color: #eee;
     }
-    .page-item.disabled { display: none !important; }
-
-    /* Style for "Page X of Y" */
+    .page-item.disabled { 
+        display: none !important; 
+    }
     .pagination .page-status {
         background: transparent;
         border: none;
@@ -236,12 +297,14 @@
         margin: 0 0.5rem;
         padding: 0;
     }
+
     .even-row {
         background-color: #e2e2e2;
     }
     .odd-row {
         background-color: #ffffff;
     }
+
     .dropdown-content {
         display: none;
         position: absolute;
@@ -250,23 +313,22 @@
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
         z-index: 1;
     }
-    .dropdown-content div{
+    .dropdown-content div {
         display: flex;  
         background: #e6e6e6;
-        font-style: normal;
         align-items: center;
-        text-align: center;
         justify-content: space-between;
-        padding:0.5rem;
-        cursor:pointer;
+        padding: 0.5rem;
+        cursor: pointer;
     }
-    .dropdown-content.show{
+    .dropdown-content.show {
         display: flex;
         flex-direction: column;
-        gap:.5rem;
-        padding:.5rem;
+        gap: .5rem;
+        padding: .5rem;
     }
-    .alert-message{
+
+    .alert-message {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -276,13 +338,11 @@
         right: 50%;
         transform: translate(50%, 0);
         bottom: 1rem;
-        height: fit-content;
         min-height: 10rem;
         max-height: 30rem;
-        width: fit-content;
         min-width: 20rem;
         max-width: 90vw;
-        background: rgb(255, 255, 255);
+        background: #fff;
         z-index: 1000;
         border-radius: 1rem;
         box-shadow: 0 0 1rem rgba(0,0,0,0.5);
@@ -291,10 +351,11 @@
         flex-wrap: wrap;
         word-wrap: break-word;
     }
+
 </style>
 
 <script>
-    const addGuest = document.getElementById('add-guest');
+    const addGuest = document.getElementById('add-container');
     const viewGuests = document.querySelectorAll('.view');
 
     viewGuests.forEach(viewGuest => {

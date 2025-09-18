@@ -171,23 +171,25 @@
     #layout{
         display: flex;
         flex-direction: row;
-        height:100vh;
+        height: 100vh;
     }
     #main-layout{
-        width:100%;
-        height: auto;
-        padding:1rem;
-        margin-left:15rem;
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+        width: 100%;
+        transition: width 0.3s ease-in-out;
+        margin-left: 12rem;
     }
     #add_user-container{
         display:flex;
         flex-direction: column;
         width:100%;
         height: auto;
-        border-radius:2rem;
-        box-shadow:1rem 0rem 2rem rgba(0,0,0,0.2);
+        border-radius:.7rem;
+        box-shadow:.1rem .1rem 0rem rgba(0,0,0,0.2);
         background:white;
-        padding:1rem;
+        padding:.5rem;
     }
     #form-header-1, #form-header-2{
         width:100%;
