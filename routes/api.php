@@ -9,6 +9,7 @@ use App\Http\Controllers\RoomMobile;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\CottageController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\ChatController;
 
 /*
 |--------------------------------------------------------------------------
