@@ -148,6 +148,99 @@
         .parent-container {
             padding: 0.5rem;
         }
+         .form-container {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 420px;
+            background: whitesmoke;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .password-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        input {
+            font-size: 0.9rem;
+            border-radius: 0.5rem;
+            padding: 0.6rem;
+            border: 1px solid #ccc;
+            width: 100%;
+        }
+
+        small {
+            cursor: pointer;
+            color: gray;
+            transition: all 0.2s ease;
+        }
+
+        small:hover {
+            color: blue;
+            transform: scale(1.05);
+        }
+
+        i {
+            position: absolute;
+            right: 1rem;
+            bottom: 1rem;
+            cursor: pointer;
+            color: gray;
+            transition: all 0.3s ease;
+        }
+
+        i:hover {
+            transform: scale(1.3);
+            color: black;
+        }
+
+        button {
+            margin-top: 1rem;
+            align-self: center;
+            font-size: 1rem;
+            font-weight: bold;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.7rem;
+            background: black;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: burlywood;
+            color: black;
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.8rem;
+        }
     }
 
     </style>
