@@ -47,6 +47,7 @@ Route::get('manager/search_room', [SearchUserController::class, 'searchRoom'])->
 Route::get('manager/search_amenity', [SearchUserController::class, 'searchAmenity'])->name('manager.search_amenity');
 Route::get('manager/search_cottage', [SearchUserController::class, 'searchCottage'])->name('manager.search_cottage');
 Route::get('manager/search_menu', [SearchUserController::class, 'searchMenu'])->name('manager.search_menu');
+Route::get('manager/search_logs', [SearchUserController::class, 'searchLogs'])->name('manager.search_logs');
 
 // Display add user form
 Route::get('manager/add_user', [ManageUserController::class, 'showForm'])->name('manager.add_user.form');
