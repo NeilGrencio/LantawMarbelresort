@@ -308,6 +308,7 @@
         margin: auto;
         padding: 1rem;
         flex-wrap: wrap;
-        word-wrap: break-word;
+        word-wrap: break-word
     }
+   
 </style>
