@@ -12,28 +12,30 @@ use App\Models\ChatTable;
 class ChatController extends Controller
 {
     public function viewChats(){
-        $chat = ChatTable::query()
-            ->leftJoin('guest', 'chat.guestID', '=', 'guest.guestID')
-            ->leftJoin('staff', 'chat.staffID', '=', 'staff.staffID')
-            ->select(
-                'chat.*',
-                DB::raw("DATE_FORMAT(chat.datesent, '%d/%m/%Y %h:%i %p') as datesent"),
-                DB::raw("DATE_FORMAT(chat.datereplied, '%d/%m/%Y %h:%i %p') as datereplied"),
 
-                DB::raw("COALESCE(CONCAT(guest.firstname, ' ', guest.lastname), 'Unknown Guest') as g_fullname"),
-                'guest.guestID as gID',
-                'guest.role as g_role',
-                DB::raw("COALESCE(guest.avatar, '') as g_avatar"), 
+    $chats = ChatTable::query()
+        ->leftJoin('guest', 'chat.guestID', '=', 'guest.guestID')
+        ->leftJoin('staff', 'chat.staffID', '=', 'staff.staffID')
+        ->select(
+            'chat.*',
+            DB::raw("DATE_FORMAT(chat.datesent, '%d/%m/%Y %h:%i %p') as formatted_datesent"),
+            DB::raw("DATE_FORMAT(chat.datereplied, '%d/%m/%Y %h:%i %p') as formatted_datereplied"),
 
-                DB::raw("COALESCE(CONCAT(staff.firstname, ' ', staff.lastname), 'Staff') as s_fullname"),
-                'staff.staffID as sID',
-                'staff.role as s_role',
-                DB::raw("COALESCE(staff.avatar, '') as s_avatar") 
-            )
-            ->orderBy('chat.chatID', 'desc')
-            ->get();
+            DB::raw("COALESCE(CONCAT(guest.firstname, ' ', guest.lastname), 'Unknown Guest') as g_fullname"),
+            'guest.guestID as gID',
+            'guest.role as g_role',
+            DB::raw("COALESCE(guest.avatar, '') as g_avatar"),
 
-        return view('manager/chat', compact('chat'));
+            DB::raw("COALESCE(CONCAT(staff.firstname, ' ', staff.lastname), 'Staff') as s_fullname"),
+            'staff.staffID as sID',
+            'staff.role as s_role',
+            DB::raw("COALESCE(staff.avatar, '') as s_avatar")
+        )
+        ->orderBy('chat.datesent', 'asc') // keep conversation order
+        ->get()
+        ->groupBy('gID'); // Group by guest
+
+    return view('manager.chat', compact('chats'));
     }
 
 
@@ -51,7 +53,7 @@ class ChatController extends Controller
 
         // Get staff ID from session (should match staff.staffID)
         $userID = (int) $request->session()->get('user_id');
-        $senderID = StaffTable::where('userID', $userID)->first(); 
+        $senderID = StaffTable::where('userID', $userID)->first();
 
         // Transaction for safety
         DB::beginTransaction();
