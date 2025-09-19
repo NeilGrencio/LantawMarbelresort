@@ -359,7 +359,7 @@
                 </table>
             </div>
             <div id="page-container">
-                {{ $bookings->links() }}
+                {{ $bookingtoday->links() }}
             </div>
             @if (session('success'))
                 <div class="alert-message">
