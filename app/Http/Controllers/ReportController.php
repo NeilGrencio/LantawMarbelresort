@@ -10,11 +10,13 @@ use App\Models\BookingTable;
 
 class ReportController extends Controller
 {
-    public function viewReport(){
+    public function viewReport()
+    {
         return view('manager/report');
     }
 
-    public function bookingReport(Request $request){
+    public function bookingReport(Request $request)
+    {
         $from = $request->query('from');
         $to = $request->query('to');
 
@@ -60,7 +62,8 @@ class ReportController extends Controller
         return view('manager.booking_report', compact('bookings', 'totals'));
     }
 
-    public function exportPDF(Request $request){
+    public function exportPDF(Request $request)
+    {
         $from = $request->query('from');
         $to = $request->query('to');
 
@@ -110,11 +113,12 @@ class ReportController extends Controller
     }
 
 
-    public function checkReport(Request $request){
+    public function checkReport(Request $request)
+    {
         $from = $request->query('from');
         $to = $request->query('to');
 
-         $query = DB::table('checkincheckout')
+        $query = DB::table('checkincheckout')
             ->leftjoin('guest', 'checkincheckout.guestID', '=', 'guest.guestID')
             ->leftjoin('booking', 'checkincheckout.bookingID', '=', 'booking.bookingID')
             ->select(
@@ -140,11 +144,12 @@ class ReportController extends Controller
         return view('manager.check_report', compact('check', 'totals'));
     }
 
-    public function exportCheckPDF(Request $request){
+    public function exportCheckPDF(Request $request)
+    {
         $from = $request->query('from');
         $to = $request->query('to');
 
-         $query = DB::table('checkincheckout')
+        $query = DB::table('checkincheckout')
             ->leftjoin('guest', 'checkincheckout.guestID', '=', 'guest.guestID')
             ->leftjoin('booking', 'checkincheckout.bookingID', '=', 'booking.bookingID')
             ->select(
@@ -170,7 +175,8 @@ class ReportController extends Controller
         $pdf = Pdf::loadView('manager.check_pdf', compact('check', 'totals', 'from', 'to'))->setPaper('a4', 'portrait');
         return $pdf->download('check_report.pdf');
     }
-    public function revenueReport(Request $request){
+    public function revenueReport(Request $request)
+    {
         $from = $request->query('from');
         $to = $request->query('to');
 
@@ -184,24 +190,27 @@ class ReportController extends Controller
             ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
             ->select(
                 'payment.*',
+                'billing.bookingID',
+                'billing.orderID',
+                'billing.amenityID',
                 DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as guestname"),
                 DB::raw("
-                    CASE
-                        WHEN billing.bookingID IS NOT NULL THEN 'Booking'
-                        WHEN billing.orderID IS NOT NULL THEN 'Order'
-                        WHEN billing.amenityID IS NOT NULL THEN 'Amenity'
-                        ELSE 'Unknown'
-                    END as payment_type
-                "),
+            CASE
+                WHEN billing.bookingID IS NOT NULL THEN 'Booking'
+                WHEN billing.orderID IS NOT NULL THEN 'Order'
+                WHEN billing.amenityID IS NOT NULL THEN 'Amenity'
+                ELSE 'Unknown'
+            END as payment_type
+        "),
                 'billing.totalamount',
                 'additionalcharges.amount as extracharge',
                 'discount.amount as discount',
                 DB::raw("
-                    ROUND(
-                        (billing.totalamount + IFNULL(additionalcharges.amount, 0)) * 
-                        (1 - (IFNULL(discount.amount, 0) / 100)),
-                    2) as total
-                ")
+            ROUND(
+                (billing.totalamount + IFNULL(additionalcharges.amount, 0)) *
+                (1 - (IFNULL(discount.amount, 0) / 100)),
+            2) as total
+        ")
             );
 
         if ($from && $to) {
@@ -220,9 +229,11 @@ class ReportController extends Controller
             'amenity' => (clone $totalsQuery)->whereNotNull('billing.amenityID')->count(),
         ];
 
-         return view('manager.revenue_report', compact('payments', 'totals'));
+        return view('manager.revenue_report', compact('payments', 'totals'));
     }
-    public function exportRevenuePDF(Request $request){
+
+    public function exportRevenuePDF(Request $request)
+    {
         $from = $request->query('from');
         $to = $request->query('to');
 
@@ -250,7 +261,7 @@ class ReportController extends Controller
                 'discount.amount as discount',
                 DB::raw("
                     ROUND(
-                        (billing.totalamount + IFNULL(additionalcharges.amount, 0)) * 
+                        (billing.totalamount + IFNULL(additionalcharges.amount, 0)) *
                         (1 - (IFNULL(discount.amount, 0) / 100)),
                     2) as total
                 ")
@@ -276,7 +287,8 @@ class ReportController extends Controller
         return $pdf->download('revenue_report.pdf');
     }
 
-    public function guestReport(Request $request){
+    public function guestReport(Request $request)
+    {
         $from = $request->query('from');
         $to = $request->query('to');
 
@@ -310,7 +322,8 @@ class ReportController extends Controller
 
         return view('manager.guest_report', compact('guest', 'totals'));
     }
-    public function exportGuestPDF(Request $request){
+    public function exportGuestPDF(Request $request)
+    {
         $from = $request->query('from');
         $to = $request->query('to');
 
