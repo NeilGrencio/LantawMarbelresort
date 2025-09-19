@@ -23,7 +23,7 @@
         width:100%;
         transition: width 0.3s ease-in-out;
         margin-left:12rem;
-    } 
+    }
     #layout-header {
         display: flex;
         flex-direction: row;
@@ -285,7 +285,7 @@
                         </form>
 
                     </div>
-                    
+
                 </div>
             </div>
 
@@ -310,9 +310,9 @@
 
                     <tbody>
                         @php $count = 0; @endphp
-                        @foreach($bookings as $booking)
-                            @php 
-                                $count++; 
+                        @foreach($bookingtoday as $booking)
+                            @php
+                                $count++;
                                 $rowClass = '';
                                 if ($booking->status === 'Cancelled') {
                                     $rowClass = 'booking-cancelled';
