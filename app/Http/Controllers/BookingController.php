@@ -26,7 +26,7 @@ use Illuminate\Types\Relations\Car;
 class BookingController extends Controller
 {
     public function bookingList(){
-        
+
         $bookingtoday = BookingTable::where('status', 'Booked')
             ->orwhereDate('bookingstart', DB::raw('CURDATE()'))
             ->orWhereDate('bookingend', DB::raw('CURDATE()'))
@@ -35,7 +35,7 @@ class BookingController extends Controller
                 'booking.*',
                 DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
             )
-            ->get();
+              ->paginate(10);
 
         $bookingpending = BookingTable::where('booking.status', 'Pending')
             ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
@@ -68,7 +68,7 @@ class BookingController extends Controller
         $booking = BookingTable::join('guest', 'booking.guestID', '=', 'guest.guestID')
             ->leftJoin('roombook', 'booking.bookingID', '=', 'roombook.bookingID')
             ->leftJoin('cottagebook', 'booking.bookingID', '=', 'cottagebook.bookingID')
-            ->select('booking.bookingID', 
+            ->select('booking.bookingID',
                 DB::raw("MAX(CONCAT(guest.firstname, ' ', guest.lastname)) as guestname"), // Aggregate the guest name
                 DB::raw("COUNT(roombook.roomID) as rooms_count"),
                 DB::raw("COUNT(cottagebook.cottageID) as cottages_count"),
@@ -79,14 +79,14 @@ class BookingController extends Controller
             )
             ->groupBy('booking.bookingID')
             ->get();
-  
-            $events = []; 
+
+            $events = [];
             $count = 1;
-            foreach ($booking as $bookings) { 
+            foreach ($booking as $bookings) {
                 $start = Carbon::parse($bookings->bookingstart);
                 $end = Carbon::parse($bookings->bookingend)->addDay();
                 $status = $bookings->status;
-                $today = Carbon::today(); 
+                $today = Carbon::today();
                 $colorIndex = $count;
 
                 if ($status === 'Booked' && $today->between($start, $end->copy()->subDay())) {
@@ -129,9 +129,9 @@ class BookingController extends Controller
 
                 $events[] = [
                     'id' => $bookings->bookingID,
-                    'title' => $bookings->guestname . ' ' . $hasMessage, 
-                    'start' => $start->format('Y-m-d'), 
-                    'end' => $end->format('Y-m-d'), 
+                    'title' => $bookings->guestname . ' ' . $hasMessage,
+                    'start' => $start->format('Y-m-d'),
+                    'end' => $end->format('Y-m-d'),
                     'color' => $color,
                 ];
                 $count++;
@@ -344,7 +344,7 @@ class BookingController extends Controller
             ]);
 
             $billing->save();
-            $billing->refresh(); 
+            $billing->refresh();
 
             // Create payment record
             PaymentTable::create([
@@ -436,10 +436,10 @@ class BookingController extends Controller
 
     private function calculatePrices($validated)
     {
-        $roomprice = !empty($validated['room']) ? 
+        $roomprice = !empty($validated['room']) ?
             RoomTable::whereIn('roomID', $validated['room'])->sum('price') : 0;
-        
-        $cottageprice = !empty($validated['cottage']) ? 
+
+        $cottageprice = !empty($validated['cottage']) ?
             CottageTable::whereIn('cottageID', $validated['cottage'])->sum('price') : 0;
 
         $amenityprice = 0;
@@ -483,17 +483,17 @@ class BookingController extends Controller
         try {
             // Try different date formats
             $formats = ['m/d/Y', 'Y-m-d', 'd/m/Y', 'm-d-Y'];
-            
+
             foreach ($formats as $format) {
                 $date = Carbon::createFromFormat($format, $dateString);
                 if ($date) {
                     return $date->format('Y-m-d');
                 }
             }
-            
+
             // If all formats fail, try Carbon's parse method
             return Carbon::parse($dateString)->format('Y-m-d');
-            
+
         } catch (\Exception $e) {
             return null;
         }
@@ -528,7 +528,7 @@ class BookingController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'An error occurred while updating the booking. Please try again.');
         }
-        
+
     }
 
     protected function autoCancelExpiredBookings()
@@ -574,7 +574,7 @@ class BookingController extends Controller
         $countCancelledBookings = count($cancelledBookings);
         $dueBookingData = $this->notifyDueBooking();
         $PendingBookings = BookingTable::where('status', 'Pending')->count();
-        
+
         return view('receptionist/dashboard', [
             'cancelledBookings' => $cancelledBookings,
             'cancelledBookingsCount' => $countCancelledBookings,
@@ -589,15 +589,15 @@ class BookingController extends Controller
             ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
             ->select('booking.*', 'guest.firstname', 'guest.lastname')
             ->first();
-        
+
         if (!$booking) {
             return redirect()->back()->with('error', 'Booking not found');
         }
-        
+
         $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
         $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
         $amenities = AmenityTable::where('amenityname', 'Kiddy Pool')->get();
-        
+
         $bookingData = (object) [
             'bookingID' => $booking->bookingID,
             'firstname' => $booking->firstname,
@@ -746,12 +746,12 @@ class BookingController extends Controller
 
             return redirect()->route('receptionist.booking')->with('success', 'Booking and billing updated successfully.');
         } catch (\Throwable $e) {
-            return redirect()->back()->with('error', 'Book update failed' . $e->getMessage());   
+            return redirect()->back()->with('error', 'Book update failed' . $e->getMessage());
         }
     }
 
     public function viewCheckIn() {
-        $today = Carbon::today()->toDateString(); 
+        $today = Carbon::today()->toDateString();
 
         $checkin = BookingTable::with(['roomBookings.room', 'cottageBookings.cottage', 'billing'])
             ->join('guest', 'booking.guestID', '=', 'guest.guestID')
@@ -801,7 +801,7 @@ class BookingController extends Controller
             ->leftJoin('cottages', 'cottagebook.cottageID', '=', 'cottages.cottageID')
             ->select('cottagebook.*', 'cottages.cottagename', 'cottages.price')
             ->get();
-                
+
         if ($request->isMethod('get')) {
             return view('receptionist.checkInBooking', compact('booking', 'today', 'room', 'cottage', 'billing', 'payment'));
         }
@@ -821,7 +821,7 @@ class BookingController extends Controller
                 return redirect()->back()->with('error', 'Insufficient payment amount. Remaining balance: ₱' . number_format($remainingBalance, 2));
             }
 
-            $change = $validated['payment'] === 'cash' ? 
+            $change = $validated['payment'] === 'cash' ?
                 max(0, $validated['amount_paid'] - $remainingBalance) : 0;
 
             $today = Carbon::now();
@@ -838,7 +838,7 @@ class BookingController extends Controller
             // Check if billing is fully paid
             $newTotalPaid = PaymentTable::where('billingID', $billing->billingID)->first();
             $newTotalPaidAmount = $newTotalPaid ? $newTotalPaid->totaltender : 0;
-            
+
             $billingtotal = (int) $billing->totalamount - (int) $validated['payment'];
             $billing->totalamount = $billingtotal;
 
@@ -918,7 +918,7 @@ class BookingController extends Controller
                 ->leftJoin('cottages', 'cottagebook.cottageID', '=', 'cottages.cottageID')
                 ->select('cottagebook.*', 'cottages.cottagename', 'cottages.price')
                 ->get();
-                
+
         if ($request->isMethod('get')) {
             return view('receptionist.checkOutBooking', compact('booking', 'today', 'room', 'cottage', 'billing', 'payment'));
         }
@@ -939,7 +939,7 @@ class BookingController extends Controller
                 return redirect()->back()->with('error', 'Insufficient payment amount. Remaining balance: ₱' . number_format($remainingBalance, 2));
             }
 
-            $change = $validated['payment'] === 'cash' ? 
+            $change = $validated['payment'] === 'cash' ?
                 max(0, $validated['amount_paid'] - $remainingBalance) : 0;
 
             $today = Carbon::now();
@@ -1032,13 +1032,13 @@ class BookingController extends Controller
 
             // Color logic based on today's date
             if ($start->isToday()) {
-                $color = '#FFA500'; 
+                $color = '#FFA500';
             } elseif ($end->isToday()) {
                 $color = '#FF6347';
             } elseif ($today->between($start, $end)) {
                 $color = '#4CAF50';
             } elseif ($start->isFuture()) {
-                $color = '#1E90FF'; 
+                $color = '#1E90FF';
             } else {
                 $color = '#D3D3D3';
             }
@@ -1063,7 +1063,7 @@ class BookingController extends Controller
         $cottages = CottageTable::where('status', 'Available')
             ->orWhere('status', 'Booked')
             ->get();
-        
+
         $amenities = AmenityTable::where('amenityname', 'Kiddy Pool')
             ->orWhere('status', 'Booked')
             ->get();
