@@ -47,6 +47,7 @@ Route::get('manager/search_room', [SearchUserController::class, 'searchRoom'])->
 Route::get('manager/search_amenity', [SearchUserController::class, 'searchAmenity'])->name('manager.search_amenity');
 Route::get('manager/search_cottage', [SearchUserController::class, 'searchCottage'])->name('manager.search_cottage');
 Route::get('manager/search_menu', [SearchUserController::class, 'searchMenu'])->name('manager.search_menu');
+Route::get('manager/search_logs', [SearchUserController::class, 'searchLogs'])->name('manager.search_logs');
 
 // Display add user form
 Route::get('manager/add_user', [ManageUserController::class, 'showForm'])->name('manager.add_user.form');
@@ -251,9 +252,9 @@ Route::match(['POST', 'GET'], 'receptionist/checkout/{bookingID}', [BookingContr
 Route::get('receptionist/billing', [BillingController::class, 'billingList'])->name('receptionist.billing_list');
 Route::get('receptionist/sendsmtp', [ManageUserController::class, 'send']);
 
- Route::get('receptionist/guest_list', [ManageGuestController::class, 'guestListReceptionist'])->name('receptionist.guest_list');
+Route::get('receptionist/guest_list', [ManageGuestController::class, 'guestListReceptionist'])->name('receptionist.guest_list');
 Route::get('receptionist/view_guest/{guestID}', [ManageGuestController::class, 'viewGuestReceptionist'])->name('receptionist.view_guest');
-Route::get('receptionist/add_guest', [ManageGuestController::class, 'addGuest'])->name('receptionist.add_guest');
+Route::get('receptionist/add_guest', [ManageGuestController::class, 'addGuestReceptionist'])->name('receptionist.add_guest');
 Route::post('receptionist/add_guest', [ManageGuestController::class, 'submitGuest'])->name('receptionist.submit_guest');
 
 //For Mobile

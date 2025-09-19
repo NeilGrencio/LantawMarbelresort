@@ -319,6 +319,29 @@ class SearchUserController extends Controller
 
         return view('receptionist.order', compact('menu', 'uniqueMenuTypes', 'search'));
     }
+    
+    public function searchLogs(Request $request)
+    {
+        $search = $request->input('search');
+
+        $session = DB::table('usersessionlog')
+            ->join('users', 'usersessionlog.userID', '=', 'users.userID')
+            ->select('usersessionlog.*', 'users.username')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('usersessionlog.sessionID', 'like', "%{$search}%")
+                    ->orWhere('users.username', 'like', "%{$search}%")
+                    ->orWhere('usersessionlog.useragent', 'like', "%{$search}%")
+                    ->orWhere('usersessionlog.sessioncreated', 'like', "%{$search}%")
+                    ->orWhere('usersessionlog.sessionexpired', 'like', "%{$search}%")
+                    ->orWhere('usersessionlog.userID', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('usersessionlog.sessionID', 'desc')
+            ->paginate(10);
+
+        return view('manager.session_logs', compact('session'));
+    }
 
 
 
