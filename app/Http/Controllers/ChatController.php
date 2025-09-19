@@ -77,46 +77,37 @@ class ChatController extends Controller
     //             ->with('error', 'Reply failed: ' . $e->getMessage());
     //     }
     // }
-    public function sendChat(Request $request, $chatID)
+    public function sendChat(Request $request)
     {
         $validated = $request->validate([
-            'reply' => 'required|string',
+            'reply'   => 'required|string',
+            'guestID' => 'required|integer',
         ]);
-
-        // Find the original chat to know which guest we're replying to
-        $chat = ChatTable::where('chatID', $chatID)->first();
-
-        if (!$chat) {
-            return redirect()->route('manager.chat_logs')->with('error', 'Chat not found.');
-        }
 
         // Get staff ID from session
         $userID = (int) $request->session()->get('user_id');
-        $staff = StaffTable::where('userID', $userID)->first();
+        $staff  = StaffTable::where('userID', $userID)->first();
 
         if (!$staff) {
-            return redirect()->route('manager.chat_logs')->with('error', 'Staff not found.');
+            return back()->with('error', 'Staff not found.');
         }
 
         DB::beginTransaction();
         try {
-            // Insert new row for staff reply
             ChatTable::create([
                 'chat'     => $validated['reply'],
                 'datesent' => now(),
-                'reply'    => 'staff',         // sender flag
-                'status'   => 'Unread',        // guest has not read yet
-                'guestID'  => $chat->guestID,  // reply to same guest
-                'staffID'  => $staff->staffID, // current staff
+                'reply'    => 'staff',          // sender flag
+                'status'   => 'Unread',
+                'guestID'  => $validated['guestID'],
+                'staffID'  => $staff->staffID,
             ]);
 
             DB::commit();
-            return redirect()->route('manager.chat_logs')->with('success', 'Reply sent!');
+            return back()->with('success', 'Reply sent!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('manager.chat_logs')
-                ->withInput()
-                ->with('error', 'Reply failed: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Reply failed: ' . $e->getMessage());
         }
     }
 }

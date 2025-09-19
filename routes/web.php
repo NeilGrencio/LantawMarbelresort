@@ -151,6 +151,8 @@ Route::match(['get', 'post'], 'manager/activate_menu/{menuID}', [ManageMenuContr
 // Deactivate menu
 Route::match(['get', 'post'], 'manager/deactivate_menu/{menuID}', [ManageMenuController::class, 'deactivateMenu'])->name('manager/deactivate_menu');
 
+
+
 // View Chats
 Route::get('manager/chat', [ChatController::class, 'viewChats'])->name('manager.chat_logs');
 
@@ -228,8 +230,13 @@ Route::post('receptionist/cancel_booking', [BookingController::class, 'cancelBoo
 Route::post('receptionist/confirm_booking/{bookingID}', [BookingController::class, 'confirmBooking'])->name('receptionist.confirm_booking');
 
 Route::match(['post', 'get'], 'receptionist/walk-booking', [BookingController::class, 'walkinBooking'])->name('receptionist.walkin_booking');
+Route::get('receptionist/chat', [ChatController::class, 'viewChats'])
+    ->name('receptionist.chat_logs');
 
-Route::get('receptionist/chat', [ChatController::class, 'viewChats'])->name('receptionist.chat_logs');
+// Send new chat (POST)
+Route::post('receptionist/chat/send', [ChatController::class, 'sendChat'])
+    ->name('receptionist.chat_send');
+// Route::get('receptionist/chat', [ChatController::class, 'viewChats'])->name('receptionist.chat_logs');
 // Fill calendar data
 Route::get('receptionist/events', [BookingController::class, 'events'])->name('receptionist.events');
 Route::get('receptionist/checkEvents', [BookingController::class, 'checkEvents'])->name('receptionist.checkEvents');
