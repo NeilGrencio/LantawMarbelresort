@@ -234,7 +234,7 @@ Route::get('receptionist/chat', [ChatController::class, 'viewChats'])
     ->name('receptionist.chat_logs');
 
 // Send new chat (POST)
-Route::post('receptionist/chat/send', [ChatController::class, 'sendChat'])
+Route::post('receptionist/chat', [ChatController::class, 'sendChat'])
     ->name('receptionist.chat_send');
 // Route::get('receptionist/chat', [ChatController::class, 'viewChats'])->name('receptionist.chat_logs');
 // Fill calendar data
