@@ -106,7 +106,7 @@ class ApiAuthController extends Controller
         }
     }
 
-   public function login(Request $request)
+    public function login(Request $request)
 {
     Log::info('Login attempt received');
 
@@ -195,7 +195,6 @@ class ApiAuthController extends Controller
         'profile' => $profile
     ]);
 }
-
 
 
 
