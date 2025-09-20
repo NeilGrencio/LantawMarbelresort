@@ -15,10 +15,11 @@ class StaffTable extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'firstname', 'lastname', 'mobilenum', 'email', 'gender', 'role', 'avatar', 'userID' 
+        'firstname', 'lastname', 'mobilenum', 'email', 'gender', 'role', 'avatar', 'userID'
     ];
 
     public function Users(){
-        return $this->belongsTo(UserTable::class, 'userID');
+        return $this->belongsTo(User::class, 'userID');
     }
+
 }
