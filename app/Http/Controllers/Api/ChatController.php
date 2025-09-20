@@ -28,7 +28,21 @@ class ChatController extends Controller
             return response()->json(['message' => 'No chats found for this guest'], 404);
         }
 
-        return response()->json($chats);
+        // Helper to fix encoding
+        $toUtf8 = function ($value) {
+            return is_string($value) ? mb_convert_encoding($value, 'UTF-8', 'UTF-8') : $value;
+        };
+
+        // Sanitize all chats (and nested relations)
+        $safeChats = $chats->map(function ($chat) use ($toUtf8) {
+            $chatArr = $chat->toArray();
+            array_walk_recursive($chatArr, function (&$item) use ($toUtf8) {
+                $item = $toUtf8($item);
+            });
+            return $chatArr;
+        });
+
+        return response()->json($safeChats, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     // Show a single chat
@@ -57,7 +71,6 @@ class ChatController extends Controller
 
             $chat = ChatTable::create($validated);
             return response()->json($chat, 201);
-
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed',
@@ -87,7 +100,6 @@ class ChatController extends Controller
 
             $chat->update($validated);
             return response()->json($chat);
-
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed',
