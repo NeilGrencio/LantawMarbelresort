@@ -38,6 +38,34 @@ class ChatController extends Controller
 
         return view('manager.chat', compact('chats'));
     }
+    
+    public function viewChatsReceptionist()
+    {
+
+        $chats = ChatTable::query()
+            ->leftJoin('guest', 'chat.guestID', '=', 'guest.guestID')
+            ->leftJoin('staff', 'chat.staffID', '=', 'staff.staffID')
+            ->select(
+                'chat.*',
+                DB::raw("DATE_FORMAT(chat.datesent, '%d/%m/%Y %h:%i %p') as formatted_datesent"),
+                DB::raw("DATE_FORMAT(chat.datereplied, '%d/%m/%Y %h:%i %p') as formatted_datereplied"),
+
+                DB::raw("COALESCE(CONCAT(guest.firstname, ' ', guest.lastname), 'Unknown Guest') as g_fullname"),
+                'guest.guestID as gID',
+                'guest.role as g_role',
+                DB::raw("COALESCE(guest.avatar, '') as g_avatar"),
+
+                DB::raw("COALESCE(CONCAT(staff.firstname, ' ', staff.lastname), 'Staff') as s_fullname"),
+                'staff.staffID as sID',
+                'staff.role as s_role',
+                DB::raw("COALESCE(staff.avatar, '') as s_avatar")
+            )
+            ->orderBy('chat.datesent', 'asc') // keep conversation order
+            ->get()
+            ->groupBy('gID'); // Group by guest
+
+        return view('receptionist.chat', compact('chats'));
+    }
 
 
     // public function sendChat(Request $request, $chatID){

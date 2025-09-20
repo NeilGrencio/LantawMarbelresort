@@ -163,10 +163,10 @@ Route::post('manager/chat/{chatID}', [ChatController::class, 'sendChat'])->name(
 Route::get('manager/discount', [DiscountController::class, 'viewDiscounts'])->name('manager.view_discounts');
 
 // Deactivate Discounts
-Route::match(['get', 'post'], 'manager/deactivate_discount/{chatID}', [DiscountController::class, 'deactivateDiscount'])->name('manager.deactivate_discount');
+Route::match(['get', 'post'], 'manager/deactivate_discount/{discountID}', [DiscountController::class, 'deactivateDiscount'])->name('manager.deactivate_discount');
 
 // Activate Discounts
-Route::match(['get', 'post'], 'manager/activate_discount/{chatID}', [DiscountController::class, 'activateDiscount'])->name('manager.activate_discounts');
+Route::match(['get', 'post'], 'manager/activate_discount/{discountID}', [DiscountController::class, 'activateDiscount'])->name('manager.activate_discounts');
 
 // Add Discount
 Route::match(['post', 'get'], 'manager/add_discount', [DiscountController::class, 'addDiscount'])->name('manager.add_discount');
@@ -230,7 +230,7 @@ Route::post('receptionist/cancel_booking', [BookingController::class, 'cancelBoo
 Route::post('receptionist/confirm_booking/{bookingID}', [BookingController::class, 'confirmBooking'])->name('receptionist.confirm_booking');
 
 Route::match(['post', 'get'], 'receptionist/walk-booking', [BookingController::class, 'walkinBooking'])->name('receptionist.walkin_booking');
-Route::get('receptionist/chat', [ChatController::class, 'viewChats'])
+Route::get('receptionist/chat', [ChatController::class, 'viewChatsReceptionist'])
     ->name('receptionist.chat_logs');
 
 // Send new chat (POST)
@@ -263,6 +263,9 @@ Route::get('receptionist/guest_list', [ManageGuestController::class, 'guestListR
 Route::get('receptionist/view_guest/{guestID}', [ManageGuestController::class, 'viewGuestReceptionist'])->name('receptionist.view_guest');
 Route::get('receptionist/add_guest', [ManageGuestController::class, 'addGuestReceptionist'])->name('receptionist.add_guest');
 Route::post('receptionist/add_guest', [ManageGuestController::class, 'submitGuest'])->name('receptionist.submit_guest');
+
+Route::get('receptionist/order', [OrderController::class, 'viewMenu'])->name('receptionist.order');
+        Route::post('receptionist/order', [OrderController::class, 'submitOrder'])->name('receptionist.submitorder');
 
 //For Mobile
 // Route::get('mobile/rooms', [RoomMobile::class, 'roomList']);

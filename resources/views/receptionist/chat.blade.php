@@ -12,122 +12,49 @@
 <body>
     <div id="layout">
         @include('components.receptionist_sidebar')
-
         <div id="main-layout">
+            {{-- Left Sidebar: Guest List --}}
             <div class="chat-list-container">
                 <h1>Inquiry Logs</h1>
                 <div class="chat-list">
-                    @foreach ($chat as $chats)
+                    @foreach ($chats as $guestID => $messages)
                         @php
-                            $g_avatar = $chats->g_avatar ?? null;
-                            $g_fullname = $chats->g_fullname ?? 'Unknown Guest';
-                            $g_avatar_url = $g_avatar ? asset('storage/' . $g_avatar) : asset('storage/profile.jpg');
-
-                            $s_avatar = $chats->s_avatar ?? null;
-                            $s_fullname = $chats->s_fullname ?? 'Staff';
-                            $s_avatar_url = $s_avatar ? asset('storage/' . $s_avatar) : asset('storage/profile.jpg');
+                            $latest = $messages->last(); // latest message for preview
                         @endphp
+                        <div class="chat-list-card" data-guest="{{ $guestID }}"
+                            data-gavatar="{{ $latest->g_avatar }}" data-gname="{{ $latest->g_fullname }}"
+                            onclick="selectMessage(this)" data-messages='@json($messages)'>
 
-                        <div class="chat-list-card" data-chatID="{{ $chats->chatID }}" data-guest="{{ $chats->gID }}"
-                            data-gavatar="{{ $g_avatar_url }}" data-gname="{{ $g_fullname }}"
-                            data-chat="{{ $chats->chat }}" data-chatdate="{{ $chats->datesent }}"
-                            data-staff="{{ $chats->sID }}" data-savatar="{{ $s_avatar_url }}"
-                            data-sname="{{ $s_fullname }}" data-reply="{{ $chats->reply }}"
-                            data-replydate="{{ $chats->datereplied }}" onclick="selectMessage(this)">
-
-                            <img id="profile-picture" src="{{ $g_avatar_url }}" />
+                            <img id="profile-picture" src="{{ asset('storage/' . $latest->g_avatar) }}" />
                             <div id="chat-information">
-                                <h2>{{ $g_fullname }}</h2>
-                                <p>{{ $chats->chat }}</p>
+                                <h2>{{ $latest->g_fullname }}</h2>
+                                <p>{{ Str::limit($latest->chat, 30) }}</p>
                             </div>
                         </div>
                     @endforeach
                 </div>
             </div>
 
+            {{-- Right: Chat Area --}}
             <div class="chat-area">
-                @php $latestchat = $chat->first(); @endphp
-
-                @if ($latestchat)
-                    @php
-                        $g_avatar = $latestchat->g_avatar ?? null;
-                        $g_avatar_url = $g_avatar ? asset('storage/' . $g_avatar) : asset('storage/profile.jpg');
-                        $g_fullname = $latestchat->g_fullname ?? 'Unknown Guest';
-
-                        $s_avatar = $latestchat->s_avatar ?? null;
-                        $s_avatar_url = $s_avatar ? asset('storage/' . $s_avatar) : asset('storage/profile.jpg');
-                        $s_fullname = $latestchat->s_fullname ?? 'Staff';
-                    @endphp
-
-                    <div class="chat-header">
-                        <img id="profile-picture" src="{{ $g_avatar_url }}">
-                        <h2>{{ $g_fullname }}</h2>
-                        <div id="view-container" data-url="{{ url('manager/view_guest/' . $latestchat->gID) }}">
-                            <p id="view-text">View Profile</p>
-                            <i class="fa-solid fa-chevron-right fa-2x"></i>
-                        </div>
+                <div class="chat-header">
+                    <h2>Select a conversation</h2>
+                </div>
+                <div id="chat-thread" style="width:100%; padding:1rem; overflow-y:auto; flex:1;">
+                    {{-- Messages will render here --}}
+                </div>
+                <form id="reply-form" method="POST">
+                    @csrf
+                    <input type="hidden" name="guestID" id="guestID-hidden">
+                    <div id="reply-send">
+                        <input type="text" id="reply" name="reply" placeholder="Reply..." required>
+                        <button type="submit"><i class="fa-solid fa-paper-plane fa-lg"></i></button>
                     </div>
-
-                    <div id="chat-card">
-                        <img id="profile-picture"
-                            src="{{ $latestchat->g_avatar ? asset('storage/' . $latestchat->g_avatar) : asset('storage/profile.jpg') }}" />
-                        <div>
-                            <div id="sender-name">
-                                <h3>{{ $latestchat->g_fullname }}</h3>
-                            </div>
-                            <div id="chat-details">
-                                <p>{{ $latestchat->chat }}</p>
-                                <p>{{ $latestchat->datesent }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="reply-card">
-                        @if ($latestchat->reply)
-                            <div>
-                                <div id="reply-name">
-                                    <h3>{{ $s_fullname }}</h3>
-                                </div>
-                                <div id="reply-details">
-                                    <p>{{ $latestchat->reply }}</p>
-                                    <p>{{ $latestchat->datereplied }}</p>
-                                </div>
-                            </div>
-                            <img id="profile-picture" src="{{ $s_avatar_url }}" />
-                        @endif
-                    </div>
-
-                    <form id="reply-form" method="POST" action="{{ route('receptionist.chat_send') }}">
-                        @csrf
-                        <input type="hidden" name="guestID" id="guestID-hidden">
-                        <div id="reply-send">
-                            <input type="text" id="reply" name="reply" placeholder="Reply..." required>
-                            <button type="submit"><i class="fa-solid fa-paper-plane fa-lg"></i></button>
-                        </div>
-                    </form>
-                @else
-                    <div class="chat-header">
-                        <img id="profile-picture" src="{{ asset('storage/profile.jpg') }}">
-                        <h2>No Chats Yet</h2>
-                    </div>
-                    <div id="chat-card">
-                        <p>No messages to display.</p>
-                    </div>
-                @endif
-
-                @if (session('success'))
-                    <div class="alert-message">
-                        <h2>{{ session('success') }}</h2>
-                    </div>
-                @endif
-                @if (session('error'))
-                    <div class="alert-message">
-                        <h2>{{ session('error') }}</h2>
-                    </div>
-                @endif
+                </form>
             </div>
         </div>
     </div>
+
 </body>
 <style>
     #inquiry {
@@ -150,7 +77,7 @@
         width: 100%;
         height: auto;
         padding: .5rem;
-        margin-left: 15rem;
+        margin-left: 12rem;
         gap: 1rem;
     }
 
@@ -390,55 +317,192 @@
         flex-wrap: wrap;
         word-wrap: break-word;
     }
+
+    .guest-msg {
+        text-align: left;
+        background: #f1f1f1;
+        padding: 10px;
+        margin: 5px;
+        border-radius: 10px;
+        max-width: 70%;
+    }
+
+    .staff-msg {
+        text-align: right;
+        background: #d1e7ff;
+        padding: 10px;
+        margin: 5px;
+        border-radius: 10px;
+        max-width: 70%;
+        margin-left: auto;
+    }
 </style>
 <script>
     function selectMessage(element) {
+        const guestID = element.getAttribute('data-guest');
         const guestName = element.getAttribute('data-gname');
-        const guestAvatar = element.getAttribute('data-gavatar') || '/storage/profile.jpg';
-        const guestMessage = element.getAttribute('data-chat');
-        const chatDate = element.getAttribute('data-chatdate');
+        const guestAvatar = element.getAttribute('data-gavatar');
+        const messages = JSON.parse(element.getAttribute('data-messages'));
 
-        const staffName = element.getAttribute('data-sname');
-        const staffReply = element.getAttribute('data-reply');
-        const staffAvatar = element.getAttribute('data-savatar') || '/storage/profile.jpg';
-        const replyDate = element.getAttribute('data-replydate');
-        const chatID = element.getAttribute('data-chatID');
+        // Update header
+        const chatHeader = document.querySelector('.chat-header');
+        chatHeader.innerHTML = `
+        <img id="profile-picture" src="/storage/${guestAvatar}">
+        <h2>${guestName}</h2>
+        <div id="view-container" data-url="{{ url('manager/view_guest') }}/${guestID}">
+            <p id="view-text">View Profile</p>
+            <i class="fa-solid fa-chevron-right fa-2x"></i>
+        </div>
+    `;
 
-        // Update Guest Chat Info
-        document.querySelector('.chat-header h2').textContent = guestName;
-        document.querySelector('.chat-header #profile-picture').src = guestAvatar;
-        document.getElementById('chat-card').innerHTML = `
-                <img id="profile-picture" src="${guestAvatar}"/>
-                <div>
-                    <div id="sender-name"><h3>${guestName}</h3></div>
-                    <div id="chat-details">
-                        <p>${guestMessage}</p>
-                        <p>${chatDate}</p>
-                    </div>
-                </div>
-            `;
+        // Update chat thread
+        const chatThread = document.getElementById('chat-thread');
+        chatThread.innerHTML = "";
+        messages.forEach(msg => {
+            let alignClass = msg.reply === "guest" ? "guest-msg" : "staff-msg";
+            chatThread.innerHTML += `
+            <div class="${alignClass}">
+                <p><strong>${msg.reply === "guest" ? msg.g_fullname : msg.s_fullname}</strong></p>
+                <p>${msg.chat}</p>
+                <small>${msg.formatted_datesent}</small>
+            </div>
+        `;
+        });
 
-        // Update Reply
-        const replyCard = document.getElementById('reply-card');
-        if (staffReply) {
-            replyCard.innerHTML = `
-                    <div>
-                        <div id="reply-name"><h3>${staffName}</h3></div>
-                        <div id="reply-details">
-                            <p>${staffReply}</p>
-                            <p>${replyDate}</p>
-                        </div>
-                    </div>
-                    <img id="profile-picture" src="${staffAvatar}"/>
-                `;
-        } else {
-            replyCard.innerHTML = ''; // Clear if no reply
-        }
+        // Update hidden input for reply form
+        document.getElementById('guestID-hidden').value = guestID;
 
-        // Set chatID hidden field
-        document.getElementById('chatID-hidden').value = chatID;
-
-        // Enable reply input
-        document.getElementById('reply').removeAttribute('readonly');
+        // Highlight active card
+        document.querySelectorAll('.chat-list-card').forEach(card => {
+            card.classList.remove('active');
+        });
+        element.classList.add('active');
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const firstCard = document.querySelector('.chat-list-card');
+        if (firstCard) selectMessage(firstCard);
+    });
+    // function selectMessage(element) {
+    //     const gID = element.getAttribute('data-guest');
+    //     const gavatar = element.getAttribute('data-gavatar');
+    //     const name = element.getAttribute('data-gname');
+    //     const chat = element.getAttribute('data-chat');
+    //     const date = element.getAttribute('data-chatdate');
+    //     const gimagePath = `/storage/${gavatar}`;
+
+    //     const baseUrl = `{{ url('manager/view_guest') }}`;
+    //     const urlViewProfile = `${baseUrl}/${gID}`;
+
+    //     const sAvatar = element.getAttribute('data-savatar');
+    //     const sName = element.getAttribute('data-sname');
+    //     const sReply = element.getAttribute('data-reply');
+    //     const sDate = element.getAttribute('data-replydate');
+    //     const simagePath = `/storage/${sAvatar}`;
+
+    //     const chatCard = document.getElementById('chat-card');
+    //     const chatHeader = document.querySelector('.chat-header');
+    //     const replyCard = document.getElementById('reply-card');
+
+    //     const chatID = element.getAttribute('data-chatid');
+    //     const form = document.getElementById('reply-form');
+    //     const replynInput = document.getElementById('reply');
+
+    //     const message = document.querySelector('.alert-message');
+
+    //     // Auto-hide success/error message
+    //     if (message) {
+    //         setTimeout(() => {
+    //             message.style.display = 'none';
+    //         }, 3500);
+    //     }
+
+    //     const baseAction = `{{ url('manager/chat') }}`;
+    //     if (form) {
+    //         form.setAttribute('action', `${baseAction}/${chatID}`);
+    //         document.getElementById('chatID-hidden').value = chatID;
+    //     }
+
+
+
+    //     if (chatHeader) {
+    //         chatHeader.innerHTML = `
+    //             <img id="profile-picture" src="${gimagePath}">
+    //             <h2>${name}</h2>
+    //             <div id="view-container" data-url="${urlViewProfile}">
+    //                 <p id="view-text">View Profile</p>
+    //                 <i class="fa-solid fa-chevron-right fa-2x"></i>
+    //             </div>
+    //         `;
+
+    //         const viewProfile = chatHeader.querySelector('#view-container');
+    //         if (viewProfile) {
+    //             viewProfile.addEventListener('click', function() {
+    //                 window.location.href = this.dataset.url;
+    //             });
+    //         }
+    //     }
+
+    //     if (chatCard) {
+    //         chatCard.innerHTML = `
+    //             <img id="profile-picture" src="${gimagePath}">
+    //             <div>
+    //                 <div id="sender-name">
+    //                     <h3>${name}</h3>
+    //                 </div>
+    //                 <div id="chat-details">
+    //                     <p>${chat}</p>
+    //                     <p>${date}</p>
+    //                 </div>
+    //             </div>
+    //         `;
+    //     }
+
+    //     if (replyCard) {
+    //         replyCard.innerHTML = `
+    //         <div>
+    //             <div id="reply-name">
+    //                 <h3>${sName}</h3>
+    //             </div>
+    //             <div id="reply-details">
+    //                 <p>${sReply}</p>
+    //                 <p>${sDate}</p>
+    //             </div>
+    //         </div>
+    //         <img id="profile-picture" src="${simagePath}"/>
+    //     `;
+
+
+
+    //         replyCard.style.display = "flex";
+    //         replynInput.readOnly = true;
+    //         replynInput.placeholder = 'Already replied!';
+    //         replynInput.style.background = 'rgb(199, 199, 199)';
+    //         if (sReply && sReply.trim() !== "") {
+    //             replyCard.style.display = "flex";
+    //             replynInput.readOnly = true;
+    //             replynInput.placeholder = 'Already replied!';
+    //             replynInput.style.background = 'rgb(199, 199, 199)';
+    //         } else {
+    //             replyCard.style.display = "none";
+    //             replynInput.readOnly = false;
+    //             replynInput.placeholder = 'Reply..';
+    //             replynInput.style.background = 'white';
+    //         }
+
+    //     }
+
+    //     // Highlight selected card
+    //     document.querySelectorAll('.chat-list-card').forEach(card => {
+    //         card.classList.remove('active');
+    //     });
+    //     element.classList.add('active');
+    // }
+
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     const firstCard = document.querySelector('.chat-list-card');
+    //     if (firstCard) {
+    //         selectMessage(firstCard);
+    //     }
+    // });
 </script>

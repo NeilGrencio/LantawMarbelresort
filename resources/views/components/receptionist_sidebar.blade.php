@@ -150,6 +150,17 @@
             </div>
             
         </div>
+        
+        <div id="walk-booking" class="sidebar-item" data-url="{{ url('receptionist/walk-booking') }}">
+            <div class="icons">
+               <i class="fa-regular fa-calendar-xmark fa-2x"></i>
+            </div>
+            <div class="label">
+                <span class="label">Walk In Guest</span>
+            </div>
+            
+        </div>
+        
         <div id="check" class="sidebar-item" data-url="{{ url('receptionist/check-in-out') }}">
             <div class="icons">
                <i class="fas fa-door-open fa-2x"></i>

@@ -21,7 +21,7 @@
         
     # Map /storage to storage/app/public
     RewriteCond %{REQUEST_URI} ^/storage/(.*)$
-    RewriteRule ^storage/(.*)$ storage/app/public/$1 [L]
+    RewriteRule ^storage/(.*)$ public/$1 [L]
 
 # --- Allow API routes explicitly ---
 <IfModule mod_rewrite.c>
