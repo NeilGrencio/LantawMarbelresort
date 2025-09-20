@@ -29,4 +29,8 @@ class User extends Authenticatable
     {
         return $this->hasOne(GuestTable::class, 'userID','userID');
     }
+       public function staff()
+    {
+        return $this->hasOne(StaffTable::class, 'userID'); // foreign key on staff table
+    }
 }
