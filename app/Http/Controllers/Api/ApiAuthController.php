@@ -106,73 +106,96 @@ class ApiAuthController extends Controller
         }
     }
 
-    public function login(Request $request)
-    {
-        Log::info('Login attempt received', ['request' => $request->all()]);
+   public function login(Request $request)
+{
+    Log::info('Login attempt received');
 
-        $validator = Validator::make($request->all(), [
-            'username' => 'required|string',
-            'password' => 'required|string'
-        ]);
+    // Validate input
+    $validator = Validator::make($request->all(), [
+        'username' => 'required|string',
+        'password' => 'required|string'
+    ]);
 
-        if ($validator->fails()) {
-            Log::warning('Login validation failed', ['errors' => $validator->errors()]);
-            return response()->json([
-                'success' => false,
-                'errors'  => $validator->errors()
-            ], 422);
-        }
-
-        $validatedData = $validator->validated();
-        $user = User::with('guest')->where('username', $validatedData['username'])->first();
-
-        if (!$user) {
-            Log::warning('Login failed - user not found', ['username' => $validatedData['username']]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid credentials (user not found)'
-            ], 401);
-        }
-
-        Log::info('User found for login', [
-            'user_id' => $user->id,
-            'username' => $user->username,
-            'hashed_password_in_db' => $user->password,
-            'raw_password_from_request' => $validatedData['password']
-        ]);
-
-        if (!Hash::check($validatedData['password'], $user->password)) {
-            Log::warning('Login failed - password mismatch', [
-                'username' => $validatedData['username'],
-                'input_password' => Hash::make($validatedData['password']),
-                'stored_hash' => $user->password
-            ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid credentials (password mismatch)'
-            ], 401);
-        }
-
-        // $token = $user->createToken('api_token')->plainTextToken;
-        Log::info('Login successful', ['user_id' => $user->id]);
-
+    if ($validator->fails()) {
+        Log::warning('Login validation failed', ['errors' => $validator->errors()]);
         return response()->json([
-            'success'      => true,
-            'message'      => 'Login successful',
-            // 'access_token' => $token,
-            'token_type'   => 'Bearer',
-            'user' => [
-                'id' => $user->userID,
-                'username' => $user->username,
-            ],
-            'guest' => $user->guest ? [
-                'guestID' => $user->guest->guestID,
-                'firstname' => $user->guest->firstname,
-                'lastname' => $user->guest->lastname,
-                'email' => $user->guest->email,
-            ] : null
-        ]);
+            'success' => false,
+            'errors'  => $validator->errors()
+        ], 422);
     }
+
+    $validatedData = $validator->validated();
+
+    // Load user with guest and staff profile
+    $user = User::with(['guest', 'staff'])
+        ->where('username', $validatedData['username'])
+        ->first();
+
+    if (!$user) {
+        Log::warning('Login failed - user not found', ['username' => $validatedData['username']]);
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid credentials'
+        ], 401);
+    }
+
+    // Verify password
+    if (!Hash::check($validatedData['password'], $user->password)) {
+        Log::warning('Login failed - password mismatch', ['username' => $validatedData['username']]);
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid credentials'
+        ], 401);
+    }
+
+    // Determine role (guest or staff)
+    $role = null;
+    $profile = null;
+
+    if ($user->guest) {
+        $role = 'guest';
+        $profile = [
+            'guestID'   => $user->guest->guestID,
+            'firstname' => $user->guest->firstname,
+            'lastname'  => $user->guest->lastname,
+            'email'     => $user->guest->email,
+        ];
+    } elseif ($user->staff) {
+        $role = 'staff';
+        $profile = [
+            'staffID'   => $user->staff->staffID,
+            'firstname' => $user->staff->firstname,
+            'lastname'  => $user->staff->lastname,
+            'email'     => $user->staff->email,
+            'role'      => $user->staff->role, // staff level
+        ];
+    }
+
+    if (!$role) {
+        Log::error('Login failed - user has no linked profile', ['user_id' => $user->userID]);
+        return response()->json([
+            'success' => false,
+            'message' => 'User has no linked profile (guest/staff missing)'
+        ], 500);
+    }
+
+    Log::info('Login successful', ['user_id' => $user->userID, 'role' => $role]);
+
+    // Build response
+    return response()->json([
+        'success'    => true,
+        'message'    => 'Login successful',
+        // 'access_token' => $user->createToken('api_token')->plainTextToken,
+        'token_type' => 'Bearer',
+        'user' => [
+            'id'       => $user->userID,
+            'username' => $user->username,
+            'role'     => $role,
+        ],
+        'profile' => $profile
+    ]);
+}
+
 
 
 
