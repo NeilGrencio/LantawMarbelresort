@@ -12,18 +12,21 @@ class BookingTable extends Model
     protected $keyType = 'int';
     public $timestamps = false;
     protected $fillable = [
-        'guestamount', 'childguest', 'adultguest', 'totalprice', 'bookingcreated', 'bookingend', 'bookingstart', 'status', 'guestID'
+        'guestamount', 'childguest', 'adultguest', 'totalprice', 'bookingcreated', 'bookingend', 'bookingstart', 'status', 'guestID', 'amenityID',
     ];
+
     public function Guest(){
         return $this->belongsTo(GuestTable::class, 'guestID');
     }
-    public function AmenityBook(){
-        return $this->hasMany(AmenityBookingTable::class, 'booking_id','bookingID');
+
+    public function Amenity(){
+        return $this->belongsTo(AmenityTable::class, 'amenityID');
     }
     public function roomBookings()
     {
         return $this->hasMany(RoomBookTable::class, 'bookingID');
     }
+
     public function cottageBookings()
     {
         return $this->hasMany(CottageBookTable::class, 'bookingID');
@@ -31,6 +34,6 @@ class BookingTable extends Model
 
     public function billing()
     {
-        return $this->hasMany(BillingTable::class, 'bookingID', 'bookingID');
+        return $this->hasOne(BillingTable::class, 'bookingID', 'bookingID');
     }
 }
