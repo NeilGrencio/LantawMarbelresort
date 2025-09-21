@@ -227,11 +227,12 @@
                                 <td>{{ $booking->type }}</td>
                                 <td>{{ $booking->status }}</td>
                                 <td>
-                                    <a
-                                        href="{{ url('receptionist/approve_booking', ['id' => $booking->bookingID]) }}">Approve</a>
-                                    | <a
-                                        href="{{ url('receptionist/decline_booking', ['id' => $booking->bookingID]) }}">Decline</a>
-                                    |
+                                    <!-- Approve Booking -->
+                                    <button class="btn btn-success"
+                                        onclick="approveBooking({{ $booking->bookingID }})">Approve</button>
+                                    <button class="btn btn-danger"
+                                        onclick="declineBooking({{ $booking->bookingID }})">Decline</button>
+
                                     <a
                                         href="{{ url('receptionist/cancel_booking', ['id' => $booking->bookingID]) }}">Cancel</a>
 
@@ -246,6 +247,41 @@
             </div>
 </body>
 <script>
+    function approveBooking(id) {
+        fetch("{{ route('receptionist.approve_booking') }}", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    booking_id: id
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Booking approved!");
+                console.log(data);
+            });
+    }
+
+    function declineBooking(id) {
+        fetch("{{ route('receptionist.decline_booking') }}", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    booking_id: id
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Booking declined!");
+                console.log(data);
+            });
+    }
     document.addEventListener("DOMContentLoaded", function() {
         const calendar_view = document.getElementById('add-action-btn')
         if (calendar_view) {
