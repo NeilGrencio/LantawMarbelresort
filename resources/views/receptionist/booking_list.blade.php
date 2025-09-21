@@ -248,57 +248,51 @@
 </body>
 <script>
     function approveBooking(id) {
-        fetch("{{ route('receptionist.approve_booking') }}", {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    bookingID: id
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert("Booking approved!");
-                console.log(data);
-            });
-    }
-    function cancelBooking(id) {
-        fetch("{{ route('receptionist.cancel_booking') }}", {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    bookingID: id
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert("Booking Cancelled!");
-                console.log(data);
-            });
-    }
+    fetch("{{ url('receptionist/approve_booking') }}/" + id, {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({})
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Booking approved!");
+        console.log(data);
+    });
+}
+function cancelBooking(id) {
+    fetch("{{ url('receptionist/cancel_booking') }}/" + id, {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({})
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Booking Cancelled!");
+        console.log(data);
+    });
+}
 
-    function declineBooking(id) {
-        fetch("{{ route('receptionist.decline_booking') }}", {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    bookingID: id
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert("Booking declined!");
-                console.log(data);
-            });
-    }
+function declineBooking(id) {
+    fetch("{{ url('receptionist/decline_booking') }}/" + id, {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({})
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Booking declined!");
+        console.log(data);
+    });
+}
     document.addEventListener("DOMContentLoaded", function() {
         const calendar_view = document.getElementById('add-action-btn')
         if (calendar_view) {
