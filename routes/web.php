@@ -19,6 +19,7 @@ use App\Http\Controllers\BillingController;
 use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\FeedbackController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;

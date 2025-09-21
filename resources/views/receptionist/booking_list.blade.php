@@ -206,7 +206,7 @@
                                 <td>{{ $booking->type }}</td>
                                 <td>{{ $booking->status }}</td>
                                 <td>
-                                    <a href="{{ url('receptionist/edit_booking', ['id' => $booking->bookingID]) }}">Edit</a> |
+                                    <a href="{{ url('receptionist/update_booking', ['id' => $booking->bookingID]) }}">Edit</a> |
                                     <a href="{{ url('receptionist/cancel_booking', ['id' => $booking->bookingID]) }}">Cancel</a>
                                 </td>
                             </tr>
