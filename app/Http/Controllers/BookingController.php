@@ -517,63 +517,63 @@ class BookingController extends Controller
         }
     }
 
-    public function cancelBooking($bookingID){
-        $booking = BookingTable::where('bookingID', $bookingID)->first();
-
-        try{
-            $booking->status = 'Cancel';
-            $booking->save();
-
-            return redirect()->route('receptionist.booking')->with('success', 'Booking cancelled!');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'An error occurred while updating the booking. Please try again.');
-        }
-
-    }
-    
 public function approveBooking($bookingID)
 {
-    $booking = BookingTable::where('bookingID', $bookingID)->first();
-
-    if (!$booking) {
-        Log::warning("Approve failed: Booking ID {$bookingID} not found.");
-        return redirect()->back()->with('error', 'Booking not found.');
-    }
-
     try {
+        $booking = BookingTable::where('bookingID', $bookingID)->firstOrFail();
         $booking->status = 'Ongoing';
         $booking->save();
 
-        Log::info("Booking approved: ID {$bookingID}, Status set to Ongoing.");
-
-        return redirect()->route('receptionist.booking')
-                         ->with('success', 'Booking approved successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking approved successfully!'
+        ]);
     } catch (\Exception $e) {
-        Log::error("Error approving booking ID {$bookingID}: " . $e->getMessage());
-        return redirect()->back()->with('error', 'An error occurred while updating the booking.');
+        Log::error("Error approving booking: " . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error updating booking'
+        ], 500);
     }
 }
 
 public function declineBooking($bookingID)
 {
-    $booking = BookingTable::where('bookingID', $bookingID)->first();
-
-    if (!$booking) {
-        Log::warning("Decline failed: Booking ID {$bookingID} not found.");
-        return redirect()->back()->with('error', 'Booking not found.');
-    }
-
     try {
+        $booking = BookingTable::where('bookingID', $bookingID)->firstOrFail();
         $booking->status = 'Declined';
         $booking->save();
 
-        Log::info("Booking declined: ID {$bookingID}, Status set to Declined.");
-
-        return redirect()->route('receptionist.booking')
-                         ->with('success', 'Booking declined successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking declined successfully!'
+        ]);
     } catch (\Exception $e) {
-        Log::error("Error declining booking ID {$bookingID}: " . $e->getMessage());
-        return redirect()->back()->with('error', 'An error occurred while updating the booking.');
+        Log::error("Error declining booking: " . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error updating booking'
+        ], 500);
+    }
+}
+
+public function cancelBooking($bookingID)
+{
+    try {
+        $booking = BookingTable::where('bookingID', $bookingID)->firstOrFail();
+        $booking->status = 'Cancelled';
+        $booking->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking cancelled successfully!'
+        ]);
+    } catch (\Exception $e) {
+        Log::error("Error cancelling booking: " . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error updating booking'
+        ], 500);
     }
 }
    

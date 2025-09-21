@@ -248,51 +248,56 @@
 </body>
 <script>
     function approveBooking(id) {
-    fetch("{{ url('receptionist/approve_booking') }}/" + id, {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({})
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert("Booking approved!");
-        console.log(data);
-    });
-}
-function cancelBooking(id) {
-    fetch("{{ url('receptionist/cancel_booking') }}/" + id, {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({})
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert("Booking Cancelled!");
-        console.log(data);
-    });
-}
+        if (!confirm("Are you sure you want to APPROVE this booking?")) return;
 
-function declineBooking(id) {
-    fetch("{{ url('receptionist/decline_booking') }}/" + id, {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({})
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert("Booking declined!");
-        console.log(data);
-    });
-}
+        fetch("{{ url('receptionist/approve_booking') }}/" + id, {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                location.reload(); // refresh to show updated status
+            });
+    }
+
+    function declineBooking(id) {
+        if (!confirm("Are you sure you want to DECLINE this booking?")) return;
+
+        fetch("{{ url('receptionist/decline_booking') }}/" + id, {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            });
+    }
+
+    function cancelBooking(id) {
+        if (!confirm("Are you sure you want to CANCEL this booking?")) return;
+
+        fetch("{{ url('receptionist/cancel_booking') }}/" + id, {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            });
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const calendar_view = document.getElementById('add-action-btn')
         if (calendar_view) {
