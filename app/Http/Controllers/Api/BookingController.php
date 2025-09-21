@@ -8,6 +8,7 @@ use App\Models\RoomBookTable;
 use App\Models\CottageBookTable;
 use App\Models\AmenityBookingTable;
 use App\Models\BillingTable;
+use App\Models\PaymentTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +24,7 @@ class BookingController extends Controller
                 'AmenityBook.amenity:amenityID,amenityname',
                 'roomBookings.Room:roomID,roomnum',
                 'cottageBookings.Cottage:cottageID,cottagename',
-                'billing:bookingID,totalamount,status'
+                'billing.payments', // 👈 include payments under billing
             ])
                 ->where('guestID', $guestID)
                 ->get([
@@ -39,28 +40,16 @@ class BookingController extends Controller
                     'status'
                 ]);
 
-            Log::info("✅ getByGuest success", [
-                'guestID' => $guestID,
-                'count'   => $bookings->count(),
-                'sample'  => $bookings->take(1)->toArray(), // log only sample to avoid overload
-            ]);
-
             return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
-            Log::error("❌ JSON encoding failed in getByGuest()", [
-                'guestID' => $guestID,
-                'error'   => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-            ]);
-
             return response()->json([
-                'error'   => 'Failed to encode JSON',
+                'error'   => 'Failed to fetch bookings',
                 'message' => $e->getMessage()
             ], 500);
         }
     }
 
-    // ✅ GET booking by bookingID (excluding blobs)
+    // ✅ GET booking by bookingID
     public function show($id)
     {
         try {
@@ -69,7 +58,7 @@ class BookingController extends Controller
                 'AmenityBook.amenity:amenityID,amenityname',
                 'roomBookings.Room:roomID,roomname',
                 'cottageBookings.Cottage:cottageID,cottagename',
-                'billing:bookingID,totalamount,status'
+                'billing.payments', // 👈 include payments here too
             ])
                 ->select([
                     'bookingID',
@@ -85,34 +74,23 @@ class BookingController extends Controller
                 ])
                 ->findOrFail($id);
 
-            Log::info("✅ show success", [
-                'bookingID' => $id,
-                'data'      => $booking->toArray(),
-            ]);
-
             return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
-            Log::error("❌ JSON encoding failed in show()", [
-                'bookingID' => $id,
-                'error'     => $e->getMessage(),
-                'trace'     => $e->getTraceAsString(),
-            ]);
-
             return response()->json([
-                'error'   => 'Failed to encode JSON',
+                'error'   => 'Failed to fetch booking',
                 'message' => $e->getMessage()
             ], 500);
         }
     }
-    // ✅ POST create booking + related tables
+
+    // ✅ POST create booking + billing + payments
     public function store(Request $request)
     {
         DB::beginTransaction();
         try {
-            // Normalize request keys to match DB columns
-            $bookingData = [
+            $booking = BookingTable::create([
                 'guestamount'    => $request->input('guestamount'),
-                'childguest'     => $request->input('childGuest'),  // map camelCase → snakeCase
+                'childguest'     => $request->input('childGuest'),
                 'adultguest'     => $request->input('adultGuest'),
                 'totalprice'     => $request->input('totalPrice'),
                 'bookingcreated' => now(),
@@ -120,11 +98,9 @@ class BookingController extends Controller
                 'bookingstart'   => $request->input('bookingStart'),
                 'status'         => $request->input('status', 'pending'),
                 'guestID'        => $request->input('guestID'),
-            ];
+            ]);
 
-            $booking = BookingTable::create($bookingData);
-
-            // Save rooms
+            // Save related records (rooms, cottages, amenities)
             if ($request->has('roomBookings')) {
                 foreach ($request->roomBookings as $room) {
                     RoomBookTable::create([
@@ -135,7 +111,6 @@ class BookingController extends Controller
                 }
             }
 
-            // Save cottages
             if ($request->has('cottageBookings')) {
                 foreach ($request->cottageBookings as $cottage) {
                     CottageBookTable::create([
@@ -145,7 +120,6 @@ class BookingController extends Controller
                 }
             }
 
-            // Save amenities
             if ($request->has('amenityBook')) {
                 foreach ($request->amenityBook as $amenity) {
                     AmenityBookingTable::create([
@@ -157,37 +131,39 @@ class BookingController extends Controller
                 }
             }
 
-            // Save billing
-            // if ($request->has('billing') && !empty($request->billing)) {
-            //     BillingTable::create([
-            //         'totalamount' => $request->billing['totalamount'] ?? 0,
-            //         'datebilled'  => $request->billing['datebilled'] ?? now(),
-            //         'status'      => $request->billing['status'] ?? 'unpaid',
-            //         'bookingID'   => $booking->bookingID,
-            //         'guestID'     => $booking->guestID,
-            //     ]);
-            // }
+            // ✅ Save billing + payments
+            if ($request->has('billing') && !empty($request->billing)) {
+                $billing = BillingTable::create([
+                    'totalamount' => $request->billing['totalamount'] ?? 0,
+                    'datebilled'  => $request->billing['datebilled'] ?? now(),
+                    'status'      => $request->billing['status'] ?? 'unpaid',
+                    'bookingID'   => $booking->bookingID,
+                    'guestID'     => $booking->guestID,
+                ]);
+
+                if (!empty($request->billing['payments'])) {
+                    foreach ($request->billing['payments'] as $payment) {
+                        PaymentTable::create([
+                            'totaltender' => $payment['totaltender'] ?? 0,
+                            'totalchange' => $payment['totalchange'] ?? 0,
+                            'datepayment' => $payment['datepayment'] ?? now(),
+                            'refNumber'   => $payment['refNumber'] ?? null,
+                            'guestID'     => $booking->guestID,
+                            'billingID'   => $billing->billingID,
+                        ]);
+                    }
+                }
+            }
+
             DB::commit();
-
-            Log::info("✅ store success", [
-                'request' => $request->all(),
-                'created' => $booking->toArray(),
-            ]);
-
             return response()->json($booking, 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("❌ Store booking failed", [
-                'request' => $request->all(),
-                'error'   => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-            ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-
-    // ✅ PUT update booking + related tables
+    // ✅ PUT update booking + billing + payments
     public function update(Request $request, $id)
     {
         DB::beginTransaction();
@@ -205,6 +181,7 @@ class BookingController extends Controller
                 'guestID'
             ]));
 
+            // refresh related tables
             RoomBookTable::where('bookingID', $id)->delete();
             CottageBookTable::where('bookingID', $id)->delete();
             AmenityBookingTable::where('booking_id', $id)->delete();
@@ -213,7 +190,7 @@ class BookingController extends Controller
                 foreach ($request->rooms as $roomID) {
                     RoomBookTable::create([
                         'bookingID' => $id,
-                        'roomID' => $roomID,
+                        'roomID'    => $roomID,
                     ]);
                 }
             }
@@ -232,14 +209,15 @@ class BookingController extends Controller
                     AmenityBookingTable::create([
                         'booking_id' => $id,
                         'amenity_id' => $amenity['id'],
-                        'date' => $amenity['date'] ?? now(),
-                        'status' => $amenity['status'] ?? 'pending',
+                        'date'       => $amenity['date'] ?? now(),
+                        'status'     => $amenity['status'] ?? 'pending',
                     ]);
                 }
             }
 
+            // ✅ Update billing + payments
             if ($request->has('billing')) {
-                BillingTable::updateOrCreate(
+                $billing = BillingTable::updateOrCreate(
                     ['bookingID' => $id],
                     [
                         'totalamount' => $request->billing['totalamount'],
@@ -248,25 +226,28 @@ class BookingController extends Controller
                         'guestID'     => $booking->guestID,
                     ]
                 );
+
+                // Refresh old payments
+                PaymentTable::where('billingID', $billing->billingID)->delete();
+
+                if (!empty($request->billing['payments'])) {
+                    foreach ($request->billing['payments'] as $payment) {
+                        PaymentTable::create([
+                            'totaltender' => $payment['totaltender'] ?? 0,
+                            'totalchange' => $payment['totalchange'] ?? 0,
+                            'datepayment' => $payment['datepayment'] ?? now(),
+                            'refNumber'   => $payment['refNumber'] ?? null,
+                            'guestID'     => $booking->guestID,
+                            'billingID'   => $billing->billingID,
+                        ]);
+                    }
+                }
             }
 
             DB::commit();
-
-            Log::info("✅ update success", [
-                'bookingID' => $id,
-                'request'   => $request->all(),
-                'updated'   => $booking->toArray(),
-            ]);
-
             return response()->json($booking);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("❌ Update booking failed", [
-                'bookingID' => $id,
-                'request'   => $request->all(),
-                'error'     => $e->getMessage(),
-                'trace'     => $e->getTraceAsString(),
-            ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

@@ -12,7 +12,7 @@ class PaymentTable extends Model
     protected $keyType = 'int';
     public $timestamps = false;
     protected $fillable = [
-        'totaltender', 'totalchange', 'datepayment', 'guestID', 'billingID'
+        'totaltender', 'totalchange', 'datepayment', 'guestID', 'billingID','refNumber'
     ];
 
     public function billing()
