@@ -37,7 +37,7 @@ class ManageRoomController extends Controller
                 'description' => 'required',
                 'roomtype' => 'required',
                 'status' => 'required',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,webp',
                 'price' => 'required|decimal:0,2'
             ]);
 
@@ -141,7 +141,7 @@ class ManageRoomController extends Controller
             'roomcapacity'=> 'required|numeric|min:1',
             'roomtype' => 'required',
             'price' => 'required|numeric|decimal:0,2',
-            'image' => 'required|image|mimes:jpg,jpeg,webp,png|max:2048',
+            'image' => 'required|image|mimes:jpg,jpeg,webp,png',
             'status' => 'required'
         ]);
 

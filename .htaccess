@@ -2,7 +2,6 @@
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
     </IfModule>
-
     RewriteEngine On
 
     # Handle Authorization Header
@@ -18,21 +17,21 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-        
     # Map /storage to storage/app/public
     RewriteCond %{REQUEST_URI} ^/storage/(.*)$
     RewriteRule ^storage/(.*)$ public/$1 [L]
 
-# --- Allow API routes explicitly ---
-<IfModule mod_rewrite.c>
-    RewriteCond %{REQUEST_URI} ^/api
-    RewriteRule ^ - [L]
-</IfModule>
+    # --- Allow API routes explicitly ---
+    <IfModule mod_rewrite.c>
+        RewriteCond %{REQUEST_URI} ^/api
+        RewriteRule ^ - [L]
+    </IfModule>
 
-# --- Disable mod_security for API (if allowed) ---
-<IfModule mod_security.c>
-    SecRuleEngine Off
-</IfModu
+    # --- Disable mod_security for API (if allowed) ---
+    <IfModule mod_security.c>
+        SecRuleEngine Off
+    </IfModule>
+
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f

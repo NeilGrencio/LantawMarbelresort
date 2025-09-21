@@ -18,6 +18,8 @@ use App\Http\Controllers\DayTourController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FeedbackController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -25,12 +27,11 @@ Route::get('/', function () {
     return view('landingpage');
 })->name('landingpage');
 
+Route::get('auth/check_login', [LoginController::class, 'showLogin'])->name('checkLogin');
 Route::match(['get', 'post'], 'auth/login', [LoginController::class, 'login'])->name('login');
 Route::post('auth/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::get('manager/dashboard', function () {
-    return view('manager/dashboard');
-})->name('manager.dashboard');
+Route::get('manager/dashboard', [DashboardController::class, 'managerDashboard'])->name('manager.dashboard');
 
 // call to send otp
 Route::post('/send-otp', [ManageUserController::class, 'validateNumber'])->name('send.otp');
@@ -48,6 +49,7 @@ Route::get('manager/search_amenity', [SearchUserController::class, 'searchAmenit
 Route::get('manager/search_cottage', [SearchUserController::class, 'searchCottage'])->name('manager.search_cottage');
 Route::get('manager/search_menu', [SearchUserController::class, 'searchMenu'])->name('manager.search_menu');
 Route::get('manager/search_logs', [SearchUserController::class, 'searchLogs'])->name('manager.search_logs');
+Route::get('manager/search_feedback', [SearchUserController::class, 'searchFeedback'])->name('manager.search_feedback');
 
 // Display add user form
 Route::get('manager/add_user', [ManageUserController::class, 'showForm'])->name('manager.add_user.form');
@@ -151,7 +153,7 @@ Route::match(['get', 'post'], 'manager/activate_menu/{menuID}', [ManageMenuContr
 // Deactivate menu
 Route::match(['get', 'post'], 'manager/deactivate_menu/{menuID}', [ManageMenuController::class, 'deactivateMenu'])->name('manager/deactivate_menu');
 
-
+Route::get('manager/feedback', [FeedbackController::class, 'viewFeedback'])->name('manager.feedback');
 
 // View Chats
 Route::get('manager/chat', [ChatController::class, 'viewChats'])->name('manager.chat_logs');
@@ -199,10 +201,7 @@ Route::get('manager/export_guestpdf', [ReportController::class, 'exportGuestPDF'
 Route::get('manager/export_revenuepdf', [ReportController::class, 'exportRevenuePDF'])->name('report.exportPDF');
 
 // Receptionist
-
-Route::get('receptionist/dashboard', function () {
-    return view('receptionist/dashboard');
-});
+Route::get('receptionist/dashboard', [DashboardController::class, 'receptionistDashboard'])->name('receptionist.dashboard');
 
 
 /// Search Function
@@ -240,8 +239,6 @@ Route::post('receptionist/chat', [ChatController::class, 'sendChat'])
 // Fill calendar data
 Route::get('receptionist/events', [BookingController::class, 'events'])->name('receptionist.events');
 Route::get('receptionist/checkEvents', [BookingController::class, 'checkEvents'])->name('receptionist.checkEvents');
-
-Route::get('receptionist/dashboard', [BookingController::class, 'bookingDashboard'])->name('receptionist.dashboard');
 
 Route::get('receptionist/daytourDashboard', [DayTourController::class, 'daytourDashboard'])->name('receptionist.daytour_dashboard');
 

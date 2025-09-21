@@ -10,13 +10,11 @@ use App\Models\BookingTable;
 
 class ReportController extends Controller
 {
-    public function viewReport()
-    {
+    public function viewReport(){
         return view('manager/report');
     }
 
-    public function bookingReport(Request $request)
-    {
+    public function bookingReport(Request $request){
         $from = $request->query('from');
         $to = $request->query('to');
 
@@ -62,8 +60,7 @@ class ReportController extends Controller
         return view('manager.booking_report', compact('bookings', 'totals'));
     }
 
-    public function exportPDF(Request $request)
-    {
+    public function exportPDF(Request $request){
         $from = $request->query('from');
         $to = $request->query('to');
 
@@ -113,12 +110,11 @@ class ReportController extends Controller
     }
 
 
-    public function checkReport(Request $request)
-    {
+    public function checkReport(Request $request){
         $from = $request->query('from');
         $to = $request->query('to');
 
-        $query = DB::table('checkincheckout')
+         $query = DB::table('checkincheckout')
             ->leftjoin('guest', 'checkincheckout.guestID', '=', 'guest.guestID')
             ->leftjoin('booking', 'checkincheckout.bookingID', '=', 'booking.bookingID')
             ->select(
@@ -144,12 +140,11 @@ class ReportController extends Controller
         return view('manager.check_report', compact('check', 'totals'));
     }
 
-    public function exportCheckPDF(Request $request)
-    {
+    public function exportCheckPDF(Request $request){
         $from = $request->query('from');
         $to = $request->query('to');
 
-        $query = DB::table('checkincheckout')
+         $query = DB::table('checkincheckout')
             ->leftjoin('guest', 'checkincheckout.guestID', '=', 'guest.guestID')
             ->leftjoin('booking', 'checkincheckout.bookingID', '=', 'booking.bookingID')
             ->select(
@@ -175,12 +170,11 @@ class ReportController extends Controller
         $pdf = Pdf::loadView('manager.check_pdf', compact('check', 'totals', 'from', 'to'))->setPaper('a4', 'portrait');
         return $pdf->download('check_report.pdf');
     }
-    public function revenueReport(Request $request)
-    {
+    public function revenueReport(Request $request){
         $from = $request->query('from');
         $to = $request->query('to');
 
-        $query = DB::table('payment')
+        $payments = DB::table('payment')
             ->join('billing', 'payment.billingID', '=', 'billing.billingID')
             ->join('guest', 'payment.guestID', '=', 'guest.guestID')
             ->leftJoin('booking', 'billing.bookingID', '=', 'booking.bookingID')
@@ -195,49 +189,71 @@ class ReportController extends Controller
                 'billing.amenityID',
                 DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as guestname"),
                 DB::raw("
-            CASE
-                WHEN billing.bookingID IS NOT NULL THEN 'Booking'
-                WHEN billing.orderID IS NOT NULL THEN 'Order'
-                WHEN billing.amenityID IS NOT NULL THEN 'Amenity'
-                ELSE 'Unknown'
-            END as payment_type
-        "),
+                    CASE
+                        WHEN billing.bookingID IS NOT NULL THEN 'Booking'
+                        WHEN billing.orderID IS NOT NULL THEN 'Order'
+                        WHEN billing.amenityID IS NOT NULL THEN 'Amenity'
+                        ELSE 'Unknown'
+                    END as payment_type
+                "),
                 'billing.totalamount',
                 'additionalcharges.amount as extracharge',
                 'discount.amount as discount',
                 DB::raw("
-            ROUND(
-                (billing.totalamount + IFNULL(additionalcharges.amount, 0)) *
-                (1 - (IFNULL(discount.amount, 0) / 100)),
-            2) as total
-        ")
-            );
-
-        if ($from && $to) {
-            $query->whereBetween('payment.datepayment', [$from, $to]);
-        }
-
-        $payments = $query->get();
+                    ROUND(
+                        (billing.totalamount + IFNULL(additionalcharges.amount, 0)) * 
+                        (1 - (IFNULL(discount.amount, 0) / 100)),
+                    2) as total
+                ")
+            )
+            ->when($from && $to, function($q) use ($from, $to) {
+                return $q->whereBetween('payment.datepayment', [$from, $to]);
+            })
+            ->get();
 
         $totalsQuery = DB::table('payment')
             ->join('billing', 'payment.billingID', '=', 'billing.billingID');
 
-        $totals = [
-            'all'     => (clone $totalsQuery)->count(),
-            'booking' => (clone $totalsQuery)->whereNotNull('billing.bookingID')->count(),
-            'order'   => (clone $totalsQuery)->whereNotNull('billing.orderID')->count(),
-            'amenity' => (clone $totalsQuery)->whereNotNull('billing.amenityID')->count(),
+       $totals = [
+            'all'     => number_format((clone $totalsQuery)
+                            ->leftJoin('additionalcharges', 'billing.chargeID', '=', 'additionalcharges.chargeID')
+                            ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
+                            ->selectRaw("SUM((billing.totalamount + IFNULL(additionalcharges.amount,0)) * (1 - IFNULL(discount.amount,0)/100)) as total")
+                            ->value('total') ?? 0, 2),
+
+            'booking' => number_format((clone $totalsQuery)
+                            ->whereNotNull('billing.bookingID')
+                            ->leftJoin('additionalcharges', 'billing.chargeID', '=', 'additionalcharges.chargeID')
+                            ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
+                            ->selectRaw("SUM((billing.totalamount + IFNULL(additionalcharges.amount,0)) * (1 - IFNULL(discount.amount,0)/100)) as total")
+                            ->value('total') ?? 0, 2),
+
+            'order'   => number_format((clone $totalsQuery)
+                            ->whereNotNull('billing.orderID')
+                            ->leftJoin('additionalcharges', 'billing.chargeID', '=', 'additionalcharges.chargeID')
+                            ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
+                            ->selectRaw("SUM((billing.totalamount + IFNULL(additionalcharges.amount,0)) * (1 - IFNULL(discount.amount,0)/100)) as total")
+                            ->value('total') ?? 0, 2),
+
+            'amenity' => number_format((clone $totalsQuery)
+                            ->whereNotNull('billing.amenityID')
+                            ->leftJoin('additionalcharges', 'billing.chargeID', '=', 'additionalcharges.chargeID')
+                            ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
+                            ->selectRaw("SUM((billing.totalamount + IFNULL(additionalcharges.amount,0)) * (1 - IFNULL(discount.amount,0)/100)) as total")
+                            ->value('total') ?? 0, 2),
         ];
+
+
 
         return view('manager.revenue_report', compact('payments', 'totals'));
     }
 
-    public function exportRevenuePDF(Request $request)
-    {
+
+    public function exportRevenuePDF(Request $request){
         $from = $request->query('from');
         $to = $request->query('to');
 
-        $query = DB::table('payment')
+        $payments = DB::table('payment')
             ->join('billing', 'payment.billingID', '=', 'billing.billingID')
             ->join('guest', 'payment.guestID', '=', 'guest.guestID')
             ->leftJoin('booking', 'billing.bookingID', '=', 'booking.bookingID')
@@ -247,6 +263,9 @@ class ReportController extends Controller
             ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
             ->select(
                 'payment.*',
+                'billing.bookingID',
+                'billing.orderID',
+                'billing.amenityID',
                 DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as guestname"),
                 DB::raw("
                     CASE
@@ -261,17 +280,15 @@ class ReportController extends Controller
                 'discount.amount as discount',
                 DB::raw("
                     ROUND(
-                        (billing.totalamount + IFNULL(additionalcharges.amount, 0)) *
+                        (billing.totalamount + IFNULL(additionalcharges.amount, 0)) * 
                         (1 - (IFNULL(discount.amount, 0) / 100)),
                     2) as total
                 ")
-            );
-
-        if ($from && $to) {
-            $query->whereBetween('payment.datepayment', [$from, $to]);
-        }
-
-        $payments = $query->get();
+            )
+            ->when($from && $to, function($q) use ($from, $to) {
+                return $q->whereBetween('payment.datepayment', [$from, $to]);
+            })
+            ->get();
 
         $totalsQuery = DB::table('payment')
             ->join('billing', 'payment.billingID', '=', 'billing.billingID');
@@ -283,12 +300,14 @@ class ReportController extends Controller
             'amenity' => (clone $totalsQuery)->whereNotNull('billing.amenityID')->count(),
         ];
 
-        $pdf = Pdf::loadView('manager.revenue_pdf', compact('payments', 'totals', 'from', 'to'))->setPaper('a4', 'portrait');
+        $pdf = Pdf::loadView('manager.revenue_pdf', compact('payments', 'totals', 'from', 'to'))
+            ->setPaper('a4', 'portrait');
+
         return $pdf->download('revenue_report.pdf');
     }
 
-    public function guestReport(Request $request)
-    {
+
+    public function guestReport(Request $request){
         $from = $request->query('from');
         $to = $request->query('to');
 
@@ -322,8 +341,7 @@ class ReportController extends Controller
 
         return view('manager.guest_report', compact('guest', 'totals'));
     }
-    public function exportGuestPDF(Request $request)
-    {
+    public function exportGuestPDF(Request $request){
         $from = $request->query('from');
         $to = $request->query('to');
 

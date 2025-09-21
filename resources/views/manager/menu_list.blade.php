@@ -15,7 +15,7 @@
                 <h1 id="h2">Menu Items</h1>
                 <div class="button-group">
                         <div id="add-container" data-url="{{ url('manager/add_menu') }}">
-                            <h2 id="add-text">Add User</h2>
+                            <h2 id="add-text">Add Menu</h2>
                             <i id="add-user" class="fas fa-plus-circle fa-3x"  style="cursor:pointer;"></i>
                         </div>
                     <div class="search-container">

@@ -342,5 +342,31 @@ class SearchUserController extends Controller
 
         return view('manager.session_logs', compact('session'));
     }
+    
+    public function searchFeedback(Request $request)
+    {
+        $search = $request->input('search');
+
+        $feedbacks = DB::table('feedback')
+            ->leftJoin('guest', 'feedback.guestID', '=', 'guest.guestID')
+            ->select(
+                'feedback.*',
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
+            )
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('feedback.feedbackID', 'like', "%{$search}%")
+                    ->orWhere('feedback.message', 'like', "%{$search}%")
+                    ->orWhere('feedback.date', 'like', "%{$search}%")
+                    ->orWhere('feedback.rating', 'like', "%{$search}%")
+                    ->orWhere('feedback.status', 'like', "%{$search}%")
+                    ->orWhere(DB::raw("CONCAT(guest.firstname, ' ', guest.lastname)"), 'like', "%{$search}%")
+                    ->orWhere(DB::raw("CONCAT(guest.lastname, ' ', guest.firstname)"), 'like', "%{$search}%");
+                });
+            })
+            ->paginate(10);
+
+        return view('manager.feedback', compact('feedbacks'));
+    }
 
 }

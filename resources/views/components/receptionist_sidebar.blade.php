@@ -1,3 +1,9 @@
+@php
+    if (!session()->get('logged_in')) {
+        header('Location: ' . route('checkLogin'));
+        exit;
+    }
+@endphp
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -153,7 +159,7 @@
         
         <div id="walk-booking" class="sidebar-item" data-url="{{ url('receptionist/walk-booking') }}">
             <div class="icons">
-               <i class="fa-regular fa-calendar-xmark fa-2x"></i>
+                <i class="fa-solid fa-person-walking-luggage fa-2x"></i>
             </div>
             <div class="label">
                 <span class="label">Walk In Guest</span>

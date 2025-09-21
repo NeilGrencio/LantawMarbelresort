@@ -19,6 +19,15 @@
                 </div>
             </div>
             <div class="report-filter">
+                <div class="custom-date-filter">
+                    <label for="fromDate">From:</label>
+                    <input type="date" id="fromDate" name="fromDate" value="{{ request('from') }}">
+                
+                    <label for="toDate">To:</label>
+                    <input type="date" id="toDate" name="toDate" value="{{ request('to') }}">
+                
+                    <button id="applyDateFilter">Apply</button>
+                </div>
                 <div class="filter-card" data-filter="year">
                     <h3>This Year</h3>
                 </div>
@@ -139,7 +148,7 @@
         width:100%;
         height: auto;
         padding:1rem;
-        margin-left:15rem;
+        margin-left:12rem;
     }
     #layout-header {
         display: flex;

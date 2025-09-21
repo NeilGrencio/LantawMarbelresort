@@ -13,10 +13,32 @@ use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
+    public function showLogin(Request $request)
+    {
+        if ($request->session()->get('logged_in')) {
+            $role = $request->session()->get('role');
+
+            switch ($role) {
+                case 'Manager':
+                    return redirect('manager/dashboard');
+                case 'Receptionist':
+                    return redirect('receptionist/dashboard');
+                default:
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    return redirect()->route('login')->withErrors([
+                        'username' => 'Unauthorized role detected, please login again.'
+                    ]);
+            }
+        }
+
+        return view('auth.login');
+    }
+
     public function login(Request $request)
     {
         if ($request->isMethod('get')) {
-            return view('auth.login'); // Shows the login form
+            return $this->showLogin($request);
         }
 
         if ($request->isMethod('post')) {
@@ -60,33 +82,24 @@ class LoginController extends Controller
             $request->session()->put('role', $staff->role);
             $request->session()->put('avatar', $staff->avatar);
             $request->session()->regenerate();
-            
 
-            // User Agent Info
+            // Log session with user agent info
             $agent = new \Jenssegers\Agent\Agent();
-            $browser = $agent->browser();
-            $browserVersion = $agent->version($browser);
-            $platform = $agent->platform();
-            $platformVersion = $agent->version($platform);
-
-            // Log session
             $session = new SessionLogTable();
-            $session->useragent = "$browser $browserVersion on $platform $platformVersion";
+            $session->useragent = $agent->browser() . ' ' . $agent->version($agent->browser()) .
+                                  ' on ' . $agent->platform() . ' ' . $agent->version($agent->platform());
             $session->loginstatus = 'Logged-in';
             $session->sessioncreated = now();
             $session->sessionexpired = now()->addDays(30);
             $session->userID = $user->userID;
             $session->save();
 
-            // Log in the user
             Auth::login($user);
-            $request->session()->regenerate();
 
             // Redirect by role
             if ($staff->role === 'Manager') {
                 return redirect('manager/dashboard')->with('success', 'Welcome, ' . $user->username);
             }
-
             if ($staff->role === 'Receptionist') {
                 return redirect('receptionist/dashboard')->with('success', 'Welcome, ' . $user->username);
             }
