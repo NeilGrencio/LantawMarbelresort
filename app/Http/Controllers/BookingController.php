@@ -530,6 +530,31 @@ class BookingController extends Controller
         }
 
     }
+    public function approveBooking($bookingID){
+        $booking = BookingTable::where('bookingID', $bookingID)->first();
+
+        try{
+            $booking->status = 'Ongoing';
+            $booking->save();
+
+            return redirect()->route('receptionist.booking')->with('success', 'Booking cancelled!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'An error occurred while updating the booking. Please try again.');
+        }
+    }
+        public function declineBooking($bookingID){
+        $booking = BookingTable::where('bookingID', $bookingID)->first();
+
+        try{
+            $booking->status = 'Declined';
+            $booking->save();
+
+            return redirect()->route('receptionist.booking')->with('success', 'Booking cancelled!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'An error occurred while updating the booking. Please try again.');
+        }
+    }
+   
 
     protected function autoCancelExpiredBookings()
     {
