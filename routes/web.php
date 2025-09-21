@@ -225,10 +225,13 @@ Route::get('receptionist/receipt_booking/{sessionID}', [BookingController::class
 Route::get('receptionist/view_booking/{bookingID}', [BookingController::class, 'viewBooking'])->name('receptionist.view_booking');
 
 Route::match(['post', 'get'], 'receptionist/update_booking/{bookingID}', [BookingController::class, 'updateBooking'])->name('receptionist.update_booking');
-Route::post('receptionist/approve_booking', [BookingController::class, 'approveBooking'])->name('receptionist.approve_booking');
-Route::post('receptionist/decline_booking', [BookingController::class, 'declineBooking'])->name('receptionist.decline_booking');
+Route::post('receptionist/approve_booking/{bookingID}', [BookingController::class, 'approveBooking'])
+    ->name('receptionist.approve_booking');
 
-Route::post('receptionist/cancel_booking', [BookingController::class, 'cancelBooking'])->name('receptionist.cancel_booking');
+Route::post('receptionist/decline_booking/{bookingID}', [BookingController::class, 'declineBooking'])
+    ->name('receptionist.decline_booking');
+    
+Route::post('receptionist/cancel_booking/{bookingID}', [BookingController::class, 'cancelBooking'])->name('receptionist.cancel_booking');
 Route::post('receptionist/confirm_booking/{bookingID}', [BookingController::class, 'confirmBooking'])->name('receptionist.confirm_booking');
 
 Route::match(['post', 'get'], 'receptionist/walk-booking', [BookingController::class, 'walkinBooking'])->name('receptionist.walkin_booking');

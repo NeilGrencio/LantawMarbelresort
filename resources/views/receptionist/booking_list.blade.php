@@ -233,8 +233,8 @@
                                     <button class="btn btn-danger"
                                         onclick="declineBooking({{ $booking->bookingID }})">Decline</button>
 
-                                    <a
-                                        href="{{ url('receptionist/cancel_booking', ['id' => $booking->bookingID]) }}">Cancel</a>
+                                    <button class="btn btn-danger"
+                                        onclick="cancelBooking({{ $booking->bookingID }})">Cancel</button>
 
                                 </td>
                             </tr>
@@ -255,12 +255,29 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    booking_id: id
+                    bookingID: id
                 })
             })
             .then(res => res.json())
             .then(data => {
                 alert("Booking approved!");
+                console.log(data);
+            });
+    }
+    function cancelBooking(id) {
+        fetch("{{ route('receptionist.cancel_booking') }}", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    bookingID: id
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Booking Cancelled!");
                 console.log(data);
             });
     }
@@ -273,7 +290,7 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    booking_id: id
+                    bookingID: id
                 })
             })
             .then(res => res.json())

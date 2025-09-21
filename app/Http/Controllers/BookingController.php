@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Log;
 use App\Models\BookingTable;
 use App\Models\RoomTable;
 use App\Models\CottageTable;
@@ -530,30 +530,52 @@ class BookingController extends Controller
         }
 
     }
-    public function approveBooking($bookingID){
-        $booking = BookingTable::where('bookingID', $bookingID)->first();
+    
+public function approveBooking($bookingID)
+{
+    $booking = BookingTable::where('bookingID', $bookingID)->first();
 
-        try{
-            $booking->status = 'Ongoing';
-            $booking->save();
-
-            return redirect()->route('receptionist.booking')->with('success', 'Booking cancelled!');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'An error occurred while updating the booking. Please try again.');
-        }
+    if (!$booking) {
+        Log::warning("Approve failed: Booking ID {$bookingID} not found.");
+        return redirect()->back()->with('error', 'Booking not found.');
     }
-        public function declineBooking($bookingID){
-        $booking = BookingTable::where('bookingID', $bookingID)->first();
 
-        try{
-            $booking->status = 'Declined';
-            $booking->save();
+    try {
+        $booking->status = 'Ongoing';
+        $booking->save();
 
-            return redirect()->route('receptionist.booking')->with('success', 'Booking cancelled!');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'An error occurred while updating the booking. Please try again.');
-        }
+        Log::info("Booking approved: ID {$bookingID}, Status set to Ongoing.");
+
+        return redirect()->route('receptionist.booking')
+                         ->with('success', 'Booking approved successfully!');
+    } catch (\Exception $e) {
+        Log::error("Error approving booking ID {$bookingID}: " . $e->getMessage());
+        return redirect()->back()->with('error', 'An error occurred while updating the booking.');
     }
+}
+
+public function declineBooking($bookingID)
+{
+    $booking = BookingTable::where('bookingID', $bookingID)->first();
+
+    if (!$booking) {
+        Log::warning("Decline failed: Booking ID {$bookingID} not found.");
+        return redirect()->back()->with('error', 'Booking not found.');
+    }
+
+    try {
+        $booking->status = 'Declined';
+        $booking->save();
+
+        Log::info("Booking declined: ID {$bookingID}, Status set to Declined.");
+
+        return redirect()->route('receptionist.booking')
+                         ->with('success', 'Booking declined successfully!');
+    } catch (\Exception $e) {
+        Log::error("Error declining booking ID {$bookingID}: " . $e->getMessage());
+        return redirect()->back()->with('error', 'An error occurred while updating the booking.');
+    }
+}
    
 
     protected function autoCancelExpiredBookings()
