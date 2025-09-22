@@ -15,7 +15,7 @@ class ManageCottageController extends Controller
     // List all cottages
     public function cottageList()
     {
-        $cottages = CottageTable::all();
+        $cottage = CottageTable::all();
         return view('manager.cottage_list', compact('cottage'));
     }
 
