@@ -1148,14 +1148,12 @@
             <!-- Billing & Payments -->
             @if($bookingData->billing)
                 <div class="label-container"><h2>Billing & Payments</h2></div>
-                <p><strong>Total Amount:</strong> ₱{{ $bookingData->billing->total ?? 0 }}</p>
-                <p><strong>Status:</strong> {{ $bookingData->billing->status ?? 'N/A' }}</p>
 
                 @if($bookingData->payments->count())
                     <h3>Payments</h3>
                     <ul>
                         @foreach($bookingData->payments as $payment)
-                            <li>{{ \Carbon\Carbon::parse($payment->created_at)->format('M d, Y') }} - ₱{{ $payment->amount }} - {{ $payment->method }}</li>
+                            <li>{{ \Carbon\Carbon::parse($payment->created_at)->format('M d, Y') }} - ₱{{ $payment->totaltender }} - {{ $payment->refNumber }}</li>
                         @endforeach
                     </ul>
                 @endif
