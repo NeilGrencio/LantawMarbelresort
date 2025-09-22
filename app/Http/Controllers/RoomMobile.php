@@ -11,14 +11,14 @@ use App\Models\RoomTable;
 class RoomMobile extends Controller
 {
     public function roomList()
-    {
-        $rooms = RoomTable::where('status', 'available')->get();
+{
+    $rooms = RoomTable::where('status', 'available')->get();
 
-        foreach ($rooms as $room) {
-            // Use basename in case $room->image contains 'room_images/...' already
-            $room->image_url = asset('room_images/' . basename($room->image));
-        }
-
-        return response()->json($rooms);
+    foreach ($rooms as $room) {
+        // Prepend 'storage/room_images/' to the basename of the image
+        $room->image_url = asset('storage/room_images/' . basename($room->image));
     }
+
+    return response()->json($rooms);
+}
 }
