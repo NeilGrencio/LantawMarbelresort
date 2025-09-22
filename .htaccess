@@ -18,8 +18,10 @@
     RewriteRule ^ %1 [L,R=301]
 
     # Map /storage to storage/app/public
-    RewriteCond %{REQUEST_URI} ^/storage/(.*)$
-    RewriteRule ^storage/(.*)$ public/$1 [L]
+    # public/.htaccess
+    RewriteEngine On
+    RewriteRule ^storage/(.*)$ /storage/$1 [L]
+
 
     # --- Allow API routes explicitly ---
     <IfModule mod_rewrite.c>
