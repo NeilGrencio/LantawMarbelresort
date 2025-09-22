@@ -10,10 +10,13 @@ class CottageController extends Controller
 {
     public function index()
     {
-        $cottages = CottageTable::whereIn('status', ['available', 'booked'])
+        $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])
             ->get()
             ->map(function ($cottage) {
-                $cottage->image = url('uploads/' . $cottage->image);
+                // Generate URL using the named route
+                $cottage->image_url = $cottage->image
+                    ? route('cottage.image', basename($cottage->image))
+                    : null;
                 return $cottage;
             });
 

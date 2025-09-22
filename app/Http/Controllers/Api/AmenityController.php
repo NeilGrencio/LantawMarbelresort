@@ -8,15 +8,17 @@ use App\Models\AmenityTable;
 
 class AmenityController extends Controller
 {
-
     public function index()
     {
         $amenities = AmenityTable::where('status', 'available')
             ->get()
             ->map(function ($amenity) {
-                $amenity->image = url('uploads/' . $amenity->image);
+                $amenity->image_url = $amenity->image
+                    ? route('amenity.image', basename($amenity->image))
+                    : null;
                 return $amenity;
             });
+
         return response()->json($amenities);
     }
 }
