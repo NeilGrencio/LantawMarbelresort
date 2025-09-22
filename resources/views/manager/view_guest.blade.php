@@ -27,7 +27,7 @@
                         </div>
 
                         <div>
-                            <label for="txtalstname">Lastname:</label> 
+                            <label for="txtalstname">Lastname:</label>
                             <input id="txtalstname" type="text" placeholder="Lastname.." name="lastname" value="{{$guest->lastname}}" readonly>
                         </div>
                     </div>
@@ -41,8 +41,8 @@
                             </div>
                         </div>
                         <div>
-                            <label for="txtemail">Email:</label> 
-                            <input id="txtemail" type="email" placeholder="@email.com.." name="email" value="{{$guest->email}}" readonly>  
+                            <label for="txtemail">Email:</label>
+                            <input id="txtemail" type="email" placeholder="@email.com.." name="email" value="{{$guest->email}}" readonly>
                         </div>
                     </div>
 
@@ -65,7 +65,7 @@
                                     <option value="Prefer_not_to_say" {{ $guest->gender == 'Prefer_not_to_say' ? 'selected' : '' }}>Prefer not to say</option>
                             </select>
                         </div>
-                        <div> 
+                        <div>
                             {{-- Birthday --}}
                         <label id="lblbirthday" for="txtbirthday">
                             Birthday:
@@ -74,12 +74,12 @@
                             value="{{ $guest->birthday }}" readonly>
                         </div>
                         <div>
-                            <label for="role">Role:</label> 
+                            <label for="role">Role:</label>
                             <select id="txtrole" name="role" disabled>
                                 <option value="" disabled selected>Select Role</option>
                                 <option value="Guest" {{ $guest->role == 'Guest' ? 'selected' : '' }}>Hotel Guest</option>
                                 <option value="Day Tour Guest" {{ $guest->role == 'Day Tour Guest' ? 'selected' : '' }}>Day Tour Guest</option>
-                            </select>  
+                            </select>
                         </div>
                     </div>
 
@@ -87,7 +87,8 @@
                      <div class="cl-validID" id="row4">
                         <label for="txtvalidid">Import Valid ID</label>
                         <div>
-                            <img id="id-preview" src="{{ asset('storage/' . $guest->validID) }}">
+                             <img id="id-preview" src="{{ route('guestid.image', ['filename' => basename($guest->validID)]) }}" alt={{ $user->username }}>
+
                         </div>
                     </div>
 
@@ -97,33 +98,35 @@
 
                     <div id="row5" class="user-information">
                         <div>
-                            <label for="txtusername">Username:</label> 
+                            <label for="txtusername">Username:</label>
                             <input id="txtusername" type="text" placeholder="Username" name="username" value="{{$user->username}}">
                         </div>
-                         
+
                     </div>
 
                     <div id="row6" class="user-information">
                         <div>
-                            <label for="txtpassword">Password:</label> 
+                            <label for="txtpassword">Password:</label>
                             <input id="txtpassword" type="text" placeholder="Password" name="password">
-                        </div> 
+                        </div>
                         <div>
-                            <label for="txtcpassword">Confirm Password:</label> 
+                            <label for="txtcpassword">Confirm Password:</label>
                             <input id="txtcpassword" type="text" placeholder="Confirm Password" name="cpassword">
                             <small id="password-match-msg" style="color: red; display: none; margin-top:.5rem;"><i class="fas fa-info-circle"></i> Password does not match.</small>
-                        </div> 
+                        </div>
                     </div>
 
                     <div id="row7">
                         <div>
                             <label for="avatar">Select Avatar:</label>
-                            <img id="pfp-preview" src="{{ asset('storage/' . $guest->avatar) }}">
+
+                            <img id="pfp-preview" src="{{ route('guest.image', ['filename' => basename( $guest->avatar)]) }}" alt={{ $user->username }}>
+                          
                             <input id="txtavatar" type="file" accept=".png, .jpg, .jpeg, .webp" name="avatar">
                             @error('validAvatar')
                                 <div class="error-message" id="avatar-error-message">{{ $message}}</div>
-                            @enderror 
-                        </div> 
+                            @enderror
+                        </div>
                     </div>
                 </div>
 
@@ -247,7 +250,7 @@
         width:30rem;
         font-size:1rem;
         border-radius: .5rem;
-        padding:.5rem; 
+        padding:.5rem;
     }
     #pfp-preview{
         display: flex;
@@ -305,12 +308,12 @@
         word-wrap: break-word;
     }
     #popup-resend{
-        margin-top:1rem; 
+        margin-top:1rem;
         padding: .5rem 2rem;
-        background: #ccc; 
-        color: #333; 
+        background: #ccc;
+        color: #333;
         border: none;
-        border-radius: .5rem; 
+        border-radius: .5rem;
         font-size: 1rem;
         transition:background 0.2s ease;
     }
@@ -453,7 +456,7 @@
             });
         }
 
-        
+
         if (txtRole) {
             txtRole.addEventListener('change', function () {
                 const isDGuest = this.value === 'Day Tour Guest';
