@@ -227,6 +227,10 @@
                                 <td>{{ $booking->type }}</td>
                                 <td>{{ $booking->status }}</td>
                                 <td>
+                                    <button class="btn btn-primary"
+                                        onclick="window.location='{{ route('receptionist.view_booking', ['bookingID' => $booking->bookingID]) }}'">
+                                        View Details
+                                    </button>
                                     <!-- Approve Booking -->
                                     <button class="btn btn-success"
                                         onclick="approveBooking({{ $booking->bookingID }})">Approve</button>
