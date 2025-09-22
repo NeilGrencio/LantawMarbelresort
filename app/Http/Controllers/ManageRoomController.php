@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\RoomTable;
+use Illuminate\Support\Facades\Log;
 
 class ManageRoomController extends Controller
 {
@@ -20,71 +21,78 @@ class ManageRoomController extends Controller
         return view('manager.room_list', compact('rooms'));
     }
 
-   public function editRoom(Request $request, $roomID)
-{
-    // Fetch the room or fail
-    $room = RoomTable::findOrFail($roomID);
+    public function editRoom(Request $request, $roomID)
+    {
+        // Fetch the room or fail
+        $room = RoomTable::findOrFail($roomID);
+        Log::info("Editing room fetched", ['roomID' => $roomID, 'room' => $room->toArray()]);
 
-    // Show the edit form
-    if ($request->isMethod('get')) {
-        return view('manager.edit_room', compact('room'));
-    }
-
-    // Validate input for POST request
-    $validatedData = $request->validate([
-        'roomnum'     => 'required|numeric',
-        'description' => 'required|string',
-        'roomtype'    => 'required|string',
-        'status'      => 'required|string',
-        'price'       => 'required|numeric|min:0',
-        'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp'
-    ]);
-
-    // Check if any field has changed
-    $hasChanges = $room->roomnum != $validatedData['roomnum'] ||
-                  $room->description != $validatedData['description'] ||
-                  $room->roomtype != $validatedData['roomtype'] ||
-                  $room->status != $validatedData['status'] ||
-                  $room->price != $validatedData['price'] ||
-                  $request->hasFile('image');
-
-    if (!$hasChanges) {
-        return redirect()->route('manager.edit_room', ['roomID' => $roomID])
-                         ->with('error', 'No changes detected.');
-    }
-
-    DB::beginTransaction();
-    try {
-        // Handle new image upload
-        if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($room->image && Storage::disk('public')->exists($room->image)) {
-                Storage::disk('public')->delete($room->image);
-            }
-            // Store new image
-            $room->image = $request->file('image')->store('room_images', 'public');
+        // Show the edit form
+        if ($request->isMethod('get')) {
+            return view('manager.edit_room', compact('room'));
         }
 
-        // Update room fields
-        $room->roomnum     = $validatedData['roomnum'];
-        $room->description = $validatedData['description'];
-        $room->roomtype    = $validatedData['roomtype'];
-        $room->status      = $validatedData['status'];
-        $room->price       = $validatedData['price'];
+        // Validate input for POST request
+        $validatedData = $request->validate([
+            'roomnum'     => 'required|numeric',
+            'description' => 'required|string',
+            'roomtype'    => 'required|string',
+            'status'      => 'required|string',
+            'price'       => 'required|numeric|min:0',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp'
+        ]);
+        Log::info("Validation passed for room edit", ['roomID' => $roomID, 'validatedData' => $validatedData]);
 
-        $room->save();
+        // Check if any field has changed
+        $hasChanges = $room->roomnum != $validatedData['roomnum'] ||
+            $room->description != $validatedData['description'] ||
+            $room->roomtype != $validatedData['roomtype'] ||
+            $room->status != $validatedData['status'] ||
+            $room->price != $validatedData['price'] ||
+            $request->hasFile('image');
 
-        DB::commit();
+        if (!$hasChanges) {
+            Log::info("No changes detected for room", ['roomID' => $roomID]);
+            return redirect()->route('manager.edit_room', ['roomID' => $roomID])
+                ->with('error', 'No changes detected.');
+        }
 
-        return redirect()->route('manager.room_list')
-                         ->with('success', 'Room was updated successfully.');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return redirect()->route('manager.edit_room', ['roomID' => $roomID])
-                         ->withInput()
-                         ->with('error', 'Failed to update room: ' . $e->getMessage());
+        DB::beginTransaction();
+        try {
+            // Handle new image upload
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($room->image && Storage::disk('public')->exists($room->image)) {
+                    Storage::disk('public')->delete($room->image);
+                    Log::info("Old image deleted", ['roomID' => $roomID, 'image' => $room->image]);
+                }
+                // Store new image
+                $room->image = $request->file('image')->store('room_images', 'public');
+                Log::info("New image stored", ['roomID' => $roomID, 'image' => $room->image]);
+            }
+
+            // Update room fields
+            $room->roomnum     = $validatedData['roomnum'];
+            $room->description = $validatedData['description'];
+            $room->roomtype    = $validatedData['roomtype'];
+            $room->status      = $validatedData['status'];
+            $room->price       = $validatedData['price'];
+
+            $room->save();
+            Log::info("Room updated successfully", ['roomID' => $roomID, 'room' => $room->toArray()]);
+
+            DB::commit();
+
+            return redirect()->route('manager.room_list')
+                ->with('success', 'Room was updated successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Failed to update room", ['roomID' => $roomID, 'error' => $e->getMessage()]);
+            return redirect()->route('manager.edit_room', ['roomID' => $roomID])
+                ->withInput()
+                ->with('error', 'Failed to update room: ' . $e->getMessage());
+        }
     }
-}
 
 
     public function deactivateRoom($roomID)
