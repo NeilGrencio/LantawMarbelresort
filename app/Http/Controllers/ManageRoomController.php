@@ -17,7 +17,7 @@ class ManageRoomController extends Controller
         $rooms = RoomTable::all();
         Log::info('Fetched room list', ['count' => $rooms->count()]);
 
-        // Prepare image URLs using the route you defined
+        // Prepare image URLs via route
         foreach ($rooms as $room) {
             $room->image_url = $room->image
                 ? route('room.image', ['filename' => basename($room->image)])
@@ -48,11 +48,18 @@ class ManageRoomController extends Controller
 
         DB::beginTransaction();
         try {
-            $room = new RoomTable($validatedData);
+            $room = new RoomTable();
+            $room->roomnum = $validatedData['roomnum'];
+            $room->description = $validatedData['description'];
+            $room->roomcapacity = $validatedData['roomcapacity'];
+            $room->roomtype = $validatedData['roomtype'];
+            $room->price = $validatedData['price'];
+            $room->status = $validatedData['status'];
 
-            // Save image to storage/app/public/room_images
+            // Save image properly to storage/public/room_images
             if ($request->hasFile('image')) {
-                $room->image = $request->file('image')->store('room_images', 'public');
+                $path = $request->file('image')->store('room_images', 'public');
+                $room->image = $path;
                 Log::info('Room image uploaded', ['image' => $room->image]);
             }
 
@@ -91,17 +98,28 @@ class ManageRoomController extends Controller
         try {
             // Handle image replacement
             if ($request->hasFile('image')) {
+                // Delete old image if exists
                 if ($room->image && Storage::disk('public')->exists($room->image)) {
                     Storage::disk('public')->delete($room->image);
                     Log::info('Old image deleted', ['roomID' => $roomID, 'image' => $room->image]);
                 }
-                $room->image = $request->file('image')->store('room_images', 'public');
+
+                // Store new image properly
+                $path = $request->file('image')->store('room_images', 'public');
+                $room->image = $path;
                 Log::info('New image stored', ['roomID' => $roomID, 'image' => $room->image]);
             }
 
-            $room->update($validatedData);
-            DB::commit();
+            // Update other fields
+            $room->update([
+                'roomnum' => $validatedData['roomnum'],
+                'description' => $validatedData['description'],
+                'roomtype' => $validatedData['roomtype'],
+                'status' => $validatedData['status'],
+                'price' => $validatedData['price']
+            ]);
 
+            DB::commit();
             Log::info('Room updated successfully', ['roomID' => $roomID]);
             return redirect()->route('manager.room_list')->with('success', 'Room updated successfully.');
         } catch (\Exception $e) {
