@@ -529,7 +529,7 @@ class BookingController extends Controller
     {
         try {
             $booking = BookingTable::where('bookingID', $bookingID)->firstOrFail();
-            $booking->status = 'Ongoing';
+            $booking->status = 'Booked';
             $booking->save();
 
             return response()->json([
