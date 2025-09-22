@@ -46,7 +46,8 @@
                 @endphp
                 <div class="{{$amenityCardClass}}" data-url={{ url('manager/edit_amenity/' . $amenity->amenityID) }}>
                     <div>
-                        <img id="amenity-img" src="{{ asset('storage/' . $amenity->image) }}"></img>
+                         <img id="amenity-img" src="{{ route('amenity.image', ['filename' => basename($amenity->image)]) }}" alt={{ $amenity->amenityname }}>
+                        
                     </div>
                     <div id="amenity-info">
                         <h1>{{$amenity->amenityname}}</h1>

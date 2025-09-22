@@ -35,7 +35,8 @@
                 @foreach($cottage as $cottages)
                 <div id="cottage-container">
                     <div id="image-container">
-                        <img src="{{asset('storage/' . $cottages->image) }}" >
+                                <img  src="{{ route('cottage.image', ['filename' => basename($cottages->image)]) }}" alt={{ $cottages->cottagename }}>
+            
                     </div>
                     
                     <div id="cottage-information">

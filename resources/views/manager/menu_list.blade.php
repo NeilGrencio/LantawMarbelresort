@@ -44,7 +44,8 @@
                 @foreach($menu as $menuitem)
                     <div class="menu-card" data-type="{{ $menuitem->itemtype }}">
                         <div id="img-container">
-                            <img src="{{asset('storage/' . $menuitem->image)}}">
+                                                    <img  src="{{ route('menu.image', ['filename' => basename($menuitem->image)]) }}" alt={{ $menuitem->menuname }}>
+                            
                         </div>
                         <div id="menu-details">
                             <h2>Name: {{$menuitem->menuname}}</h2>
