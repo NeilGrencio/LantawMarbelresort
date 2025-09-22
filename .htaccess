@@ -27,7 +27,7 @@
     <IfModule mod_rewrite.c>
         RewriteCond %{REQUEST_URI} ^/api
         RewriteRule ^ - [L]
-    </IfModule>
+    </IfModule>@LeviJanClavesillas073095
 
     # --- Disable mod_security for API (if allowed) ---
     <IfModule mod_security.c>
