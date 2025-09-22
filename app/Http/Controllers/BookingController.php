@@ -245,6 +245,21 @@ class BookingController extends Controller
         ]);
     }
 
+    private function parseDate($dateString)
+    {
+        try {
+            $formats = ['m/d/Y', 'Y-m-d', 'd/m/Y', 'm-d-Y'];
+            foreach ($formats as $format) {
+                $date = Carbon::createFromFormat($format, $dateString);
+                if ($date) {
+                    return $date; // Return Carbon object instead of formatted string
+                }
+            }
+            return Carbon::parse($dateString);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
     public function confirmBooking(Request $request, $sessionID)
     {
         $data = session('booking_data_' . $sessionID);
@@ -275,16 +290,16 @@ class BookingController extends Controller
         $discountAmount    = $this->calculateDiscountAmount($validated['discount'], $originalAmount);
         $discountedAmount  = $originalAmount - $discountAmount;
         $requiredAmount    = $validated['payment_type'] === 'downpayment'
-                                ? $discountedAmount * 0.5
-                                : $discountedAmount;
+            ? $discountedAmount * 0.5
+            : $discountedAmount;
 
         $amountPaid = $validated['payment'] === 'cash'
-                        ? ($validated['cashamount'] ?? 0)
-                        : $requiredAmount;
+            ? ($validated['cashamount'] ?? 0)
+            : $requiredAmount;
 
         $change = ($validated['payment'] === 'cash' && $amountPaid > $requiredAmount)
-                    ? $amountPaid - $requiredAmount
-                    : 0;
+            ? $amountPaid - $requiredAmount
+            : 0;
 
         if ($validated['payment'] === 'cash' && $amountPaid < $requiredAmount) {
             return redirect()->back()->with('error', 'Insufficient payment. Required: ₱' . number_format($requiredAmount, 2));
@@ -356,8 +371,8 @@ class BookingController extends Controller
                 'amenityID'   => null,
                 'chargeID'    => null,
                 'discountID'  => !empty($validated['discount']) && $validated['discount'] != '0'
-                                    ? (int) $validated['discount']
-                                    : null,
+                    ? (int) $validated['discount']
+                    : null,
                 'guestID'     => $guest->guestID,
             ]);
 
@@ -375,7 +390,6 @@ class BookingController extends Controller
 
             return redirect()->route('receptionist.booking')
                 ->with('success', 'Booking confirmed successfully!' . ($change > 0 ? ' Change: ₱' . number_format($change, 2) : ''));
-
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Booking failed: ' . $e->getMessage());
@@ -492,25 +506,6 @@ class BookingController extends Controller
         );
     }
 
-    private function parseDate($dateString)
-    {
-        try {
-            // Try different date formats
-            $formats = ['m/d/Y', 'Y-m-d', 'd/m/Y', 'm-d-Y'];
-
-            foreach ($formats as $format) {
-                $date = Carbon::createFromFormat($format, $dateString);
-                if ($date) {
-                    return $date->format('Y-m-d');
-                }
-            }
-
-            // If all formats fail, try Carbon's parse method
-            return Carbon::parse($dateString)->format('Y-m-d');
-        } catch (\Exception $e) {
-            return null;
-        }
-    }
 
     private function calculateDiscountAmount($discountId, $originalAmount)
     {
