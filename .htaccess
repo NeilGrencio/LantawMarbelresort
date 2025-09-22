@@ -1,7 +1,8 @@
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
+        Options +FollowSymLinks -MultiViews -Indexes
     </IfModule>
+
     RewriteEngine On
 
     # Handle Authorization Header
@@ -12,24 +13,16 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Redirect Trailing Slashes If Not A Folder...
+    # Redirect Trailing Slashes If Not A Folder
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Map /storage to storage/app/public
-    # public/.htaccess
-    RewriteEngine On
-    RewriteRule ^storage/(.*)$ /storage/$1 [L]
+    # Allow API routes explicitly
+    RewriteCond %{REQUEST_URI} ^/api
+    RewriteRule ^ - [L]
 
-
-    # --- Allow API routes explicitly ---
-    <IfModule mod_rewrite.c>
-        RewriteCond %{REQUEST_URI} ^/api
-        RewriteRule ^ - [L]
-    </IfModule>@LeviJanClavesillas073095
-
-    # --- Disable mod_security for API (if allowed) ---
+    # Disable mod_security for API if allowed
     <IfModule mod_security.c>
         SecRuleEngine Off
     </IfModule>
@@ -40,7 +33,7 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
-# Optional: allow images to be served properly from other domains (CORS)
+# Optional: allow images to be served from other domains (CORS)
 <IfModule mod_headers.c>
     <FilesMatch "\.(jpg|jpeg|png|gif|webp)$">
         Header set Access-Control-Allow-Origin "*"
