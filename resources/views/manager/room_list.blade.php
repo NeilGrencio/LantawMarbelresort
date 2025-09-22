@@ -54,7 +54,7 @@
                 @endphp
                     <div class="{{ $roomCardClass }}">
                         <div id="room-image">
-                            <img src="{{ $room->image && Storage::disk('public')->exists($room->image) ? asset('storage/' . $room->image) : asset('images/placeholder.png') }}"
+                            <img src="{{ asset('storage/' . $room->image) }}"
      alt="Room {{ $room->roomnum }}"
      style="width:100%; height:100%; object-fit:cover;">
                         </div>
