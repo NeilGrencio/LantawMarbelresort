@@ -12,11 +12,12 @@ class RoomMobile extends Controller
 {
     public function roomList()
 {
+
     $rooms = RoomTable::where('status', 'available')->get();
 
     foreach ($rooms as $room) {
-        // Prepend 'storage/room_images/' to the basename of the image
-        $room->image_url = asset('storage/room_images/' . basename($room->image));
+        // This mimics your Blade exactly
+        $room->image_url = asset('storage/' . $room->image);
     }
 
     return response()->json($rooms);
