@@ -17,43 +17,56 @@ class BookingController extends Controller
 {
     // ✅ GET all bookings by guestID
     public function getByGuest($guestID)
-    {
-        try {
-            $bookings = BookingTable::with([
-                'Guest:guestID,firstname,lastname,email',
-                'Amenity:amenityID,amenityname,description',
-                'roomBookings.Room:roomID,roomnum',
-                'cottageBookings.Cottage:cottageID,cottagename',
-                'billing.payments',
-                'roomBoookings',
-                'cottageBookings',
-                'menuBookings',
-                'menuBookings.menu:menuID,menuname,price' // ✅ include menus
-            ])
-            ->where('guestID', $guestID)
-            ->get([
-                'bookingID',
-                'guestID',
-                'guestamount',
-                'childguest',
-                'adultguest',
-                'totalprice',
-                'bookingcreated',
-                'bookingstart',
-                'bookingend',
-                'status',
-                'amenityID'
-            ]);
+{
+    try {
+        $bookings = BookingTable::with([
+            'Guest:guestID,firstname,lastname,email',
+            'Amenity:amenityID,amenityname,description',
+            'billing.payments',
+            'roomBookings.Room:roomID,roomnum',
+            'cottageBookings.Cottage:cottageID,cottagename',
+            'menuBookings.menu:menuID,menuname,price'
+        ])
+        ->where('guestID', $guestID)
+        ->get([
+            'bookingID',
+            'guestID',
+            'guestamount',
+            'childguest',
+            'adultguest',
+            'totalprice',
+            'bookingcreated',
+            'bookingstart',
+            'bookingend',
+            'status',
+            'amenityID'
+        ]);
 
-            return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
-        } catch (\Exception $e) {
-            Log::error("❌ getByGuest failed", [
-                'guestID' => $guestID,
-                'error'   => $e->getMessage()
-            ]);
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
+        // Group each booking's items by bookingDate
+        $bookings->transform(function($booking) {
+            $booking->roomBookingsByDate = $booking->roomBookings->groupBy(function($item) {
+                return $item->bookingDate->format('Y-m-d');
+            });
+            $booking->cottageBookingsByDate = $booking->cottageBookings->groupBy(function($item) {
+                return $item->bookingDate->format('Y-m-d');
+            });
+            $booking->menuBookingsByDate = $booking->menuBookings->groupBy(function($item) {
+                return $item->bookingDate->format('Y-m-d');
+            });
+            return $booking;
+        });
+
+        return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
+
+    } catch (\Exception $e) {
+        Log::error("❌ getByGuest failed", [
+            'guestID' => $guestID,
+            'error'   => $e->getMessage()
+        ]);
+        return response()->json(['error' => $e->getMessage()], 500);
     }
+}
+
 
     // ✅ GET single booking by bookingID
     public function show($id)
