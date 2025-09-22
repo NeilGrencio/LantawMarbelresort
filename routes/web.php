@@ -54,7 +54,7 @@ Route::get('/menu-image/{filename}', function ($filename) {
     ]);
 })->name('menu.image');
 Route::get('/cottage-image/{filename}', function ($filename) {
-    $path = storage_path('app/public/cottage_images/' . $filename);
+    $path = storage_path('app/public/cottage_image/' . $filename);
 
     if (!file_exists($path)) {
         abort(404);
