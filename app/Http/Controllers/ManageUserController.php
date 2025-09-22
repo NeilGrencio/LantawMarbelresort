@@ -50,40 +50,6 @@ class ManageUserController extends Controller
         return view('manager.user_list', compact('users'));
     }
 
-    public function validateNumber(Request $request, SemaphoreService $semaphore)
-    {
-        $request->validate([
-            'contactnum' => ['required', 'regex:/^9\d{9}$/'], // expects 10-digit format (e.g., 9123456789)
-        ]);
-
-        // Convert to international format: 63xxxxxxxxxx
-        $mobilenum = '63' . $request->input('contactnum');
-
-        $otp = rand(100000, 999999);
-
-        $message = "Your OTP code for registration is: {otp}. Please do not share this code.";
-
-        $response = $semaphore->sendOtp($mobilenum, $message, $otp);
-
-        if (isset($response['message'])) {
-            return redirect()->back()->withInput()->withErrors([
-                'contactnum' => 'Failed to send OTP: ' . $response['message']
-            ]);
-        }
-
-        // Store OTP in session
-        session([
-            'registration_otp' => $otp,
-            'mobilenum' => $mobilenum
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'otp' => $otp, // for debugging
-            'number' => $mobilenum
-        ]);
-    }
-
 
     public function addUser(Request $request)
     {
@@ -172,7 +138,7 @@ class ManageUserController extends Controller
                 'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
             ];
 
-            if ($role === 'Guest') {
+            if ($role === 'Guest' || $role === 'guest') {
                 $validatedData = $request->validate(array_merge($commonRules, [
                     'birthday' => 'required|date',
                     'email' => 'required|email|max:255|unique:guest,email,' . $userID . ',userID'
@@ -205,7 +171,7 @@ class ManageUserController extends Controller
                     $guest->save();
 
                     DB::commit();
-                    return redirect()->route('manager.edit_user', ['userID' => $userID])
+                    return redirect()->route('manager.manage_user', ['userID' => $userID])
                         ->with('success', 'Guest user updated successfully');
                 } catch (\Exception $e) {
                     DB::rollBack();
@@ -245,7 +211,7 @@ class ManageUserController extends Controller
                     $staff->save();
 
                     DB::commit();
-                    return redirect()->route('manager.edit_user', ['userID' => $userID])
+                    return redirect()->route('manager.manage_user', ['userID' => $userID])
                         ->with('success', 'Staff user updated successfully');
                 } catch (\Exception $e) {
                     DB::rollBack();

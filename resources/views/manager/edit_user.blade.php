@@ -1,6 +1,5 @@
 @php
-    // Determine if the user is a guest
-    $isGuest = old('role', $guest->role ?? '') == 'Guest';
+    $isGuest = strtolower(old('role', $guest->role ?? '')) === 'guest';
 @endphp
 <body>
     <div id="layout">
@@ -81,7 +80,7 @@
                         <div class="cl-validID" id="row4" style="display: flex;">
                             <label for="validid">Import Valid ID</label>
                             <div>
-                                <img id="id-preview" src="{{ $guest->validID ? asset('storage/'.$guest->validID) : asset('images/photo.png') }}">   
+                                <img id="id-preview" src="{{ $guest->validID ? asset('storage/app/public/'.$guest->validID) : asset('images/photo.png') }}">   
                             </div>
                         </div>
                         @endif
@@ -126,9 +125,9 @@
                             <label for="avatar">Select Avatar:</label>
                             <img id="pfp-preview"
                                 src="@if($isGuest)
-                                        {{ $guest->avatar ? asset('storage/'.$guest->avatar) : asset('images/profile.jpg') }}
+                                        {{ $guest?->avatar ? asset('storage/app/public/'.$guest->avatar) : asset('images/profile.jpg') }}
                                      @else
-                                        {{ $staff->avatar ? asset('storage/'.$staff->avatar) : asset('images/profile.jpg') }}
+                                        {{ $staff?->avatar ? asset('storage/app/public/'.$staff->avatar) : asset('images/profile.jpg') }}
                                      @endif">
                             <input id="txtavatar" type="file" accept=".png, .jpg, .jpeg, .webp" name="avatar">
                             @error('validAvatar')
@@ -184,7 +183,7 @@
         width:100%;
         height: auto;
         padding:1rem;
-        margin-left:15rem;
+        margin-left:12rem;
     }
     #add_user-container{
         display:flex;

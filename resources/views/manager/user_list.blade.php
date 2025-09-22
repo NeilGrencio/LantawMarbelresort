@@ -65,9 +65,9 @@
                                 <td>••••••••</td>
                                 <td>
                                     @if(isset($user->s_role) && $user->s_role)
-                                        <img alt="Profile photo of staff user" src="{{ asset('storage/' . $user->s_avatar) }}">
+                                        <img alt="Profile photo of staff user" src="{{ asset('storage/app/public/' . $user->s_avatar) }}">
                                      @elseif(isset($user->g_role) && $user->g_role)
-                                        <img alt="Profile photo of guest user" src="{{ asset('storage/' . $user->g_avatar) }}">
+                                        <img alt="Profile photo of guest user" src="{{ asset('storage/app/public/' . $user->g_avatar) }}">
                                     @else
                                         <img src="{{asset('iamges/profile.jpg')}}"/>
                                     @endif
