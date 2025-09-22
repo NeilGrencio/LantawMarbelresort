@@ -12,7 +12,7 @@ class CottageBookTable extends Model
     protected $keyType = 'int';
     public $timestamps = false;
     protected $fillable = [
-        'bookingID', 'cottageID'
+        'bookingID', 'cottageID','bookingDate'
     ];
 
     public function Booking()

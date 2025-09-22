@@ -12,7 +12,7 @@ class RoomBookTable extends Model
     protected $keyType = 'int';
     public $timestamps = false;
     protected $fillable = [
-        'bookingID', 'roomID'
+        'bookingID', 'roomID','bookingDate'
     ];
 
     public function Booking()

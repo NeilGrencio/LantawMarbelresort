@@ -16,6 +16,7 @@ class MenuBookingTable extends Model
         'quantity',
         'price',
         'status',
+        'bookingDate',
     ];
 
     // Relationships
