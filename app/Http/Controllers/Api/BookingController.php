@@ -39,21 +39,17 @@ class BookingController extends Controller
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
-
-
-    // ✅ GET single booking by bookingID
-    public function show($id)
+ public function show($id)
     {
         try {
             $booking = BookingTable::with([
                 'Guest:guestID,firstname,lastname,email',
                 'Amenity:amenityID,amenityname,description',
-                'roomBookings.Room:roomID,roomnum',
-                'cottageBookings.Cottage:cottageID,cottagename',
-                'billing.payments',
-                'menuBookings.menu:menuID,menuname,price'
-            ])
-            ->findOrFail($id);
+                'roomBookings.room',       // include full room info
+                'cottageBookings.cottage', // include full cottage info
+                'menuBookings.menu',       // include full menu info
+                'billing.payments'
+            ])->findOrFail($id);
 
             return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
@@ -65,7 +61,7 @@ class BookingController extends Controller
         }
     }
 
-    // ✅ POST create booking
+    // ✅ POST create booking (updated)
     public function store(Request $request)
     {
         DB::beginTransaction();
@@ -91,7 +87,7 @@ class BookingController extends Controller
                     RoomBookTable::create([
                         'bookingID' => $booking->bookingID,
                         'roomID'    => $room['roomID'],
-                        'price'     => $room['price'] ?? null,
+                        'price'     => $room['price'] ?? 0,
                     ]);
                 }
             }
@@ -106,7 +102,7 @@ class BookingController extends Controller
                 }
             }
 
-            // ✅ Menus
+            // Menus
             if ($request->has('menuBookings')) {
                 foreach ($request->menuBookings as $menu) {
                     MenuBookingTable::create([
@@ -144,7 +140,18 @@ class BookingController extends Controller
             }
 
             DB::commit();
-            return response()->json($booking, 201);
+
+            // Return the created booking with nested relationships
+            $booking = BookingTable::with([
+                'Guest:guestID,firstname,lastname,email',
+                'Amenity:amenityID,amenityname,description',
+                'roomBookings.room',
+                'cottageBookings.cottage',
+                'menuBookings.menu',
+                'billing.payments'
+            ])->find($booking->bookingID);
+
+            return response()->json($booking, 201, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("❌ store booking failed", [
@@ -155,7 +162,7 @@ class BookingController extends Controller
         }
     }
 
-    // ✅ PUT update booking
+    // ✅ PUT update booking (updated)
     public function update(Request $request, $id)
     {
         DB::beginTransaction();
@@ -176,14 +183,14 @@ class BookingController extends Controller
             // Refresh related data
             RoomBookTable::where('bookingID', $id)->delete();
             CottageBookTable::where('bookingID', $id)->delete();
-            MenuBookingTable::where('booking_id', $id)->delete(); // ✅ clear old menus
+            MenuBookingTable::where('booking_id', $id)->delete();
 
             if ($request->has('roomBookings')) {
                 foreach ($request->roomBookings as $room) {
                     RoomBookTable::create([
                         'bookingID' => $id,
                         'roomID'    => $room['roomID'],
-                        'price'     => $room['price'] ?? null,
+                        'price'     => $room['price'] ?? 0,
                     ]);
                 }
             }
@@ -197,7 +204,6 @@ class BookingController extends Controller
                 }
             }
 
-            // ✅ Update menus
             if ($request->has('menuBookings')) {
                 foreach ($request->menuBookings as $menu) {
                     MenuBookingTable::create([
@@ -215,9 +221,9 @@ class BookingController extends Controller
                 $billing = BillingTable::updateOrCreate(
                     ['bookingID' => $id],
                     [
-                        'totalamount' => $request->billing['totalamount'],
-                        'datebilled'  => $request->billing['datebilled'],
-                        'status'      => $request->billing['status'],
+                        'totalamount' => $request->billing['totalamount'] ?? 0,
+                        'datebilled'  => $request->billing['datebilled'] ?? now(),
+                        'status'      => $request->billing['status'] ?? 'unpaid',
                         'guestID'     => $booking->guestID,
                     ]
                 );
@@ -238,7 +244,18 @@ class BookingController extends Controller
             }
 
             DB::commit();
-            return response()->json($booking);
+
+            // Return updated booking with nested relations
+            $booking = BookingTable::with([
+                'Guest:guestID,firstname,lastname,email',
+                'Amenity:amenityID,amenityname,description',
+                'roomBookings.room',
+                'cottageBookings.cottage',
+                'menuBookings.menu',
+                'billing.payments'
+            ])->find($id);
+
+            return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("❌ update booking failed", [
