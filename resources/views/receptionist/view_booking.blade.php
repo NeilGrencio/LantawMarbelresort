@@ -1159,12 +1159,12 @@
                 @endif
             @endif
 <button class="btn btn-success"
-                                        onclick="approveBooking({{ $booking->bookingID }})">Approve</button>
+                                        onclick="approveBooking({{ $bookingData->bookingID }})">Approve</button>
                                     <button class="btn btn-danger"
-                                        onclick="declineBooking({{ $booking->bookingID }})">Decline</button>
+                                        onclick="declineBooking({{ $bookingData->bookingID }})">Decline</button>
 
                                     <button class="btn btn-danger"
-                                        onclick="cancelBooking({{ $booking->bookingID }})">Cancel</button>
+                                        onclick="cancelBooking({{ $bookingData->bookingID }})">Cancel</button>
             <div class="button-container">
                 <button type="button" class="form-button" onclick="window.history.back()">Go Back</button>
             </div>
