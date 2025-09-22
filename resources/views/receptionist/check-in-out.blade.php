@@ -49,7 +49,7 @@
     .check-wrapper{
         display:grid;
         grid-template-columns: 1fr 1fr 2fr;
-        height:100%;
+        height:90%;
         width:100%;
         gap:.5rem;
     }

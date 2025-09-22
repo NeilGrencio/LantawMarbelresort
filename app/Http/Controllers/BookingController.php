@@ -247,23 +247,21 @@ class BookingController extends Controller
 
     public function confirmBooking(Request $request, $sessionID)
     {
-        // Fix: Use the sessionID parameter to get the correct session data
         $data = session('booking_data_' . $sessionID);
         $prices = session('booking_prices_' . $sessionID);
-
+    
         if (!$data || !$prices) {
             return redirect()->route('receptionist.create_booking')
                 ->with('error', 'Booking session has expired. Please start again.');
         }
-
+    
         $validated = $request->validate([
-            'cashamount' => 'required_if:payment,cash|nullable|numeric|min:0',
-            'discount' => 'nullable',
+            'cashamount'   => 'required_if:payment,cash|nullable|numeric|min:0',
+            'discount'     => 'nullable',
             'payment_type' => 'required|in:full,downpayment',
-            'payment' => 'required|in:cash,gcash',
+            'payment'      => 'required|in:cash,gcash',
         ]);
-
-        // Find or create guest
+    
         try {
             $guest = $this->findOrCreateGuest($data['firstname'], $data['lastname']);
             if (!$guest) {
@@ -272,105 +270,121 @@ class BookingController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error processing guest information: ' . $e->getMessage());
         }
-
-        // Calculate payment details
-        $originalAmount = (float) str_replace(',', '', $prices['totalprice']); // Remove commas if any
-        $discountAmount = $this->calculateDiscountAmount($validated['discount'], $originalAmount);
-        $discountedAmount = $originalAmount - $discountAmount;
-        $requiredAmount = $validated['payment_type'] === 'downpayment' ? $discountedAmount * 0.5 : $discountedAmount;
-
-        $amountPaid = $validated['payment'] === 'cash' ? ($validated['cashamount'] ?? 0) : $requiredAmount;
-        $change = ($validated['payment'] === 'cash' && $amountPaid > $requiredAmount) ? $amountPaid - $requiredAmount : 0;
-
-        // Validate payment amount
+    
+        $originalAmount    = (float) str_replace(',', '', $prices['totalprice']);
+        $discountAmount    = $this->calculateDiscountAmount($validated['discount'], $originalAmount);
+        $discountedAmount  = $originalAmount - $discountAmount;
+        $requiredAmount    = $validated['payment_type'] === 'downpayment'
+                                ? $discountedAmount * 0.5
+                                : $discountedAmount;
+    
+        $amountPaid = $validated['payment'] === 'cash'
+                        ? ($validated['cashamount'] ?? 0)
+                        : $requiredAmount;
+    
+        $change = ($validated['payment'] === 'cash' && $amountPaid > $requiredAmount)
+                    ? $amountPaid - $requiredAmount
+                    : 0;
+    
         if ($validated['payment'] === 'cash' && $amountPaid < $requiredAmount) {
             return redirect()->back()->with('error', 'Insufficient payment. Required: ₱' . number_format($requiredAmount, 2));
         }
-
+    
         $remainingBalance = $discountedAmount - $amountPaid;
-
+    
         try {
             DB::beginTransaction();
-
-            // Parse dates properly
-            $checkinDate = $this->parseDate($data['checkin']);
+    
+            $checkinDate  = $this->parseDate($data['checkin']);
             $checkoutDate = $this->parseDate($data['checkout']);
-
+    
             if (!$checkinDate || !$checkoutDate) {
                 throw new \Exception('Invalid date format');
             }
-
-            // Create booking
+    
+            $status = 'Booked';
+            if ($checkinDate->lessThanOrEqualTo(Carbon::now())) {
+                $status = 'Ongoing';
+            }
+    
             $booking = BookingTable::create([
                 'bookingcreated' => Carbon::now(),
-                'bookingstart' => $checkinDate,
-                'bookingend' => $checkoutDate,
-                'guestamount' => (int) $data['guestamount'],
-                'childguest' => (int) ($data['amenity_child_guest'] ?? 0),
-                'adultguest' => (int) ($data['amenity_adult_guest'] ?? 0),
-                'totalprice' => $originalAmount,
-                'amenityID' => !empty($data['amenity']) ? (int) $data['amenity'][0] : null,
-                'status' => 'Booked',
-                'guestID' => $guest->guestID,
+                'bookingstart'   => $checkinDate,
+                'bookingend'     => $checkoutDate,
+                'guestamount'    => (int) $data['guestamount'],
+                'childguest'     => (int) ($data['amenity_child_guest'] ?? 0),
+                'adultguest'     => (int) ($data['amenity_adult_guest'] ?? 0),
+                'totalprice'     => $originalAmount,
+                'amenityID'      => !empty($data['amenity']) ? (int) $data['amenity'][0] : null,
+                'status'         => $status,
+                'guestID'        => $guest->guestID,
             ]);
-
-            // Create room bookings
+    
+            if ($status === 'Ongoing') {
+                CheckTable::create([
+                    'date'      => Carbon::now(),
+                    'status'    => 'Checked In',
+                    'guestID'   => $guest->guestID,
+                    'bookingID' => $booking->bookingID,
+                ]);
+            }
+    
             if (!empty($data['room'])) {
                 foreach ($data['room'] as $roomID) {
                     RoomBookTable::create([
                         'bookingID' => $booking->bookingID,
-                        'roomID' => (int) $roomID,
+                        'roomID'    => (int) $roomID,
                     ]);
                 }
             }
-
-            // Create cottage bookings
+    
             if (!empty($data['cottage'])) {
                 foreach ($data['cottage'] as $cottageID) {
                     CottageBookTable::create([
-                        'bookingID' => $booking->bookingID,
-                        'cottageID' => (int) $cottageID,
+                        'bookingID'  => $booking->bookingID,
+                        'cottageID'  => (int) $cottageID,
                     ]);
                 }
             }
-
-            // Create billing
-            $billing = new BillingTable([
+    
+            $billing = BillingTable::create([
                 'totalamount' => $remainingBalance,
-                'datebilled' => Carbon::now(),
-                'status' => $remainingBalance <= 0 ? 'Paid' : ($amountPaid > 0 ? 'Partial' : 'Unpaid'),
-                'bookingID' => $booking->bookingID,
-                'orderID' => null,
-                'amenityID' => null,
-                'chargeID' => null,
-                'discountID' => !empty($validated['discount']) && $validated['discount'] != '0' ? (int) $validated['discount'] : null,
-                'guestID' => $guest->guestID,
+                'datebilled'  => Carbon::now(),
+                'status'      => $remainingBalance <= 0 ? 'Paid' : ($amountPaid > 0 ? 'Partial' : 'Unpaid'),
+                'bookingID'   => $booking->bookingID,
+                'orderID'     => null,
+                'amenityID'   => null,
+                'chargeID'    => null,
+                'discountID'  => !empty($validated['discount']) && $validated['discount'] != '0'
+                                    ? (int) $validated['discount']
+                                    : null,
+                'guestID'     => $guest->guestID,
             ]);
-
-            $billing->save();
-            $billing->refresh();
-
-            // Create payment record
+    
             PaymentTable::create([
-                'billingID' => $billing->billingID,
-                'guestID' => $guest->guestID,
+                'billingID'   => $billing->billingID,
+                'guestID'     => $guest->guestID,
                 'totaltender' => $amountPaid,
                 'totalchange' => $change,
                 'datepayment' => Carbon::now(),
             ]);
-
+    
             DB::commit();
-
-            // Clear session data
+    
             session()->forget(['booking_data_' . $sessionID, 'booking_prices_' . $sessionID]);
-
+    
             return redirect()->route('receptionist.booking')
                 ->with('success', 'Booking confirmed successfully!' . ($change > 0 ? ' Change: ₱' . number_format($change, 2) : ''));
+<<<<<<< Updated upstream
+=======
+    
+>>>>>>> Stashed changes
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Booking failed: ' . $e->getMessage());
         }
     }
+
 
     // Helper methods to make code more readable and maintainable
 
