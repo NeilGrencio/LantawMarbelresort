@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
+use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 use App\Models\BookingTable;
 use App\Models\RoomBookTable;
@@ -23,41 +23,31 @@ class BookingController extends Controller
             'Guest:guestID,firstname,lastname,email',
             'Amenity:amenityID,amenityname,description',
             'billing.payments',
-            'roomBookings.Room:roomID,roomnum',
-            'cottageBookings.Cottage:cottageID,cottagename',
-            'menuBookings.menu:menuID,menuname,price'
+            'roomBookings',      // load full pivot/booking info
+            'cottageBookings',
+            'menuBookings.menu'
         ])
         ->where('guestID', $guestID)
-        ->get([
-            'bookingID',
-            'guestID',
-            'guestamount',
-            'childguest',
-            'adultguest',
-            'totalprice',
-            'bookingcreated',
-            'bookingstart',
-            'bookingend',
-            'status',
-            'amenityID'
-        ]);
+        ->get();
 
-        // Group each booking's items by bookingDate
+        // Group each booking's items by their own bookingDate
         $bookings->transform(function($booking) {
             $booking->roomBookingsByDate = $booking->roomBookings->groupBy(function($item) {
-                return $item->bookingDate->format('Y-m-d');
+                return Carbon::parse($item->bookingDate)->format('Y-m-d');
             });
+
             $booking->cottageBookingsByDate = $booking->cottageBookings->groupBy(function($item) {
-                return $item->bookingDate->format('Y-m-d');
+                return Carbon::parse($item->bookingDate)->format('Y-m-d');
             });
+
             $booking->menuBookingsByDate = $booking->menuBookings->groupBy(function($item) {
-                return $item->bookingDate->format('Y-m-d');
+                return Carbon::parse($item->bookingDate)->format('Y-m-d');
             });
+
             return $booking;
         });
 
         return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
-
     } catch (\Exception $e) {
         Log::error("❌ getByGuest failed", [
             'guestID' => $guestID,
