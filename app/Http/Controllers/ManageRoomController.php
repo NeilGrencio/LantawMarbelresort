@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Models\RoomTable;
-use Illuminate\Support\Facades\Response;
 
 class ManageRoomController extends Controller
 {
@@ -18,29 +17,14 @@ class ManageRoomController extends Controller
         $rooms = RoomTable::all();
         Log::info('Fetched room list', ['count' => $rooms->count()]);
 
-        // Prepare image URLs via route
+        // Prepare image URLs using the route you defined
         foreach ($rooms as $room) {
-            if ($room->image) {
-                $room->image_url = route('room.image', ['filename' => basename($room->image)]);
-            } else {
-                $room->image_url = null;
-            }
+            $room->image_url = $room->image
+                ? route('room.image', ['filename' => basename($room->image)])
+                : null;
         }
 
         return view('manager.room_list', compact('rooms'));
-    }
-
-    // Serve images securely from storage (outside public)
-    public function serveRoomImage($filename)
-    {
-        $path = storage_path('app/public/room_images/' . $filename);
-
-        if (!file_exists($path)) {
-            abort(404, 'Image not found.');
-        }
-
-        $mimeType = mime_content_type($path);
-        return response()->file($path, ['Content-Type' => $mimeType]);
     }
 
     // Show add room form
