@@ -59,7 +59,7 @@ class BookingController extends Controller
             $booking = BookingTable::with([
                 'Guest:guestID,firstname,lastname,email',
                 'Amenity:amenityID,amenityname,description',
-                'roomBookings.Room:roomID,roomname',
+                'roomBookings.Room:roomID,roomnum',
                 'cottageBookings.Cottage:cottageID,cottagename',
                 'billing.payments',
                 'menuBookings.menu:menuID,menuname,price'
