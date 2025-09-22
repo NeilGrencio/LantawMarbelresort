@@ -58,8 +58,8 @@ class ManageRoomController extends Controller
         // Handle new image upload
         if ($request->hasFile('image')) {
             // Delete old image if exists
-            if ($room->image && \Storage::disk('public')->exists($room->image)) {
-                \Storage::disk('public')->delete($room->image);
+            if ($room->image && Storage::disk('public')->exists($room->image)) {
+                Storage::disk('public')->delete($room->image);
             }
             // Store new image
             $room->image = $request->file('image')->store('room_images', 'public');
