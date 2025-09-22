@@ -31,22 +31,6 @@ class BookingController extends Controller
         ->get();
 
         // Group each booking's items by their own bookingDate
-        $bookings->transform(function($booking) {
-            $booking->roomBookingsByDate = $booking->roomBookings->groupBy(function($item) {
-                return Carbon::parse($item->bookingDate)->format('Y-m-d');
-            });
-
-            $booking->cottageBookingsByDate = $booking->cottageBookings->groupBy(function($item) {
-                return Carbon::parse($item->bookingDate)->format('Y-m-d');
-            });
-
-            $booking->menuBookingsByDate = $booking->menuBookings->groupBy(function($item) {
-                return Carbon::parse($item->bookingDate)->format('Y-m-d');
-            });
-
-            return $booking;
-        });
-
         return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
     } catch (\Exception $e) {
         Log::error("❌ getByGuest failed", [
