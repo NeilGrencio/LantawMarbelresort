@@ -16,7 +16,7 @@
             @endphp
             <div id="layout-header">
                 <h1 id="h2">Room List | Total Room : {{ $count }}</h1>
-                
+
                 <div class="right-actions">
                     <div id="add-container" data-url="{{ url('manager/add_room') }}">
                         <h2 id="add-text">Add a Room</h2>
@@ -54,17 +54,19 @@
                 @endphp
                     <div class="{{ $roomCardClass }}">
                         <div id="room-image">
-                            <img src="{{ asset('storage/' . $room->image) }}" alt="{{ $room->roomnum }}">
+                            <img src="{{ $room->image && Storage::disk('public')->exists($room->image) ? asset('storage/' . $room->image) : asset('images/placeholder.png') }}"
+     alt="Room {{ $room->roomnum }}"
+     style="width:100%; height:100%; object-fit:cover;">
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
-                                
+
                             <div id="room-details">
                                 <h4>Room {{ $room->roomnum }}</h4>
                                 <h4 id="roomdetails"> Room Details</h4>
                                 <p id="roomdetails">{{ $room->description }}</p>
                                 <h4 id="roomdetails">Pricing</h4>
                                 <h4 id="roomdetails">₱ {{ number_format($room->price, 2) }}</h4>
-                                
+
                             </div>
                             <div class="manage-dropdown-wrapper">
                                 @if ($room->status == 'Maintenance')
@@ -80,7 +82,7 @@
                                 </div>
                                 <div class="dropdown-content">
                                     <div data-url="{{ url('manager/edit_room/' . $room->roomID) }}">
-                                        <h4 >Update</h4> 
+                                        <h4 >Update</h4>
                                             <i class="fas fa-pen fa-lg"></i>
                                     </div>
                                     @if ($room->status == 'Available')
@@ -99,7 +101,7 @@
                                             <i class="fas fa-calendar-check fa-lg" style="color:#949494;"></i>
                                         </div>
                                     @endif
-                                    
+
                                     @if($room->status == 'Maintenance')
                                     <div data-url="{{ url('manager/maintenance_room/' . $room->roomID) }}" style="display:none;">
                                         <h4 >Maintenance Room</h4>
@@ -114,11 +116,11 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                     </div>
                 @endforeach
         </div>
-        
+
     </div>
     @if(session('success'))
         <div class="alert-message">
@@ -352,7 +354,7 @@
         align-items: center;
         justify-content:space-between;
         cursor:pointer;
-        transition:all .3s ease;    
+        transition:all .3s ease;
     }
     .dropdown-content div:hover{
         background:orange;
@@ -392,7 +394,7 @@
         if (curTab) {
             curTab.style.color = "#F78A21";
         }
-        
+
         addRoom.addEventListener('click', function(){
             window.location.href = this.dataset.url;
         })
