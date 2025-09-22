@@ -41,6 +41,80 @@ Route::get('/room-image/{filename}', function ($filename) {
     ]);
 })->name('room.image');
 
+Route::get('/menu-image/{filename}', function ($filename) {
+    $path = storage_path('app/public/menu_images/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType
+    ]);
+})->name('menu.image');
+Route::get('/cottage-image/{filename}', function ($filename) {
+    $path = storage_path('app/public/cottage_images/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType
+    ]);
+})->name('cottage.image');
+Route::get('/amenity-image/{filename}', function ($filename) {
+    $path = storage_path('app/public/amenity_images/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType
+    ]);
+})->name('amenity.image');
+Route::get('/guest-image/{filename}', function ($filename) {
+    $path = storage_path('app/public/guest_images/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType
+    ]);
+})->name('guest.image');
+Route::get('/staff-image/{filename}', function ($filename) {
+    $path = storage_path('app/public/staff_images/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType
+    ]);
+})->name('staff.image');
+Route::get('/guestid-image/{filename}', function ($filename) {
+    $path = storage_path('app/public/guestid_images/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType
+    ]);
+})->name('guestid.image');
+
+
 Route::get('auth/check_login', [LoginController::class, 'showLogin'])->name('checkLogin');
 Route::match(['get', 'post'], 'auth/login', [LoginController::class, 'login'])->name('login');
 Route::post('auth/logout', [LoginController::class, 'logout'])->name('logout');
@@ -219,11 +293,11 @@ Route::get('receptionist/dashboard', [DashboardController::class, 'receptionistD
 
 
 /// Search Function
-Route::get('receptionist/search_booking',[SearchUserController::class, 'searchBooking'])->name('receptionist.search_booking');
-Route::get('receptionist/search_daytour',[SearchUserController::class, 'searchDaytour'])->name('receptionist.search_daytour');
-Route::get('receptionist/search_guest',[SearchUserController::class, 'searchGuestReceptionist'])->name('receptionist.search_guest');
-Route::get('receptionist/search_billing',[SearchUserController::class, 'searchBilling'])->name('receptionist.search_billing');
-Route::get('receptionist/search_menu',[SearchUserController::class, 'searchMenuReceptionist'])->name('receptionist.search_menu');
+Route::get('receptionist/search_booking', [SearchUserController::class, 'searchBooking'])->name('receptionist.search_booking');
+Route::get('receptionist/search_daytour', [SearchUserController::class, 'searchDaytour'])->name('receptionist.search_daytour');
+Route::get('receptionist/search_guest', [SearchUserController::class, 'searchGuestReceptionist'])->name('receptionist.search_guest');
+Route::get('receptionist/search_billing', [SearchUserController::class, 'searchBilling'])->name('receptionist.search_billing');
+Route::get('receptionist/search_menu', [SearchUserController::class, 'searchMenuReceptionist'])->name('receptionist.search_menu');
 
 
 // Booking Routes
@@ -281,12 +355,12 @@ Route::get('receptionist/add_guest', [ManageGuestController::class, 'addGuestRec
 Route::post('receptionist/add_guest', [ManageGuestController::class, 'submitGuest'])->name('receptionist.submit_guest');
 
 Route::get('receptionist/order', [OrderController::class, 'viewMenu'])->name('receptionist.order');
-        Route::post('receptionist/order', [OrderController::class, 'submitOrder'])->name('receptionist.submitorder');
+Route::post('receptionist/order', [OrderController::class, 'submitOrder'])->name('receptionist.submitorder');
 
 //For Mobile
 // Route::get('mobile/rooms', [RoomMobile::class, 'roomList']);
 
-    use App\Http\Controllers\Api\ApiAuthController;
+use App\Http\Controllers\Api\ApiAuthController;
 
 // Route::post('mobile/signup', [ApiAuthController::class, 'signup']);
 // Route::post('mobile/login', [ApiAuthController::class, 'login']);
