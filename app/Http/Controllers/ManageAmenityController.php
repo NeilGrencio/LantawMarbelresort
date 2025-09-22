@@ -4,123 +4,121 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 use App\Models\AmenityTable;
 
 class ManageAmenityController extends Controller
 {
-    public function amenityList(Request $request){
+    // List all amenities
+    public function amenityList()
+    {
         $amenities = AmenityTable::all();
-
-        return view('manager/amenity_list', compact('amenities'));
+        return view('manager.amenity_list', compact('amenities'));
     }
 
-    public function saveAmenity(Request $request){
-        $validateData = $request->validate([
-            'amenityname' => 'required',
-            'description' => 'required',
+    // Show add form
+    public function addAmenity()
+    {
+        return view('manager.add_amenity');
+    }
+
+    // Save new amenity
+    public function saveAmenity(Request $request)
+    {
+        $validatedData = $request->validate([
+            'amenityname' => 'required|string|max:255',
+            'description' => 'required|string',
             'amenityimage' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'childprice' => 'required|decimal:0,2',
-            'adultprice' => 'required|decimal:0,2'
+            'childprice' => 'required|numeric|min:0',
+            'adultprice' => 'required|numeric|min:0'
         ]);
 
-        $imagePath = $request->file('amenityimage')->store('amenity_images', 'public');
-
         DB::beginTransaction();
-
         try {
+            $imagePath = $request->file('amenityimage')->store('amenity_images', 'public');
+
             $amenity = new AmenityTable();
-            $amenity->amenityname = $validateData['amenityname'];
-            $amenity->description = $validateData['description'];
+            $amenity->amenityname = $validatedData['amenityname'];
+            $amenity->description = $validatedData['description'];
             $amenity->image = $imagePath;
-            $amenity->childprice = $validateData['childprice'];
-            $amenity->adultprice = $validateData['adultprice'];
+            $amenity->childprice = $validatedData['childprice'];
+            $amenity->adultprice = $validatedData['adultprice'];
+            $amenity->status = 'Available';
             $amenity->save();
 
             DB::commit();
+            Log::info('Amenity created', ['amenityID' => $amenity->amenityID]);
 
-            return redirect('manager/amenity_list')->with('success', 'The Amenity was successfully added!');
+            return redirect('manager/amenity_list')->with('success', 'The amenity was successfully added!');
 
-        } catch (\Exception $ex){
-            DB::rollback();
-
-            return redirect('manager/add_amenity')->with('error', 'The Amenity failed to be added!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to create amenity', ['error' => $e->getMessage()]);
+            return redirect('manager/add_amenity')->withInput()->with('error', 'Failed to add amenity: ' . $e->getMessage());
         }
     }
 
-    public function addAmenity(){
-        return view('manager/add_amenity');
-    }
+    // Edit an amenity
+    public function editAmenity(Request $request, $amenityID)
+    {
+        $amenity = AmenityTable::findOrFail($amenityID);
 
-    public function editAmenity(Request $request, $amenityID){
-        $amenity = AmenityTable::where('amenityID', $amenityID)->first();
-
-        if ($request->isMethod('get')){
+        if ($request->isMethod('get')) {
             return view('manager.edit_amenity', compact('amenity'));
         }
 
-        if($request->isMethod('post')){
-            $validateData = $request->validate([
-                'amenityname' => 'required',
-                'description' => 'required',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-                'childprice' => 'required|decimal:0,2',
-                'adultprice' => 'required|decimal:0,2',
-                'status' => 'required',
-            ]);
-            // Check if any field has changed
-            $hasChanges = false;
-            if (
-                $amenity->amenityname != $validateData['amenityname'] || 
-                $amenity->description != $validateData['description'] ||
-                $amenity->status != $validateData['status'] ||
-                $amenity->childprice != $validateData['childprice'] ||
-                $amenity->adultprice != $validateData['adultprice'] ||
-                $request->hasFile('image')
-            ) {
-                $hasChanges = true;
-            }
+        $validatedData = $request->validate([
+            'amenityname' => 'required|string|max:255',
+            'description' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'childprice' => 'required|numeric|min:0',
+            'adultprice' => 'required|numeric|min:0',
+            'status' => 'required|string',
+        ]);
 
-            if (!$hasChanges) {
-                return redirect()->route('manager.edit_amenity', ['amenityID' => $amenityID])->with('error', 'No changes detected.');
-            }
+        $hasChanges = (
+            $amenity->amenityname != $validatedData['amenityname'] ||
+            $amenity->description != $validatedData['description'] ||
+            $amenity->childprice != $validatedData['childprice'] ||
+            $amenity->adultprice != $validatedData['adultprice'] ||
+            $amenity->status != $validatedData['status'] ||
+            $request->hasFile('image')
+        );
 
-            DB::beginTransaction();
+        if (!$hasChanges) {
+            return redirect()->back()->withInput()->with('error', 'No changes detected.');
+        }
 
-            try {
+        DB::beginTransaction();
+        try {
+            $amenity->amenityname = $validatedData['amenityname'];
+            $amenity->description = $validatedData['description'];
+            $amenity->childprice = $validatedData['childprice'];
+            $amenity->adultprice = $validatedData['adultprice'];
+            $amenity->status = $validatedData['status'];
 
-                // Prepare update data
-                $updateData = [
-                    'amenityname' => $validateData['amenityname'],
-                    'description' => $validateData['description'],
-                    'childprice' => $validateData['childprice'],
-                    'adultprice' => $validateData['adultprice'],
-                    'status' => $validateData['status'],
-                ];
-
-                // Add image only if a file is uploaded
-                if ($request->hasFile('image')) {
-                    $imagePath = $request->file('image')->store('amenity_images', 'public');
-                    $updateData['image'] = $imagePath;
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($amenity->image && Storage::disk('public')->exists($amenity->image)) {
+                    Storage::disk('public')->delete($amenity->image);
                 }
-
-                // Perform update
-                DB::table('amenities')
-                    ->where('amenityID', $amenityID)
-                    ->update($updateData);
-
-                DB::commit();
-
-                return redirect('manager/amenity_list')->with('success', 'The Amenity was successfully updated!');
-            } catch (\Exception $ex) {
-                DB::rollback();
-
-                return redirect()->route('manager.edit_amenity', ['amenityID' => $amenityID])
-                    ->withInput()
-                    ->with('error', 'The Amenity failed to be updated! ' . $ex->getMessage());
+                $amenity->image = $request->file('image')->store('amenity_images', 'public');
             }
 
+            $amenity->save();
+
+            DB::commit();
+            Log::info('Amenity updated', ['amenityID' => $amenity->amenityID]);
+
+            return redirect('manager/amenity_list')->with('success', 'Amenity updated successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to update amenity', ['amenityID' => $amenityID, 'error' => $e->getMessage()]);
+            return redirect()->back()->withInput()->with('error', 'Failed to update amenity: ' . $e->getMessage());
         }
     }
 }
