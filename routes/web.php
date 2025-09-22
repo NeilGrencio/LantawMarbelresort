@@ -28,6 +28,19 @@ Route::get('/', function () {
     return view('landingpage');
 })->name('landingpage');
 
+Route::get('/room-image/{filename}', function ($filename) {
+    $path = storage_path('app/public/room_images/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType
+    ]);
+})->name('room.image');
+
 Route::get('auth/check_login', [LoginController::class, 'showLogin'])->name('checkLogin');
 Route::match(['get', 'post'], 'auth/login', [LoginController::class, 'login'])->name('login');
 Route::post('auth/logout', [LoginController::class, 'logout'])->name('logout');
@@ -230,7 +243,7 @@ Route::post('receptionist/approve_booking/{bookingID}', [BookingController::clas
 
 Route::post('receptionist/decline_booking/{bookingID}', [BookingController::class, 'declineBooking'])
     ->name('receptionist.decline_booking');
-    
+
 Route::post('receptionist/cancel_booking/{bookingID}', [BookingController::class, 'cancelBooking'])->name('receptionist.cancel_booking');
 Route::post('receptionist/confirm_booking/{bookingID}', [BookingController::class, 'confirmBooking'])->name('receptionist.confirm_booking');
 

@@ -8,15 +8,39 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Models\RoomTable;
+use Illuminate\Support\Facades\Response;
 
 class ManageRoomController extends Controller
 {
-    // Display all rooms
+    // Display all rooms (for web)
     public function roomList()
     {
         $rooms = RoomTable::all();
         Log::info('Fetched room list', ['count' => $rooms->count()]);
+
+        // Prepare image URLs via route
+        foreach ($rooms as $room) {
+            if ($room->image) {
+                $room->image_url = route('room.image', ['filename' => basename($room->image)]);
+            } else {
+                $room->image_url = null;
+            }
+        }
+
         return view('manager.room_list', compact('rooms'));
+    }
+
+    // Serve images securely from storage (outside public)
+    public function serveRoomImage($filename)
+    {
+        $path = storage_path('app/public/room_images/' . $filename);
+
+        if (!file_exists($path)) {
+            abort(404, 'Image not found.');
+        }
+
+        $mimeType = mime_content_type($path);
+        return response()->file($path, ['Content-Type' => $mimeType]);
     }
 
     // Show add room form
@@ -40,15 +64,9 @@ class ManageRoomController extends Controller
 
         DB::beginTransaction();
         try {
-            $room = new RoomTable();
-            $room->roomnum = $validatedData['roomnum'];
-            $room->description = $validatedData['description'];
-            $room->roomcapacity = $validatedData['roomcapacity'];
-            $room->roomtype = $validatedData['roomtype'];
-            $room->price = $validatedData['price'];
-            $room->status = $validatedData['status'];
+            $room = new RoomTable($validatedData);
 
-            // Save image
+            // Save image to storage/app/public/room_images
             if ($request->hasFile('image')) {
                 $room->image = $request->file('image')->store('room_images', 'public');
                 Log::info('Room image uploaded', ['image' => $room->image]);
@@ -84,20 +102,6 @@ class ManageRoomController extends Controller
             'price' => 'required|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp'
         ]);
-        Log::info('Validation passed for room edit', ['roomID' => $roomID]);
-
-        $hasChanges = $room->roomnum != $validatedData['roomnum'] ||
-                      $room->description != $validatedData['description'] ||
-                      $room->roomtype != $validatedData['roomtype'] ||
-                      $room->status != $validatedData['status'] ||
-                      $room->price != $validatedData['price'] ||
-                      $request->hasFile('image');
-
-        if (!$hasChanges) {
-            Log::info('No changes detected', ['roomID' => $roomID]);
-            return redirect()->route('manager.edit_room', ['roomID' => $roomID])
-                             ->with('error', 'No changes detected.');
-        }
 
         DB::beginTransaction();
         try {
@@ -111,15 +115,9 @@ class ManageRoomController extends Controller
                 Log::info('New image stored', ['roomID' => $roomID, 'image' => $room->image]);
             }
 
-            $room->update([
-                'roomnum' => $validatedData['roomnum'],
-                'description' => $validatedData['description'],
-                'roomtype' => $validatedData['roomtype'],
-                'status' => $validatedData['status'],
-                'price' => $validatedData['price']
-            ]);
-
+            $room->update($validatedData);
             DB::commit();
+
             Log::info('Room updated successfully', ['roomID' => $roomID]);
             return redirect()->route('manager.room_list')->with('success', 'Room updated successfully.');
         } catch (\Exception $e) {
@@ -131,7 +129,7 @@ class ManageRoomController extends Controller
         }
     }
 
-    // Update room status (generalized)
+    // Update room status
     public function updateRoomStatus($roomID, $status)
     {
         $room = RoomTable::find($roomID);

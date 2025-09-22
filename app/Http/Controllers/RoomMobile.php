@@ -11,15 +11,13 @@ use App\Models\RoomTable;
 class RoomMobile extends Controller
 {
     public function roomList()
-{
+    {
+        $rooms = RoomTable::where('status', 'available')->get();
 
-    $rooms = RoomTable::where('status', 'available')->get();
+        foreach ($rooms as $room) {
+            $room->image_url = route('room.image', ['filename' => basename($room->image)]);
+        }
 
-    foreach ($rooms as $room) {
-        // This mimics your Blade exactly
-        $room->image_url = asset('storage/' . $room->image);
+        return response()->json($rooms);
     }
-
-    return response()->json($rooms);
-}
 }

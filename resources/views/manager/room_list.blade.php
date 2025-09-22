@@ -54,9 +54,7 @@
                 @endphp
                     <div class="{{ $roomCardClass }}">
                         <div id="room-image">
-                            <img src="{{ asset('storage/' . $room->image) }}"
-     alt="Room {{ $room->roomnum }}"
-     style="width:100%; height:100%; object-fit:cover;">
+                          <img src="{{ route('room.image', ['filename' => basename($room->image)]) }}" alt={{ $room->roomnum }}>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
 
