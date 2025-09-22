@@ -8,6 +8,7 @@ use App\Models\RoomBookTable;
 use App\Models\CottageBookTable;
 use App\Models\BillingTable;
 use App\Models\PaymentTable;
+use App\Models\MenuBookingTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +24,8 @@ class BookingController extends Controller
                 'Amenity:amenityID,amenityname,description',
                 'roomBookings.Room:roomID,roomnum',
                 'cottageBookings.Cottage:cottageID,cottagename',
-                'billing.payments' // include payments
+                'billing.payments',
+                'menuBookings.menu:menuID,menuname,price' // ✅ include menus
             ])
             ->where('guestID', $guestID)
             ->get([
@@ -59,7 +61,8 @@ class BookingController extends Controller
                 'Amenity:amenityID,amenityname,description',
                 'roomBookings.Room:roomID,roomname',
                 'cottageBookings.Cottage:cottageID,cottagename',
-                'billing.payments'
+                'billing.payments',
+                'menuBookings.menu:menuID,menuname,price'
             ])
             ->findOrFail($id);
 
@@ -88,7 +91,7 @@ class BookingController extends Controller
                 'bookingstart'   => $request->input('bookingStart'),
                 'status'         => $request->input('status', 'pending'),
                 'guestID'        => $request->input('guestID'),
-                'amenityID'      => $request->input('amenityID') // direct relation
+                'amenityID'      => $request->input('amenityID')
             ];
 
             $booking = BookingTable::create($bookingData);
@@ -114,7 +117,20 @@ class BookingController extends Controller
                 }
             }
 
-            // Billing
+            // ✅ Menus
+            if ($request->has('menuBookings')) {
+                foreach ($request->menuBookings as $menu) {
+                    MenuBookingTable::create([
+                        'booking_id' => $booking->bookingID,
+                        'menu_id'    => $menu['menuID'],
+                        'quantity'   => $menu['quantity'] ?? 1,
+                        'price'      => $menu['price'] ?? 0,
+                        'status'     => $menu['status'] ?? 'pending',
+                    ]);
+                }
+            }
+
+            // Billing + Payments
             if ($request->has('billing') && !empty($request->billing)) {
                 $billing = BillingTable::create([
                     'totalamount' => $request->billing['totalamount'] ?? 0,
@@ -124,7 +140,6 @@ class BookingController extends Controller
                     'guestID'     => $booking->guestID,
                 ]);
 
-                // Payments
                 if (!empty($request->billing['payments'])) {
                     foreach ($request->billing['payments'] as $payment) {
                         PaymentTable::create([
@@ -172,6 +187,7 @@ class BookingController extends Controller
             // Refresh related data
             RoomBookTable::where('bookingID', $id)->delete();
             CottageBookTable::where('bookingID', $id)->delete();
+            MenuBookingTable::where('booking_id', $id)->delete(); // ✅ clear old menus
 
             if ($request->has('roomBookings')) {
                 foreach ($request->roomBookings as $room) {
@@ -192,6 +208,19 @@ class BookingController extends Controller
                 }
             }
 
+            // ✅ Update menus
+            if ($request->has('menuBookings')) {
+                foreach ($request->menuBookings as $menu) {
+                    MenuBookingTable::create([
+                        'booking_id' => $id,
+                        'menu_id'    => $menu['menuID'],
+                        'quantity'   => $menu['quantity'] ?? 1,
+                        'price'      => $menu['price'] ?? 0,
+                        'status'     => $menu['status'] ?? 'pending',
+                    ]);
+                }
+            }
+
             // Update or create billing
             if ($request->has('billing')) {
                 $billing = BillingTable::updateOrCreate(
@@ -204,7 +233,6 @@ class BookingController extends Controller
                     ]
                 );
 
-                // Reset payments if provided
                 if (!empty($request->billing['payments'])) {
                     $billing->payments()->delete();
                     foreach ($request->billing['payments'] as $payment) {

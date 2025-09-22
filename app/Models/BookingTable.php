@@ -25,7 +25,7 @@ class BookingTable extends Model
     public function roomBookings()
     {
         return $this->hasMany(RoomBookTable::class, 'bookingID');
-    }
+    }   
 
     public function cottageBookings()
     {
@@ -35,5 +35,9 @@ class BookingTable extends Model
     public function billing()
     {
         return $this->hasOne(BillingTable::class, 'bookingID', 'bookingID');
+    }
+    public function menuBookings()
+    {
+        return $this->hasMany(MenuBookingTable::class, 'booking_id', 'bookingID');
     }
 }
