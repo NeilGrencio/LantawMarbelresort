@@ -1,4 +1,4 @@
-<html lang="en">
+{{-- <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,11 +23,11 @@
                         <div class="label-container toggle-header" data-target="room-content">
                             <h2>Room Selection</h2>
                             <i class="fas fa-chevron-up toggle-icon fa-2x"></i>
-                        </div>   
+                        </div>
                         <!--Room Selection-->
-                        <div id="room-content" class="room-selection-wrapper">     
+                        <div id="room-content" class="room-selection-wrapper">
                             <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                            <div id="room-selection">  
+                            <div id="room-selection">
                                 @foreach($rooms as $room)
                                     @php
                                         $selectedRooms = [];
@@ -39,13 +39,13 @@
                                     @endphp
                                     <div class="room">
                                         <label id="room-name" for="room-{{ $room->roomID }}">Room {{ $room->roomnum }}
-                                            <input type="checkbox" 
-                                                id="room-{{ $room->roomID }}" 
-                                                name="room[]" 
-                                                value="{{ $room->roomID }}" 
-                                                data-name="Room {{ $room->roomnum }}" 
-                                                data-price="{{ $room->price }}" 
-                                                {{ in_array($room->roomID, $selectedRooms) ? 'checked' : '' }} 
+                                            <input type="checkbox"
+                                                id="room-{{ $room->roomID }}"
+                                                name="room[]"
+                                                value="{{ $room->roomID }}"
+                                                data-name="Room {{ $room->roomnum }}"
+                                                data-price="{{ $room->price }}"
+                                                {{ in_array($room->roomID, $selectedRooms) ? 'checked' : '' }}
                                                 class="room-checkbox">
                                             <div class="room-card {{ in_array($room->roomID, $selectedRooms) ? 'active' : '' }}">
                                                 <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image">
@@ -54,7 +54,7 @@
                                                 </div>
                                             </div>
                                         </label>
-                                    </div>  
+                                    </div>
                                 @endforeach
                             </div>
                             <button type="button" class="scroll-btn right-btn">&#9654;</button>
@@ -65,7 +65,7 @@
                             <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
                         </div>
                         <!-- Cottage Selection - Prefilled -->
-                        <div class="room-selection-wrapper">     
+                        <div class="room-selection-wrapper">
                             <button type="button" class="scroll-btn left-btn">&#9664;</button>
                             <div id="cottage-selection">
                                 @foreach($cottages as $cottage)
@@ -79,13 +79,13 @@
                                     @endphp
                                     <div class="cottage">
                                         <label id="cottage-name" for="cottage-{{ $cottage->cottageID }}">{{ $cottage->cottagename }}
-                                            <input type="checkbox" 
-                                                id="cottage-{{ $cottage->cottageID }}" 
-                                                name="cottage[]" 
-                                                value="{{ $cottage->cottageID }}" 
-                                                data-name="{{ $cottage->cottagename }}" 
-                                                data-price="{{ $cottage->price }}" 
-                                                {{ in_array($cottage->cottageID, $selectedCottages) ? 'checked' : '' }} 
+                                            <input type="checkbox"
+                                                id="cottage-{{ $cottage->cottageID }}"
+                                                name="cottage[]"
+                                                value="{{ $cottage->cottageID }}"
+                                                data-name="{{ $cottage->cottagename }}"
+                                                data-price="{{ $cottage->price }}"
+                                                {{ in_array($cottage->cottageID, $selectedCottages) ? 'checked' : '' }}
                                                 class="cottage-checkbox">
                                             <div class="cottage-card {{ in_array($cottage->cottageID, $selectedCottages) ? 'active' : '' }}">
                                                 <img src="{{ asset('storage/' . $cottage->image) }}" alt="Cottage Image">
@@ -99,12 +99,12 @@
                             </div>
                             <button type="button" class="scroll-btn right-btn">&#9654;</button>
                         </div>
-                        
+
                         <div class="label-container toggle-header" data-target="amenity-content">
                             <h2>Amenity Selection</h2>
                             <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
                         </div>
-                        <div class="room-selection-wrapper">     
+                        <div class="room-selection-wrapper">
                             <button type="button" class="scroll-btn left-btn">&#9664;</button>
                             <div id="amenity-selection">
                                 @foreach($amenities as $amenity)
@@ -120,14 +120,14 @@
                                     <div class="amenity">
                                         <label for="amenity-{{ $amenity->amenityID }}" id="amenity-name">
                                             {{ $amenity->amenityname }}
-                                            <input 
-                                                type="checkbox" 
-                                                id="amenity-{{ $amenity->amenityID }}" 
-                                                name="amenity[]" 
-                                                data-name="{{ $amenity->amenityname }}" 
-                                                data-price="{{ $amenity->price }}" 
-                                                value="{{ $amenity->amenityID }}" 
-                                                {{ in_array($amenity->amenityID, $selectedAmenities) ? 'checked' : '' }} 
+                                            <input
+                                                type="checkbox"
+                                                id="amenity-{{ $amenity->amenityID }}"
+                                                name="amenity[]"
+                                                data-name="{{ $amenity->amenityname }}"
+                                                data-price="{{ $amenity->price }}"
+                                                value="{{ $amenity->amenityID }}"
+                                                {{ in_array($amenity->amenityID, $selectedAmenities) ? 'checked' : '' }}
                                                 class="amenity-checkbox"
                                             >
                                             <div class="amenity-card {{ in_array($amenity->amenityID, $selectedAmenities) ? 'active' : '' }}">
@@ -138,7 +138,7 @@
                                                         Child Price: ₱ {{ $amenity->childprice }}
                                                     </p>
                                                 </div>
-                                            </div>                                    
+                                            </div>
                                         </label>
                                     </div>
                                 @endforeach
@@ -151,13 +151,13 @@
                         </div>
                         <!-- Booking Information - Prefilled -->
                         <label for="checkin">Check-in Date:
-                            <input type="date" id="checkin" name="checkin" 
+                            <input type="date" id="checkin" name="checkin"
                                  value="{{ old('checkin') ? \Carbon\Carbon::parse(old('checkin'))->format('Y-m-d') : (isset($bookingData->checkin) ? \Carbon\Carbon::parse($bookingData->checkin)->format('Y-m-d') : '') }}" required>
                         </label>
 
                         <label for="checkout">Check-out Date:
-                            <input class="input" type="date" id="checkout" name="checkout" 
-                                value="{{ old('checkout') ? \Carbon\Carbon::parse(old('checkout'))->format('Y-m-d') : (isset($bookingData->checkout) ? \Carbon\Carbon::parse($bookingData->checkout)->format('Y-m-d') : '') }}" required> 
+                            <input class="input" type="date" id="checkout" name="checkout"
+                                value="{{ old('checkout') ? \Carbon\Carbon::parse(old('checkout'))->format('Y-m-d') : (isset($bookingData->checkout) ? \Carbon\Carbon::parse($bookingData->checkout)->format('Y-m-d') : '') }}" required>
                         </label>
                     <div class="label-container">
                         <h2>Guest Information</h2>
@@ -167,14 +167,14 @@
                             <label id="label" for="firstname">Guest Firstname:
                                 <input class="input" type="text" id="firstname" name="firstname" value="{{ old('firstname', $bookingData->firstname ?? '') }}" required>
                             </label>
-                            
+
                             @error('firstname')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                             <label id="label" for="lastname">Guest Lastname:
                                 <input class="input" type="text" id="lastname" name="lastname" value="{{ old('lastname', $bookingData->lastname ?? '') }}" required>
                             </label>
-                            
+
                             @error('lastname')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
@@ -232,7 +232,7 @@
         margin-right:.7rem;
         overflow-y: hidden;
         overflow-x: hidden;
-    } 
+    }
     #layout-header{
         display: flex;
         flex-direction: row;
@@ -244,7 +244,7 @@
         border:1px solid black;
         box-shadow:.1rem .1rem 0 black;
         align-items: center;
-        justify-content: space-between; 
+        justify-content: space-between;
         gap: 1rem;
         font-size: .9rem;
     }
@@ -263,7 +263,7 @@
         border:1px solid black;
         box-shadow:.1rem .2rem 0 black;
     }
-    
+
     .label-container{
         display: flex;
         flex-direction: row;
@@ -280,7 +280,7 @@
     }
     .room{
         display: flex;
-        flex-direction: column; 
+        flex-direction: column;
         gap:.5rem;
         margin-bottom:.5rem;
     }
@@ -337,7 +337,7 @@
     }
     .cottage{
         display: flex;
-        flex-direction: column; 
+        flex-direction: column;
         gap:.5rem;
         margin-bottom:.5rem;
     }
@@ -387,7 +387,7 @@
     }
     .amenity{
         display: flex;
-        flex-direction: column; 
+        flex-direction: column;
         gap:.5rem;
         margin-bottom:.5rem;
     }
@@ -531,7 +531,7 @@
         display: flex;
         flex-direction: row;
         margin-top: 1rem;
-        
+
     }
     .form-button{
         background: rgb(255, 255, 255);
@@ -551,7 +551,7 @@
         background: orange;
         color: black;
         transform: translateY(-.1rem);
-    }   
+    }
 
     .text-danger{
         color:red;
@@ -647,7 +647,7 @@
                 icon.classList.toggle('fa-chevron-down', !isOpen);
             });
         });
-        
+
         const roomContent = document.getElementById('room-content');
 
         if (roomContent) {
@@ -745,4 +745,210 @@
 
 
 
+ --}}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
+    <title>Lantaw-Marbel Resort - View Booking</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body>
+<div id="layout">
+    @include('components.receptionist_sidebar')
+    <div id="main-layout">
+        <div id="layout-header">
+            <h1>View Booking #{{ $bookingData->bookingID }}</h1>
+        </div>
 
+        <div id="form-container">
+
+            <!-- Room Selection -->
+            <div class="label-container toggle-header" data-target="room-content">
+                <h2>Room Selection</h2>
+                <i class="fas fa-chevron-up toggle-icon fa-2x"></i>
+            </div>
+            <div id="room-content" class="room-selection-wrapper active">
+                <button type="button" class="scroll-btn left-btn">&#9664;</button>
+                <div id="room-selection">
+                    @foreach($rooms as $room)
+                        @php
+                            $selectedRooms = $bookingData->rooms ?? [];
+                        @endphp
+                        <div class="room">
+                            <label id="room-name" for="room-{{ $room->roomID }}">
+                                Room {{ $room->roomnum }}
+                                <input type="checkbox"
+                                       id="room-{{ $room->roomID }}"
+                                       name="room[]"
+                                       value="{{ $room->roomID }}"
+                                       class="room-checkbox"
+                                       {{ in_array($room->roomID, $selectedRooms) ? 'checked' : '' }}
+                                       disabled>
+                                <div class="room-card {{ in_array($room->roomID, $selectedRooms) ? 'active' : '' }}">
+                                    <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image">
+                                    <div class="room-details">
+                                        <p>Price: ₱ {{ $room->price }}</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="scroll-btn right-btn">&#9654;</button>
+            </div>
+
+            <!-- Cottage Selection -->
+            <div class="label-container toggle-header" data-target="cottage-content">
+                <h2>Cottage Selection</h2>
+                <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
+            </div>
+            <div id="cottage-content" class="room-selection-wrapper">
+                <button type="button" class="scroll-btn left-btn">&#9664;</button>
+                <div id="cottage-selection">
+                    @foreach($cottages as $cottage)
+                        @php
+                            $selectedCottages = $bookingData->cottages ?? [];
+                        @endphp
+                        <div class="cottage">
+                            <label id="cottage-name" for="cottage-{{ $cottage->cottageID }}">
+                                {{ $cottage->cottagename }}
+                                <input type="checkbox"
+                                       id="cottage-{{ $cottage->cottageID }}"
+                                       name="cottage[]"
+                                       value="{{ $cottage->cottageID }}"
+                                       class="cottage-checkbox"
+                                       {{ in_array($cottage->cottageID, $selectedCottages) ? 'checked' : '' }}
+                                       disabled>
+                                <div class="cottage-card {{ in_array($cottage->cottageID, $selectedCottages) ? 'active' : '' }}">
+                                    <img src="{{ asset('storage/' . $cottage->image) }}" alt="Cottage Image">
+                                    <div class="cottage-details">
+                                        <p>Price: ₱ {{ $cottage->price }}</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="scroll-btn right-btn">&#9654;</button>
+            </div>
+
+            <!-- Amenity Selection -->
+            <div class="label-container toggle-header" data-target="amenity-content">
+                <h2>Amenity Selection</h2>
+                <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
+            </div>
+            <div id="amenity-content" class="room-selection-wrapper">
+                <button type="button" class="scroll-btn left-btn">&#9664;</button>
+                <div id="amenity-selection">
+                    @foreach($amenities as $amenity)
+                        @php
+                            $selectedAmenities = $bookingData->amenities ?? [];
+                        @endphp
+                        <div class="amenity">
+                            <label id="amenity-name" for="amenity-{{ $amenity->amenityID }}">
+                                {{ $amenity->amenityname }}
+                                <input type="checkbox"
+                                       id="amenity-{{ $amenity->amenityID }}"
+                                       name="amenity[]"
+                                       value="{{ $amenity->amenityID }}"
+                                       class="amenity-checkbox"
+                                       {{ in_array($amenity->amenityID, $selectedAmenities) ? 'checked' : '' }}
+                                       disabled>
+                                <div class="amenity-card {{ in_array($amenity->amenityID, $selectedAmenities) ? 'active' : '' }}">
+                                    <img src="{{ asset('storage/' . $amenity->image) }}" alt="Amenity Image">
+                                    <div class="amenity-details">
+                                        <p>Adult Price: ₱ {{ $amenity->adultprice }}<br/>
+                                           Child Price: ₱ {{ $amenity->childprice }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="scroll-btn right-btn">&#9654;</button>
+            </div>
+
+            <!-- Booking Information -->
+            <div class="label-container"><h2>Booking Information</h2></div>
+            <p><strong>Check-in:</strong> {{ \Carbon\Carbon::parse($bookingData->checkin)->format('M d, Y') }}</p>
+            <p><strong>Check-out:</strong> {{ \Carbon\Carbon::parse($bookingData->checkout)->format('M d, Y') }}</p>
+
+            <!-- Guest Information -->
+            <div class="label-container"><h2>Guest Information</h2></div>
+            <p><strong>Firstname:</strong> {{ $bookingData->firstname }}</p>
+            <p><strong>Lastname:</strong> {{ $bookingData->lastname }}</p>
+            <p><strong>Total Guests:</strong> {{ $bookingData->guestamount }}</p>
+            <p><strong>Adults:</strong> {{ $bookingData->adultguest }}</p>
+            <p><strong>Children:</strong> {{ $bookingData->childguest }}</p>
+
+            <!-- Menu Orders -->
+            @if($bookingData->menuOrders->count())
+                <div class="label-container"><h2>Menu Orders</h2></div>
+                <ul>
+                    @foreach($bookingData->menuOrders as $menuOrder)
+                        <li>{{ $menuOrder->Menu->name ?? 'Menu Item' }} - Quantity: {{ $menuOrder->quantity }}</li>
+                    @endforeach
+                </ul>
+            @endif
+
+            <!-- Billing & Payments -->
+            @if($bookingData->billing)
+                <div class="label-container"><h2>Billing & Payments</h2></div>
+                <p><strong>Total Amount:</strong> ₱{{ $bookingData->billing->total ?? 0 }}</p>
+                <p><strong>Status:</strong> {{ $bookingData->billing->status ?? 'N/A' }}</p>
+
+                @if($bookingData->payments->count())
+                    <h3>Payments</h3>
+                    <ul>
+                        @foreach($bookingData->payments as $payment)
+                            <li>{{ \Carbon\Carbon::parse($payment->created_at)->format('M d, Y') }} - ₱{{ $payment->amount }} - {{ $payment->method }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+            @endif
+
+            <div class="button-container">
+                <button type="button" class="form-button" onclick="window.history.back()">Go Back</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Toggle sections
+    document.querySelectorAll('.toggle-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const targetId = header.getAttribute('data-target');
+            const content = document.getElementById(targetId);
+            const icon = header.querySelector('.toggle-icon');
+            content.classList.toggle('active');
+            icon.classList.toggle('fa-chevron-up');
+            icon.classList.toggle('fa-chevron-down');
+        });
+    });
+
+    const scrollAmount = 300;
+    function updateScrollButtons(wrapper) {
+        const container = wrapper.querySelector('div[id$="-selection"]');
+        const leftBtn = wrapper.querySelector('.left-btn');
+        const rightBtn = wrapper.querySelector('.right-btn');
+        if (!container || !leftBtn || !rightBtn) return;
+        const isScrollable = container.scrollWidth > container.clientWidth;
+        leftBtn.style.display = isScrollable ? 'flex' : 'none';
+        rightBtn.style.display = isScrollable ? 'flex' : 'none';
+        leftBtn.onclick = () => container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        rightBtn.onclick = () => container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+    document.querySelectorAll('.room-selection-wrapper').forEach(updateScrollButtons);
+    window.addEventListener('resize', () => document.querySelectorAll('.room-selection-wrapper').forEach(updateScrollButtons));
+});
+</script>
+</body>
