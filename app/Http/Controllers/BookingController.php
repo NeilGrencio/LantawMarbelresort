@@ -668,47 +668,50 @@ class BookingController extends Controller
 
     //     return view('receptionist.view_booking', compact('rooms', 'cottages', 'amenities', 'bookingData'));
     // }
-    public function viewBooking($bookingID)
-    {
-        // Load booking with relationships
-        $booking = BookingTable::with([
-            'Guest',
-            'roomBookings.Room',      // Assuming RoomBookTable has 'Room' relation
-            'cottageBookings.Cottage', // Assuming CottageBookTable has 'Cottage' relation
-            'Amenity',
-            'billing.Payments',       // Assuming BillingTable has 'Payments' relation
-            'menuBookings.Menu'       // Assuming MenuBookingTable has 'Menu' relation
-        ])->find($bookingID);
+public function viewBooking($bookingID)
+{
+    // Load booking with relationships
+    $booking = BookingTable::with([
+        'Guest',
+        'roomBookings.Room',
+        'cottageBookings.Cottage',
+        'Amenity',
+        'billing.Payments',
+        'menuBookings.Menu'
+    ])->find($bookingID);
 
-        if (!$booking) {
-            return redirect()->back()->with('error', 'Booking not found');
-        }
-
-        // Fetch all rooms, cottages, amenities for selection UI
-        $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
-        $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
-        $amenities = AmenityTable::all();
-
-        // Prepare structured booking data for view
-        $bookingData = (object) [
-            'bookingID' => $booking->bookingID,
-            'firstname' => $booking->Guest->firstname ?? '',
-            'lastname' => $booking->Guest->lastname ?? '',
-            'guestamount' => $booking->guestamount,
-            'adultguest' => $booking->adultguest,
-            'childguest' => $booking->childguest,
-            'checkin' => $booking->bookingstart,
-            'checkout' => $booking->bookingend,
-            'rooms' => $booking->roomBookings->pluck('roomID')->toArray(),        // array of roomIDs
-            'cottages' => $booking->cottageBookings->pluck('cottageID')->toArray(), // array of cottageIDs
-            'amenities' => $booking->Amenity ? [$booking->Amenity->amenityID] : [], // array of amenityIDs
-            'billing' => $booking->billing,
-            'payments' => $booking->billing ? $booking->billing->payments : [],
-            'menuOrders' => $booking->menuBookings ?? []
-        ];
-
-        return view('receptionist.view_booking', compact('rooms', 'cottages', 'amenities', 'bookingData'));
+    if (!$booking) {
+        return redirect()->back()->with('error', 'Booking not found');
     }
+
+    // Fetch all rooms, cottages, amenities
+    $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
+    $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
+    $amenities = AmenityTable::all();
+
+    // Prepare structured booking data for view
+    $bookingData = (object) [
+        'bookingID' => $booking->bookingID,
+        'firstname' => $booking->Guest->firstname ?? '',
+        'lastname' => $booking->Guest->lastname ?? '',
+        'guestamount' => $booking->guestamount,
+        'adultguest' => $booking->adultguest,
+        'childguest' => $booking->childguest,
+        'checkin' => $booking->bookingstart,
+        'checkout' => $booking->bookingend,
+        'rooms' => $booking->roomBookings->pluck('roomID')->toArray(),
+        'cottages' => $booking->cottageBookings->pluck('cottageID')->toArray(),
+        'amenities' => $booking->Amenity ? [$booking->Amenity->amenityID] : [],
+        'billing' => $booking->billing,
+        'payments' => $booking->billing ? $booking->billing->payments : [],
+        'menuOrders' => $booking->menuBookings ?? []
+    ];
+
+    // Log the booking data for debugging
+    Log::info('Booking Data for viewBooking:', (array) $bookingData);
+
+    return view('receptionist.view_booking', compact('rooms', 'cottages', 'amenities', 'bookingData'));
+}
 
     private function getSelectedRooms($bookingID)
     {
