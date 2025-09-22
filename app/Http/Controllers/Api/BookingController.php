@@ -22,10 +22,13 @@ class BookingController extends Controller
             $bookings = BookingTable::with([
                 'Guest:guestID,firstname,lastname,email',
                 'Amenity:amenityID,amenityname,description',
-                'roomBookings.Room:roomID,roomnum,bookingDate',
-                'cottageBookings.Cottage:cottageID,cottagename,bookingDate',
+                'roomBookings.Room:roomID,roomnum',
+                'cottageBookings.Cottage:cottageID,cottagename',
                 'billing.payments',
-                'menuBookings.menu:menuID,menuname,price,bookingDate' // ✅ include menus
+                'roomBoookings',
+                'cottageBookings',
+                'menuBookings',
+                'menuBookings.menu:menuID,menuname,price' // ✅ include menus
             ])
             ->where('guestID', $guestID)
             ->get([
