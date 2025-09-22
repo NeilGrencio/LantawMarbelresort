@@ -16,21 +16,20 @@ use Illuminate\Support\Facades\Log;
 class BookingController extends Controller
 {
     // ✅ GET all bookings by guestID
-    public function getByGuest($guestID)
+   public function getByGuest($guestID)
 {
     try {
         $bookings = BookingTable::with([
             'Guest:guestID,firstname,lastname,email',
             'Amenity:amenityID,amenityname,description',
             'billing.payments',
-            'roomBookings',      // load full pivot/booking info
-            'cottageBookings',
-            'menuBookings.menu'
+            'roomBookings.room',         // load Room for each RoomBooking
+            'cottageBookings.cottage',   // load Cottage for each CottageBooking
+            'menuBookings.menu'          // load Menu for each MenuBooking
         ])
         ->where('guestID', $guestID)
         ->get();
 
-        // Group each booking's items by their own bookingDate
         return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
     } catch (\Exception $e) {
         Log::error("❌ getByGuest failed", [
