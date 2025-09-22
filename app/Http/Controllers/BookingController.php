@@ -249,19 +249,19 @@ class BookingController extends Controller
     {
         $data = session('booking_data_' . $sessionID);
         $prices = session('booking_prices_' . $sessionID);
-    
+
         if (!$data || !$prices) {
             return redirect()->route('receptionist.create_booking')
                 ->with('error', 'Booking session has expired. Please start again.');
         }
-    
+
         $validated = $request->validate([
             'cashamount'   => 'required_if:payment,cash|nullable|numeric|min:0',
             'discount'     => 'nullable',
             'payment_type' => 'required|in:full,downpayment',
             'payment'      => 'required|in:cash,gcash',
         ]);
-    
+
         try {
             $guest = $this->findOrCreateGuest($data['firstname'], $data['lastname']);
             if (!$guest) {
@@ -270,43 +270,43 @@ class BookingController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error processing guest information: ' . $e->getMessage());
         }
-    
+
         $originalAmount    = (float) str_replace(',', '', $prices['totalprice']);
         $discountAmount    = $this->calculateDiscountAmount($validated['discount'], $originalAmount);
         $discountedAmount  = $originalAmount - $discountAmount;
         $requiredAmount    = $validated['payment_type'] === 'downpayment'
                                 ? $discountedAmount * 0.5
                                 : $discountedAmount;
-    
+
         $amountPaid = $validated['payment'] === 'cash'
                         ? ($validated['cashamount'] ?? 0)
                         : $requiredAmount;
-    
+
         $change = ($validated['payment'] === 'cash' && $amountPaid > $requiredAmount)
                     ? $amountPaid - $requiredAmount
                     : 0;
-    
+
         if ($validated['payment'] === 'cash' && $amountPaid < $requiredAmount) {
             return redirect()->back()->with('error', 'Insufficient payment. Required: ₱' . number_format($requiredAmount, 2));
         }
-    
+
         $remainingBalance = $discountedAmount - $amountPaid;
-    
+
         try {
             DB::beginTransaction();
-    
+
             $checkinDate  = $this->parseDate($data['checkin']);
             $checkoutDate = $this->parseDate($data['checkout']);
-    
+
             if (!$checkinDate || !$checkoutDate) {
                 throw new \Exception('Invalid date format');
             }
-    
+
             $status = 'Booked';
             if ($checkinDate->lessThanOrEqualTo(Carbon::now())) {
                 $status = 'Ongoing';
             }
-    
+
             $booking = BookingTable::create([
                 'bookingcreated' => Carbon::now(),
                 'bookingstart'   => $checkinDate,
@@ -319,7 +319,7 @@ class BookingController extends Controller
                 'status'         => $status,
                 'guestID'        => $guest->guestID,
             ]);
-    
+
             if ($status === 'Ongoing') {
                 CheckTable::create([
                     'date'      => Carbon::now(),
@@ -328,7 +328,7 @@ class BookingController extends Controller
                     'bookingID' => $booking->bookingID,
                 ]);
             }
-    
+
             if (!empty($data['room'])) {
                 foreach ($data['room'] as $roomID) {
                     RoomBookTable::create([
@@ -337,7 +337,7 @@ class BookingController extends Controller
                     ]);
                 }
             }
-    
+
             if (!empty($data['cottage'])) {
                 foreach ($data['cottage'] as $cottageID) {
                     CottageBookTable::create([
@@ -346,7 +346,7 @@ class BookingController extends Controller
                     ]);
                 }
             }
-    
+
             $billing = BillingTable::create([
                 'totalamount' => $remainingBalance,
                 'datebilled'  => Carbon::now(),
@@ -360,7 +360,7 @@ class BookingController extends Controller
                                     : null,
                 'guestID'     => $guest->guestID,
             ]);
-    
+
             PaymentTable::create([
                 'billingID'   => $billing->billingID,
                 'guestID'     => $guest->guestID,
@@ -368,17 +368,14 @@ class BookingController extends Controller
                 'totalchange' => $change,
                 'datepayment' => Carbon::now(),
             ]);
-    
+
             DB::commit();
-    
+
             session()->forget(['booking_data_' . $sessionID, 'booking_prices_' . $sessionID]);
-    
+
             return redirect()->route('receptionist.booking')
                 ->with('success', 'Booking confirmed successfully!' . ($change > 0 ? ' Change: ₱' . number_format($change, 2) : ''));
-<<<<<<< Updated upstream
-=======
-    
->>>>>>> Stashed changes
+
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Booking failed: ' . $e->getMessage());
