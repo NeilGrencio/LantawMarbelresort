@@ -1169,7 +1169,6 @@
     </div>
 </div>
 
-@include('components.view_booking_styles') {{-- Move all your CSS to a separate file for cleanliness --}}
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
