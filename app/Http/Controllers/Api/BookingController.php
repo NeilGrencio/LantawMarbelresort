@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 use App\Models\BookingTable;
@@ -16,41 +17,49 @@ use Illuminate\Support\Facades\Log;
 class BookingController extends Controller
 {
     // ✅ GET all bookings by guestID
-   public function getByGuest($guestID)
-{
-    try {
-        $bookings = BookingTable::with([
-            'Guest:guestID,firstname,lastname,email',
-            'Amenity:amenityID,amenityname,description',
-            'billing.payments',
-            'roomBookings.room',         // load Room for each RoomBooking
-            'cottageBookings.cottage',   // load Cottage for each CottageBooking
-            'menuBookings.menu'          // load Menu for each MenuBooking
-        ])
-        ->where('guestID', $guestID)
-        ->get();
-
-        return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
-    } catch (\Exception $e) {
-        Log::error("❌ getByGuest failed", [
-            'guestID' => $guestID,
-            'error'   => $e->getMessage()
-        ]);
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-}
- public function show($id)
+    public function getByGuest($guestID)
     {
+        Log::info("➡️ getByGuest called", ['guestID' => $guestID]);
+        try {
+            $bookings = BookingTable::with([
+                'Guest:guestID,firstname,lastname,email',
+                'Amenity:amenityID,amenityname,description',
+                'billing.payments',
+                'roomBookings.room',
+                'cottageBookings.cottage',
+                'menuBookings.menu'
+            ])
+            ->where('guestID', $guestID)
+            ->get();
+
+            Log::info("✅ getByGuest success", [
+                'guestID' => $guestID,
+                'count'   => $bookings->count()
+            ]);
+            return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
+        } catch (\Exception $e) {
+            Log::error("❌ getByGuest failed", [
+                'guestID' => $guestID,
+                'error'   => $e->getMessage()
+            ]);
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function show($id)
+    {
+        Log::info("➡️ show booking called", ['bookingID' => $id]);
         try {
             $booking = BookingTable::with([
                 'Guest:guestID,firstname,lastname,email',
                 'Amenity:amenityID,amenityname,description',
-                'roomBookings.room',       // include full room info
-                'cottageBookings.cottage', // include full cottage info
-                'menuBookings.menu',       // include full menu info
+                'roomBookings.room',
+                'cottageBookings.cottage',
+                'menuBookings.menu',
                 'billing.payments'
             ])->findOrFail($id);
 
+            Log::info("✅ show booking success", ['bookingID' => $id]);
             return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             Log::error("❌ show booking failed", [
@@ -61,9 +70,10 @@ class BookingController extends Controller
         }
     }
 
-    // ✅ POST create booking (updated)
+    // ✅ POST create booking
     public function store(Request $request)
     {
+        Log::info("➡️ store booking called", ['payload' => $request->all()]);
         DB::beginTransaction();
         try {
             $bookingData = [
@@ -80,6 +90,7 @@ class BookingController extends Controller
             ];
 
             $booking = BookingTable::create($bookingData);
+            Log::info("📝 Booking created", ['bookingID' => $booking->bookingID]);
 
             // Rooms
             if ($request->has('roomBookings')) {
@@ -90,6 +101,7 @@ class BookingController extends Controller
                         'price'     => $room['price'] ?? 0,
                     ]);
                 }
+                Log::info("✅ Room bookings stored", ['count' => count($request->roomBookings)]);
             }
 
             // Cottages
@@ -100,6 +112,7 @@ class BookingController extends Controller
                         'cottageID' => $cottage['cottageID'],
                     ]);
                 }
+                Log::info("✅ Cottage bookings stored", ['count' => count($request->cottageBookings)]);
             }
 
             // Menus
@@ -113,6 +126,7 @@ class BookingController extends Controller
                         'status'     => $menu['status'] ?? 'pending',
                     ]);
                 }
+                Log::info("✅ Menu bookings stored", ['count' => count($request->menuBookings)]);
             }
 
             // Billing + Payments
@@ -124,6 +138,7 @@ class BookingController extends Controller
                     'bookingID'   => $booking->bookingID,
                     'guestID'     => $booking->guestID,
                 ]);
+                Log::info("✅ Billing stored", ['billingID' => $billing->billingID]);
 
                 if (!empty($request->billing['payments'])) {
                     foreach ($request->billing['payments'] as $payment) {
@@ -136,12 +151,12 @@ class BookingController extends Controller
                             'refNumber'   => $payment['refNumber'] ?? null,
                         ]);
                     }
+                    Log::info("✅ Payments stored", ['count' => count($request->billing['payments'])]);
                 }
             }
 
             DB::commit();
 
-            // Return the created booking with nested relationships
             $booking = BookingTable::with([
                 'Guest:guestID,firstname,lastname,email',
                 'Amenity:amenityID,amenityname,description',
@@ -151,6 +166,7 @@ class BookingController extends Controller
                 'billing.payments'
             ])->find($booking->bookingID);
 
+            Log::info("🎉 Booking store success", ['bookingID' => $booking->bookingID]);
             return response()->json($booking, 201, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -162,9 +178,13 @@ class BookingController extends Controller
         }
     }
 
-    // ✅ PUT update booking (updated)
+    // ✅ PUT update booking
     public function update(Request $request, $id)
     {
+        Log::info("➡️ update booking called", [
+            'bookingID' => $id,
+            'payload'   => $request->all()
+        ]);
         DB::beginTransaction();
         try {
             $booking = BookingTable::findOrFail($id);
@@ -179,6 +199,7 @@ class BookingController extends Controller
                 'guestID',
                 'amenityID'
             ]));
+            Log::info("📝 Booking updated", ['bookingID' => $id]);
 
             // Refresh related data
             RoomBookTable::where('bookingID', $id)->delete();
@@ -193,6 +214,7 @@ class BookingController extends Controller
                         'price'     => $room['price'] ?? 0,
                     ]);
                 }
+                Log::info("✅ Room bookings updated", ['count' => count($request->roomBookings)]);
             }
 
             if ($request->has('cottageBookings')) {
@@ -202,6 +224,7 @@ class BookingController extends Controller
                         'cottageID' => $cottage['cottageID'],
                     ]);
                 }
+                Log::info("✅ Cottage bookings updated", ['count' => count($request->cottageBookings)]);
             }
 
             if ($request->has('menuBookings')) {
@@ -214,6 +237,7 @@ class BookingController extends Controller
                         'status'     => $menu['status'] ?? 'pending',
                     ]);
                 }
+                Log::info("✅ Menu bookings updated", ['count' => count($request->menuBookings)]);
             }
 
             // Update or create billing
@@ -227,6 +251,7 @@ class BookingController extends Controller
                         'guestID'     => $booking->guestID,
                     ]
                 );
+                Log::info("✅ Billing updated", ['billingID' => $billing->billingID]);
 
                 if (!empty($request->billing['payments'])) {
                     $billing->payments()->delete();
@@ -240,12 +265,12 @@ class BookingController extends Controller
                             'refNumber'   => $payment['refNumber'] ?? null,
                         ]);
                     }
+                    Log::info("✅ Payments updated", ['count' => count($request->billing['payments'])]);
                 }
             }
 
             DB::commit();
 
-            // Return updated booking with nested relations
             $booking = BookingTable::with([
                 'Guest:guestID,firstname,lastname,email',
                 'Amenity:amenityID,amenityname,description',
@@ -255,6 +280,7 @@ class BookingController extends Controller
                 'billing.payments'
             ])->find($id);
 
+            Log::info("🎉 Booking update success", ['bookingID' => $id]);
             return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             DB::rollBack();
