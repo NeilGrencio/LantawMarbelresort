@@ -93,7 +93,6 @@ class BookingController extends Controller
     {
         return $date ? Carbon::parse($date)->format('Y-m-d') : null;
     }
-
     // Create booking
     public function store(Request $request)
     {
@@ -111,27 +110,30 @@ class BookingController extends Controller
                 'status'         => $data['status'],
                 'guestID'        => $data['guestID'],
                 'amenityID'      => $data['amenityID'],
-                'bookingcreated' => now()->format('Y-m-d'), // <-- add this
+                'bookingcreated' => now()->format('Y-m-d'),
             ]);
-            // Save related room bookings
+
+            $roomIDs = [];
             foreach ($data['roomIDs'] as $roomID) {
                 RoomBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'roomID'      => $roomID,
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
+                $roomIDs[] = $roomID;
             }
 
-            // Save cottage bookings
+            $cottageIDs = [];
             foreach ($data['cottageIDs'] as $cottageID) {
                 CottageBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'cottageID'   => $cottageID,
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
+                $cottageIDs[] = $cottageID;
             }
 
-            // Save menu bookings
+            $menuIDs = [];
             foreach ($data['menuIDs'] as $index => $menuID) {
                 MenuBookingTable::create([
                     'booking_id'  => $booking->bookingID,
@@ -140,9 +142,11 @@ class BookingController extends Controller
                     'status'      => 'Pending',
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
+                $menuIDs[] = $menuID;
             }
 
-            // Billing + Payments
+            $billingID = null;
+            $paymentIDs = [];
             if ($data['billing']) {
                 $billing = BillingTable::create([
                     'totalamount' => $data['billing']['totalamount'] ?? 0,
@@ -151,9 +155,10 @@ class BookingController extends Controller
                     'bookingID'   => $booking->bookingID,
                     'guestID'     => $booking->guestID,
                 ]);
+                $billingID = $billing->billingID;
 
                 foreach ($data['payments'] as $payment) {
-                    PaymentTable::create([
+                    $p = PaymentTable::create([
                         'totaltender' => $payment['totaltender'] ?? 0,
                         'totalchange' => $payment['totalchange'] ?? 0,
                         'datepayment' => $this->parseDate($payment['datepayment'] ?? now()),
@@ -161,10 +166,20 @@ class BookingController extends Controller
                         'billingID'   => $billing->billingID,
                         'refNumber'   => $payment['refNumber'] ?? null,
                     ]);
+                    $paymentIDs[] = $p->paymentID;
                 }
             }
 
             DB::commit();
+
+            Log::info("✅ Booking stored successfully", [
+                'bookingID'   => $booking->bookingID,
+                'roomIDs'     => $roomIDs,
+                'cottageIDs'  => $cottageIDs,
+                'menuIDs'     => $menuIDs,
+                'billingID'   => $billingID,
+                'paymentIDs'  => $paymentIDs,
+            ]);
 
             return response()->json(['bookingID' => $booking->bookingID], 201);
         } catch (\Exception $e) {
@@ -173,7 +188,7 @@ class BookingController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
+    // Update booking
     // Update booking
     public function update(Request $request, $id)
     {
@@ -194,7 +209,6 @@ class BookingController extends Controller
                 'amenityID'    => $data['amenityID'],
             ]);
 
-            // Delete old related records
             RoomBookTable::where('bookingID', $id)->delete();
             CottageBookTable::where('bookingID', $id)->delete();
             MenuBookingTable::where('booking_id', $id)->delete();
@@ -203,23 +217,27 @@ class BookingController extends Controller
             })->delete();
             BillingTable::where('bookingID', $id)->delete();
 
-            // Recreate related records
+            $roomIDs = [];
             foreach ($data['roomIDs'] as $roomID) {
                 RoomBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'roomID'      => $roomID,
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
+                $roomIDs[] = $roomID;
             }
 
+            $cottageIDs = [];
             foreach ($data['cottageIDs'] as $cottageID) {
                 CottageBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'cottageID'   => $cottageID,
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
+                $cottageIDs[] = $cottageID;
             }
 
+            $menuIDs = [];
             foreach ($data['menuIDs'] as $index => $menuID) {
                 MenuBookingTable::create([
                     'booking_id'  => $booking->bookingID,
@@ -228,8 +246,11 @@ class BookingController extends Controller
                     'status'      => 'Pending',
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
+                $menuIDs[] = $menuID;
             }
 
+            $billingID = null;
+            $paymentIDs = [];
             if ($data['billing']) {
                 $billing = BillingTable::create([
                     'totalamount' => $data['billing']['totalamount'] ?? 0,
@@ -238,9 +259,10 @@ class BookingController extends Controller
                     'bookingID'   => $booking->bookingID,
                     'guestID'     => $booking->guestID,
                 ]);
+                $billingID = $billing->billingID;
 
                 foreach ($data['payments'] as $payment) {
-                    PaymentTable::create([
+                    $p = PaymentTable::create([
                         'totaltender' => $payment['totaltender'] ?? 0,
                         'totalchange' => $payment['totalchange'] ?? 0,
                         'datepayment' => $this->parseDate($payment['datepayment'] ?? now()),
@@ -248,10 +270,20 @@ class BookingController extends Controller
                         'billingID'   => $billing->billingID,
                         'refNumber'   => $payment['refNumber'] ?? null,
                     ]);
+                    $paymentIDs[] = $p->paymentID;
                 }
             }
 
             DB::commit();
+
+            Log::info("✅ Booking updated successfully", [
+                'bookingID'   => $booking->bookingID,
+                'roomIDs'     => $roomIDs,
+                'cottageIDs'  => $cottageIDs,
+                'menuIDs'     => $menuIDs,
+                'billingID'   => $billingID,
+                'paymentIDs'  => $paymentIDs,
+            ]);
 
             return response()->json(['bookingID' => $booking->bookingID], 200);
         } catch (\Exception $e) {
