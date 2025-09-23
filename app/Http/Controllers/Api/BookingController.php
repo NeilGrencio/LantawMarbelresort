@@ -32,10 +32,6 @@ class BookingController extends Controller
                 ->where('guestID', $guestID)
                 ->get();
 
-            Log::info("✅ getByGuest success", [
-                'guestID' => $guestID,
-                'count'   => $bookings->count()
-            ]);
             return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             Log::error("❌ getByGuest failed", [
@@ -49,7 +45,6 @@ class BookingController extends Controller
     // ✅ GET single booking
     public function show($id)
     {
-        Log::info("➡️ show booking called", ['bookingID' => $id]);
         try {
             $booking = BookingTable::with([
                 'Guest:guestID,firstname,lastname,email',
@@ -60,7 +55,6 @@ class BookingController extends Controller
                 'billing.payments'
             ])->findOrFail($id);
 
-            Log::info("✅ show booking success", ['bookingID' => $id]);
             return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             Log::error("❌ show booking failed", [
@@ -71,6 +65,30 @@ class BookingController extends Controller
         }
     }
 
+    // ✅ Normalize request
+    private function normalize(Request $request)
+    {
+        return [
+            'guestamount'      => $request->input('guestamount') ?? $request->input('guestAmount') ?? 0,
+            'childguest'       => $request->input('childguest') ?? $request->input('childGuest') ?? 0,
+            'adultguest'       => $request->input('adultguest') ?? $request->input('adultGuest') ?? 0,
+            'totalprice'       => $request->input('totalprice') ?? $request->input('totalPrice') ?? 0,
+            'bookingstart'     => $request->input('bookingstart') ?? $request->input('bookingStart'),
+            'bookingend'       => $request->input('bookingend') ?? $request->input('bookingEnd'),
+            'status'           => $request->input('status'),
+            'guestID'          => $request->input('guestID'),
+            'amenityID'        => $request->input('amenityID')
+                                    ?? ($request->input('amenity.amenityID')
+                                    ?? optional($request->input('amenity'))['amenityID'] ?? null),
+
+            // ✅ handle both snake_case and camelCase
+            'roomBookings'     => $request->input('roomBookings') ?? $request->input('room_bookings') ?? [],
+            'cottageBookings'  => $request->input('cottageBookings') ?? $request->input('cottage_bookings') ?? [],
+            'menuBookings'     => $request->input('menuBookings') ?? $request->input('menu_bookings') ?? [],
+            'billing'          => $request->input('billing') ?? null,
+        ];
+    }
+
     // ✅ POST create booking
     public function store(Request $request)
     {
@@ -78,67 +96,64 @@ class BookingController extends Controller
         DB::beginTransaction();
 
         try {
-            $normalized = $this->normalizePayload($request);
+            $data = $this->normalize($request);
 
-            $bookingData = [
-                'guestamount'    => $request->input('guestamount') ?? $request->input('guestAmount'),
-                'childguest'     => $request->input('childguest') ?? $request->input('childGuest'),
-                'adultguest'     => $request->input('adultguest') ?? $request->input('adultGuest'),
-                'totalprice'     => $request->input('totalprice') ?? $request->input('totalPrice'),
+            $booking = BookingTable::create([
+                'guestamount'    => $data['guestamount'],
+                'childguest'     => $data['childguest'],
+                'adultguest'     => $data['adultguest'],
+                'totalprice'     => $data['totalprice'],
                 'bookingcreated' => now(),
-                'bookingend'     => $request->input('bookingend') ?? $request->input('bookingEnd'),
-                'bookingstart'   => $request->input('bookingstart') ?? $request->input('bookingStart'),
-                'status'         => $request->input('status', 'pending'),
-                'guestID'        => $request->input('guestID'),
-                'amenityID'      => $normalized['amenityID']
-            ];
-
-            $booking = BookingTable::create($bookingData);
-            Log::info("📝 Booking created", ['bookingID' => $booking->bookingID]);
+                'bookingstart'   => $data['bookingstart'],
+                'bookingend'     => $data['bookingend'],
+                'status'         => $data['status'] ?? 'Pending',
+                'guestID'        => $data['guestID'],
+                'amenityID'      => $data['amenityID']
+            ]);
 
             // ✅ Rooms
-            foreach ($normalized['roomBookings'] as $room) {
+            foreach ($data['roomBookings'] as $room) {
                 RoomBookTable::create([
                     'bookingID'   => $booking->bookingID,
-                    'roomID'      => $room['roomID'],
-                    'price'       => $room['price'] ?? 0,
-                    'bookingDate' => $room['bookingDate'] ?? null,
+                    'roomID'      => $room['roomID'] ?? ($room['room']['roomID'] ?? null),
+                    'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
+                    'bookingDate' => $room['bookingDate'] ?? now(),
                 ]);
             }
 
             // ✅ Cottages
-            foreach ($normalized['cottageBookings'] as $cottage) {
+            foreach ($data['cottageBookings'] as $cottage) {
                 CottageBookTable::create([
                     'bookingID'   => $booking->bookingID,
-                    'cottageID'   => $cottage['cottageID'],
-                    'price'       => $cottage['price'] ?? 0,
-                    'bookingDate' => $cottage['bookingDate'] ?? null,
+                    'cottageID'   => $cottage['cottageID'] ?? ($cottage['cottage']['cottageID'] ?? null),
+                    'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
+                    'bookingDate' => $cottage['bookingDate'] ?? now(),
                 ]);
             }
 
             // ✅ Menus
-            foreach ($normalized['menuBookings'] as $menu) {
+            foreach ($data['menuBookings'] as $menu) {
                 MenuBookingTable::create([
                     'booking_id' => $booking->bookingID,
-                    'menu_id'    => $menu['menuID'] ?? $menu['menu_id'],
-                    'quantity'   => $menu['quantity'] ?? 1,
-                    'price'      => $menu['price'] ?? 0,
-                    'status'     => $menu['status'] ?? 'pending',
+                    'menu_id'    => $menu['menuID'] ?? ($menu['menu']['menuID'] ?? null),
+                    'quantity'   => $menu['quantity'] ?? ($menu['menu']['qty'] ?? 1),
+                    'price'      => $menu['price'] ?? ($menu['menu']['price'] ?? 0),
+                    'status'     => $menu['status'] ?? ($menu['menu']['status'] ?? 'pending'),
                 ]);
             }
 
             // ✅ Billing + Payments
-            if ($normalized['billing']) {
+            if ($data['billing']) {
                 $billing = BillingTable::create([
-                    'totalamount' => $normalized['billing']['totalamount'] ?? 0,
-                    'datebilled'  => $normalized['billing']['datebilled'] ?? now(),
-                    'status'      => $normalized['billing']['status'] ?? 'unpaid',
+                    'totalamount' => $data['billing']['totalamount'] ?? 0,
+                    'datebilled'  => $data['billing']['datebilled'] ?? now(),
+                    'status'      => $data['billing']['status'] ?? 'Unpaid',
                     'bookingID'   => $booking->bookingID,
                     'guestID'     => $booking->guestID,
                 ]);
 
-                if (!empty($normalized['billing']['payments'])) {
-                    foreach ($normalized['billing']['payments'] as $payment) {
+                if (!empty($data['billing']['payments'])) {
+                    foreach ($data['billing']['payments'] as $payment) {
                         PaymentTable::create([
                             'totaltender' => $payment['totaltender'] ?? 0,
                             'totalchange' => $payment['totalchange'] ?? 0,
@@ -162,7 +177,6 @@ class BookingController extends Controller
                 'billing.payments'
             ])->find($booking->bookingID);
 
-            Log::info("🎉 Booking store success", ['bookingID' => $booking->bookingID]);
             return response()->json($booking, 201, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -172,29 +186,6 @@ class BookingController extends Controller
             ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
-    }
-
-
-    // ✅ Normalize request (camelCase + snake_case)
-    private function normalize(Request $request)
-    {
-        return [
-            'guestamount'      => $request->input('guestamount') ?? $request->input('guestAmount') ?? 0,
-            'childguest'       => $request->input('childguest') ?? $request->input('childGuest') ?? 0,
-            'adultguest'       => $request->input('adultguest') ?? $request->input('adultGuest') ?? 0,
-            'totalprice'       => $request->input('totalprice') ?? $request->input('totalPrice') ?? 0,
-            'bookingstart'     => $request->input('bookingstart') ?? $request->input('bookingStart'),
-            'bookingend'       => $request->input('bookingend') ?? $request->input('bookingEnd'),
-            'status'           => $request->input('status'),
-            'guestID'          => $request->input('guestID'),
-            'amenityID'        => $request->input('amenityID') ?? ($request->input('amenity.amenityID') ?? null),
-
-            // relations
-            'roomBookings'     => $request->input('roomBookings') ?? $request->input('room_bookings') ?? [],
-            'cottageBookings'  => $request->input('cottageBookings') ?? $request->input('cottage_bookings') ?? [],
-            'menuBookings'     => $request->input('menuBookings') ?? $request->input('menu_bookings') ?? [],
-            'billing'          => $request->input('billing') ?? null,
-        ];
     }
 
     // ✅ Update booking
@@ -209,7 +200,6 @@ class BookingController extends Controller
         try {
             $booking = BookingTable::findOrFail($id);
 
-            // normalize request
             $data = $this->normalize($request);
 
             // ✅ Update booking main data
@@ -222,9 +212,8 @@ class BookingController extends Controller
                 'bookingend'   => $data['bookingend'],
                 'status'       => $data['status'] ?? $booking->status,
                 'guestID'      => $data['guestID'] ?? $booking->guestID,
-                'amenityID'    => $data['amenityID'] ?? $booking->amenityID,
+                'amenityID'    => $data['amenityID'],
             ]);
-            Log::info("📝 Booking updated", ['bookingID' => $id]);
 
             // ✅ Clear old related data
             RoomBookTable::where('bookingID', $id)->delete();
@@ -237,7 +226,7 @@ class BookingController extends Controller
                     'bookingID'   => $id,
                     'roomID'      => $room['roomID'] ?? ($room['room']['roomID'] ?? null),
                     'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
-                    'bookingDate' => $room['bookingDate'] ?? null,
+                    'bookingDate' => $room['bookingDate'] ?? now(),
                 ]);
             }
 
@@ -247,7 +236,7 @@ class BookingController extends Controller
                     'bookingID'   => $id,
                     'cottageID'   => $cottage['cottageID'] ?? ($cottage['cottage']['cottageID'] ?? null),
                     'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
-                    'bookingDate' => $cottage['bookingDate'] ?? null,
+                    'bookingDate' => $cottage['bookingDate'] ?? now(),
                 ]);
             }
 
@@ -269,7 +258,7 @@ class BookingController extends Controller
                     [
                         'totalamount' => $data['billing']['totalamount'] ?? 0,
                         'datebilled'  => $data['billing']['datebilled'] ?? now(),
-                        'status'      => $data['billing']['status'] ?? 'unpaid',
+                        'status'      => $data['billing']['status'] ?? 'Unpaid',
                         'guestID'     => $booking->guestID,
                     ]
                 );
@@ -291,7 +280,6 @@ class BookingController extends Controller
 
             DB::commit();
 
-            // ✅ Return refreshed booking with relations
             $booking = BookingTable::with([
                 'Guest:guestID,firstname,lastname,email',
                 'Amenity:amenityID,amenityname,description',
