@@ -72,6 +72,7 @@ class BookingController extends Controller
             'childguest' => $source['childGuest'] ?? 0,
             'adultguest' => $source['adultGuest'] ?? 0,
             'totalprice' => $source['totalPrice'] ?? 0,
+            'guestamount'=>$source['childGuest']+ $source['adultGuest'],
             'bookingstart' => $this->parseDate($source['bookingStart'] ?? null),
             'bookingend' => $this->parseDate($source['bookingEnd'] ?? null),
             'roomIDs' => collect($source['room_bookings'] ?? [])->pluck('roomID')->toArray(),
