@@ -1107,8 +1107,12 @@ class BookingController extends Controller
 
     public function edit($id)
     {
-        $booking = BookingTable::with(['rooms', 'cottages', 'amenities', 'menuOrders', 'payments', 'billing'])
-            ->findOrFail($id);
+        $booking = BookingTable::with([
+            'roomBookings',
+            'cottageBookings',
+            'menuBookings',
+            'billing'
+        ])->findOrFail($id);
 
         $rooms = RoomTable::all();
         $cottages = CottageTable::all();
