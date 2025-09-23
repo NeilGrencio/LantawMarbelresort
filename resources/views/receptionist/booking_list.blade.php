@@ -236,7 +236,10 @@
                                         onclick="approveBooking({{ $booking->bookingID }})">Approve</button>
                                     <button class="btn btn-danger"
                                         onclick="declineBooking({{ $booking->bookingID }})">Decline</button>
-
+                                    <button class="btn btn-info"
+                                        onclick="window.location='{{ route('booking.edit', ['bookingID' => $booking->bookingID]) }}'">
+                                        Edit
+                                    </button>
                                     <button class="btn btn-danger"
                                         onclick="cancelBooking({{ $booking->bookingID }})">Cancel</button>
 

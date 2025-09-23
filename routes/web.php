@@ -360,6 +360,10 @@ Route::post('receptionist/order', [OrderController::class, 'submitOrder'])->name
 //Kitchen
 Route::get('kitchen/dashboard', [DashboardController::class, 'kitchenDashboard'])->name('kitchen.dashboard');
 Route::post('/orders/{order}/prepare', [OrderController::class, 'prepareOrder'])->name('orders.prepare');
+Route::get('receptionist/edit_booking/{bookingID}', [BookingController::class, 'edit'])->name('booking.edit');
+
+// Update booking
+Route::post('receptionist/update_booking/{bookingID}', [BookingController::class, 'update'])->name('booking.update');
 
 //For Mobile
 // Route::get('mobile/rooms', [RoomMobile::class, 'roomList']);

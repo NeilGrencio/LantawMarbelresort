@@ -1105,7 +1105,53 @@ public function viewBooking($bookingID)
         }
     }
 
+ public function edit($id)
+    {
+        $bookingData = BookingTable::with(['rooms', 'cottages', 'amenities', 'menuOrders', 'payments', 'billing'])
+            ->findOrFail($id);
 
+        $rooms = RoomTable::all();
+        $cottages = CottageTable::all();
+        $amenities = AmenityTable::all();
+
+        return view('receptionist.edit_booking', compact('bookingData', 'rooms', 'cottages', 'amenities'));
+    }
+
+    // Update booking
+    public function update(Request $request, $id)
+    {
+        $booking = BookingTable::findOrFail($id);
+
+        $request->validate([
+            'checkin' => 'required|date',
+            'checkout' => 'required|date|after:checkin',
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'guestamount' => 'required|integer|min:1',
+            'adultguest' => 'required|integer|min:0',
+            'childguest' => 'required|integer|min:0',
+        ]);
+
+        DB::transaction(function () use ($request, $booking) {
+            $booking->update([
+                'checkin' => $request->checkin,
+                'checkout' => $request->checkout,
+                'firstname' => $request->firstname,
+                'lastname' => $request->lastname,
+                'guestamount' => $request->guestamount,
+                'adultguest' => $request->adultguest,
+                'childguest' => $request->childguest,
+            ]);
+
+            // Sync Rooms, Cottages, Amenities
+            $booking->rooms()->sync($request->room ?? []);
+            $booking->cottages()->sync($request->cottage ?? []);
+            $booking->amenities()->sync($request->amenity ?? []);
+        });
+
+        return redirect()->route('receptionist.booking.edit', $booking->bookingID)
+            ->with('success', 'Booking updated successfully.');
+    }
 
     public function checkEvents()
     {
