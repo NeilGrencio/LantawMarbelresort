@@ -1,3 +1,9 @@
+@php
+    if (!session()->get('logged_in')) {
+        header('Location: ' . route('checkLogin'));
+        exit;
+    }
+@endphp
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,140 +12,22 @@
     <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
     <title>Lantaw-Marbel Resort</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-    <body>
-<div id="layout">
-    @include('components.receptionist_sidebar')
-    <div id="main-layout">
-        <div id="layout-header">
-            <h1 id="h2">Menu Items</h1>
-            <div class="button-group">
-                <div class="search-container">
-                    <div id="add-container">
-                        <i id="add-menu" class="fa-solid fa-burger fa-2x"></i>
-                        <small>View Orders</small>
-                    </div>
-                    <form action="{{ route('receptionist.search_menu') }}" method="GET">
-                        <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
-                        <button type="submit"><i class="fa fa-search"></i></button>
-                        @if(request()->has('search') && request('search') !== '')
-                            <a href="{{ route('receptionist.search_menu') }}" class="reset-btn">Clear Search</a>
-                        @endif
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="navbar">
-            <div class="navbar-item" data-filter="All"><h3>All</h3></div>
-            @foreach($uniqueMenuTypes as $menutypes)
-                <div class="navbar-item" data-filter="{{ $menutypes}}">
-                    <h3>{{$menutypes}}</h3>
-                </div>
-            @endforeach
-        </div>
-
-        <div class='menu-contianer'>
-            @foreach($menu as $menuitem)
-                <div class="menu-card" data-id="{{ $menuitem->menuID }}" data-type="{{ $menuitem->itemtype }}" data-price="{{ $menuitem->price }}" data-name="{{ $menuitem->menuname }}">
-                    <div id="img-container">
-                        <img src="{{asset('storage/' . $menuitem->image)}}">
-                    </div>
-                    <div id="menu-details">
-                        <h2>Name: {{$menuitem->menuname}}</h2>
-                        <h2>Type: {{$menuitem->itemtype}}</h2>
-                        <h2>Price: ₱ {{$menuitem->price}}</h2>
-                        <hr/>
-                        <div id="manage-container">
-                            <h2>Add Item</h2>
-                            <div class="amount-wrapper">
-                                <button class="amount-btn sub"><i class="fas fa-circle-minus fa-lg"></i></button>
-                                <h3>0</h3>
-                                <button class="amount-btn add"><i class="fas fa-plus-circle fa-lg"></i></button>
-                            </div>
-                        </div>
-                        <div class="drop-down">
-                            <div data-url="{{url('manager/edit_menu/' . $menuitem->menuID)}}">
-                                <h2>Update</h2>
-                                <i class="fa-solid fa-pencil fa-lg"></i>
-                            </div>
-                            @if($menuitem->status == 'Available')
-                                <div data-url="{{url('manager/deactivate_menu/' . $menuitem->menuID)}}">
-                                    <h2>Deactivate</h2>
-                                    <i class="fa-solid fa-times-circle fa-lg" style="color:red;"></i>
-                                </div>
-                            @else
-                                <div data-url="{{url('manager/activate_menu/' . $menuitem->menuID)}}">
-                                    <h2>Activate</h2>
-                                    <i class="fas fa-circle fa-lg" style="color:green;"></i>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
-        <div class="order-receipt">
-            <h2>Order Details</h2>
-            <strong>Selected Items</strong>
-            <div class="selected-items">
-                <p>No items selected</p>
-            </div>
-            <div class="order-button">
-                <button id="btn-clear" type="button">Clear All</button>
-                <button id="orderBtn" type="button">Place Order</button>
-            </div>
-        </div>
-
-        <div id="orderModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Enter Booking Information</h2>
-                <form id="orderForm" action="{{route('receptionist.submitorder')}}" method="POST">
-                    @csrf
-                    <label for="firstname">First Name</label>
-                    <input type="text" id="firstname" name="firstname" required>
-                    <label for="lastname">Last Name</label>
-                    <input type="text" id="lastname" name="lastname" required>
-                    <div id="bookingInputContainer"></div>
-                    <div id="orderSummary">
-                        <h3>Order Summary</h3>
-                        <div id="orderItems"></div>
-                        <div id="orderTotal"></div>
-                    </div>
-                    <button type="submit">Confirm Order</button>
-                </form>
-            </div>
-        </div>
-
-        @if(session('success'))
-            <div class="alert-message"><h2>{{ session('success') }}</h2></div>
-        @endif
-        @if(session('error'))
-            <div class="alert-message"><h2>{{ session('error') }}</h2></div>
-        @endif
-    </div>
-</div>
-</body>
-</body>
 <style>
-    #menu{color:#F78A21;}   
-    #layout{
+    *{box-sizing:border-box;}
+    #layout {
         display: flex;
-        flex-direction: row;
-        height:100vh;
-    }
-    #main-layout{
-        display:flex;
         flex-direction: column;
-        padding:1rem;
+        height: 100vh;
         width:100%;
-        transition: width 0.3s ease-in-out;
-        margin-left:12rem;
+        overflow:hidden;
+        padding:.5rem;
     }
-     #layout-header {
+    #layout-header {
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -154,313 +42,115 @@
         box-shadow: .1rem .1rem 0 black;
         gap: 1rem;
     }
-    .search-container .reset-btn {
-        padding: 10px 15px;
-        background-color: #e53935;
-        color: white;
-        text-decoration: none;
-        border-radius: 25px;
-        margin-left: 10px;
-        transition: background-color 0.3s ease;
-        font-size: 14px;
-    }
-
-    .search-container .reset-btn:hover {
-        background-color: #b71c1c;
-    }
-
-    .button-group {
+    .table-container {
         display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    #add-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        color: #333;
-        transition: color 0.3s ease;
-        font-size:.8rem;
-    }
-    #add-container:hover {
-        color: #F78A21;
-    }
-    #add-text {
-        opacity: 1;
-        visibility: visible;
-        width: auto;
-        margin-left: 0.5rem;
-    }
-
-    .search-container {
-        display: flex;
-        justify-content: center;
-        align-content: center;
-        margin: 15px 0;
-    }
-
-    .search-container form {
-        display: flex;
-        align-items: center;
-    }
-
-    .search-container input[type="text"] {
-        padding: 10px 15px;
-        border: 1px solid #ccc;
-        border-radius: 25px 0 0 25px;
-        outline: none;
-        width: 250px;
-        font-size: 14px;
-    }
-
-    .search-container button {
-        padding: 10px 15px;
-        border-left: none;
-        background-color: #000000;
-        color: white;
-        border-radius: 0 25px 25px 0;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-    .search-container button:hover {
-        background-color: #F78A21;
-        border: 1px solid #F78A21;
-    }
-    .navbar{
-        display:flex;
         flex-direction: row;
-        width:100%;
-        height: 3rem;
-        gap:1rem;
-        padding:1rem;
-        justify-content:center;
-        align-items:center;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .navbar-item{
-        display: flex;
-        height:2rem;    
-        width:5rem;
-        background:#ffffff;
-        border-radius:.4rem;
-        border:1px solid black;
-        font-size:.7rem;
-        align-items:center;
-        justify-content:center;
-        box-shadow:.1rem .1rem 0 black;
-        transition:all .3s ease;
-    }
-    .navbar-item:hover{
-        background:rgb(53, 53, 53);
-        color:white;
-        cursor:pointer;
-    }
-    .menu-contianer{
-        display:flex;
-        flex-direction:row;
-        flex-wrap: wrap;
-        gap:1rem;
-        padding:1rem;
-        width:100%;
-        height: 100%;
-        overflow-y: auto;
-        justify-content:center;
-    }
-    #manage-container{
-        display:flex;
-        flex-direction:column;
-        width:100%;
-        height:3rem;
-        justify-content: space-evenly;
-        margin-top:auto;
-        bottom:1;
-    }
-    .amount-wrapper{
-        display: flex;
-        height:100%;
-        width:100%;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        padding:.5rem;
-        font-size:.9rem;
-    }
-    .amount-btn {
-        border-radius: 50%;
-        background: none;
-        color: black;
-        width: 35px;
-        height: 35px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: none;
-        cursor: pointer;
-        transition: all .2s ease;
-    }
-    .amount-btn:hover{
-        color:orange;
-        cursor:pointer;
-        transform:scale(1.2);
-    }
-    .menu-card{
-        height:15rem;
-        width:10rem;
-        display:flex;
-        flex-direction:column;
-        background:white;
-        border-radius:.5rem;
+        width: 100%;
+        height: auto;
         padding: .5rem;
-        font-size:.4rem;
-        box-shadow: .1rem .1rem 0 black;
-        border:solid 1px black;
-    }
-    .menu-card img{
-        height:40%;
-        width:100%;
-        border-top-right-radius:1rem;
-        border-top-left-radius:1rem;
-        object-fit:cover;
-    }
-    .drop-down{
-        display:none;
-        flex-direction:column;
-        width:10rem;
-        position: absolute;
-        background:rgb(182, 182, 182);
-        padding:.5rem;
-        z-index: 1;
-        gap:.5rem;
-        border-radius:.5rem;
+        border-radius: .7rem;
+        margin-top: 1rem;
         align-items: center;
-        justify-content: center;
-        margin-left:4rem;
+        background: white;
+        box-shadow: .1rem .1rem 0 black;
+        overflow-x: auto;
     }
-    .drop-down div{
+    #order-table {
+        width: 100%;
+        font-size: .7rem;
+        border-collapse: collapse;
+        transition: all 0.3s ease-in;
+    }
+    #order-table th, 
+    #order-table td {
+        padding: 10px;
+        text-align: center;
+    }
+    #order-table th {
+        background-color: #F78A21;
+        color: #fff;
+    }
+    #order-table img {
+        border-radius: 50%;
+        object-fit: contain;
+        width: 40px;
+        height: 40px;
+        display: block;
+        margin: 0 auto;
+    }
+
+    #page-container {
         display: flex;
         flex-direction: row;
-        width:100%;
         align-items: center;
-        justify-content: space-evenly;
-        background: white;
-        border-radius:.5rem;
-        cursor:pointer;
-        transition:all .3s ease;
-    }
-    .drop-down div:hover{
-        background:grey;
-        color:white;
-    }
-    .navbar-item.active {
-        background-color: rgb(150, 55, 0); 
-        color: white;
-    }
-    .order-receipt{
-        display: none;
-        flex-direction: column;
-        height:100%;
-        width:15rem;
-        position:absolute;
-        background:white;
-        border-radius:.5rem;
-        border:1px solid black;
-        right:1;
-        margin-left:auto;
-        align-items: center;
-        padding:.5rem;
-    }
-    .selected-items{
-        width:100%;
-        display:flex;
-        flex-direction: column;
-        align-items:start;
-        justify-content: space-between;
-    }
-    .order-button{
-        display:flex;
-        flex-direction: row;
-        width:100%;
-        gap:.5rem;
-        margin-top:auto;
-        bottom:1rem;
-        z-index:999;
-        align-items:center;
         justify-content: center;
-        height:3rem;
+        margin-top: 1rem;
     }
-    .order-button button{
-        height:2rem;
-        width:5rem;
-        background:black;
-        color:white;
-        border-radius:.5rem;
-        border:1px solid black;
-        box-shadow:.1rem .1rem 0 black;
-        transition:all .2s ease;
-    }
-    .order-button #submit{
-        background:orange;
-        color:black;
-    }
-    .order-button button:hover{
-        transform:scale(1.1);
-        cursor:pointer
-    }
-
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.6);
-        justify-content: center;
+    .pagination {
+        display: flex;
+        gap: 0.5rem;
+        list-style: none;
+        padding: 0;
+        background: transparent;
         align-items: center;
     }
-
-    .modal-content {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        width: 400px;
-        max-width: 90%;
-        box-shadow: 1px 1px 0 rgba(0,0,0);
-        position: relative;
+    .page-item {
+        display: flex;
+        align-items: center;
     }
-
-    .close {
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        font-size: 24px;
-        cursor: pointer;
+    .page-link, .pagination span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2.5rem;
+        min-height: 2.5rem;
+        padding: 0.5rem 0.75rem;
+        background: #fff;
+        color: #F78A21;
+        text-decoration: none;
+        border: 1.5px solid #F78A21;
+        border-radius: 50%;
+        font-size: 1.1rem;
+        font-weight: 500;
+        transition: background 0.2s, color 0.2s, border 0.2s;
+        margin: 0 0.15rem;
     }
-    .modal-content input, 
-    .modal-content select, 
-    .modal-content button {
-        width: 100%;
-        padding: 8px;
-        margin: 6px 0;
-        border-radius: 6px;
-        border: 1px solid #ccc;
+    .page-item.active .page-link,
+    .page-link:hover {
+        background: #F78A21;
+        color: #fff;
+        border-color: #F78A21;
     }
-    .modal-content button {
-        background: #28a745;
-        color: white;
+    .page-item.disabled .page-link,
+    .page-item.disabled span {
+        color: #ccc;
+        pointer-events: none;
+        background: #f8f9fa;
+        border-color: #eee;
+    }
+    .page-item.disabled { 
+        display: none !important; 
+    }
+    .pagination .page-status {
+        background: transparent;
         border: none;
-        cursor: pointer;
+        color: #333;
+        font-size: 1rem;
+        font-weight: 400;
+        border-radius: 0;
+        min-width: unset;
+        min-height: unset;
+        margin: 0 0.5rem;
+        padding: 0;
     }
-    .modal-content button:hover {
-        background: #218838;
+
+    .even-row {
+        background-color: #e2e2e2;
     }
-.alert-message{
+    .odd-row {
+        background-color: #ffffff;
+    }
+    .alert-message{
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -486,145 +176,72 @@
         word-wrap: break-word;
     }
 </style>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const receipt = document.querySelector('.order-receipt');
-    const selectedItemsContainer = document.querySelector('.selected-items');
-    const addContainer = document.getElementById('add-container');
-    const orderBtn = document.getElementById('orderBtn');
-    const btnClear = document.getElementById('btn-clear');
-    const modal = document.getElementById('orderModal');
-    const closeBtn = document.querySelector('.close');
-    const orderForm = document.getElementById('orderForm');
-    const orderItemsContainer = document.getElementById('orderItems');
-    const orderTotalContainer = document.getElementById('orderTotal');
-    const bookingInputContainer = document.getElementById('bookingInputContainer');
-
-    let cart = {};
-
-    addContainer.addEventListener('click', () => {
-        receipt.style.display = receipt.style.display === 'flex' ? 'none' : 'flex';
-    });
-
-    function updateReceipt() {
-        selectedItemsContainer.innerHTML = '';
-        if (Object.keys(cart).length === 0) {
-            selectedItemsContainer.innerHTML = '<p>No items selected</p>';
-            return;
-        }
-        let grandTotal = 0;
-        Object.values(cart).forEach(item => {
-            const subtotal = item.price * item.quantity;
-            grandTotal += subtotal;
-            const div = document.createElement('div');
-            div.classList.add('receipt-item');
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; width:100%;">
-                    <span><strong>${item.name}</strong></span>
-                    <span>x${item.quantity}</span>
-                    <span>₱${subtotal.toFixed(2)}</span>
+<body>
+    <div id="layout">
+        <div id="layout-header">
+            <h2>Welcome Kitchen Staff</h2>
+            <h3 id="out" data-url="{{route('logout')}}">Log Out</h3>
+        </div>
+        <div class="table-container">
+            <table id="order-table">
+                <thead>
+                    <th>#</th>
+                    <th>Full Name</th>
+                    <th>Order Quantity</th>
+                    <th>Item Name</th>
+                    <th>Order Total</th>
+                    <th>Order Status</th>
+                    <th>Action</th>
+                </thead>
+                <tbody>
+                    @foreach ($orders as $index => $order)
+                        <tr>
+                            <td>{{ $orders->firstItem() + $index }}</td>
+                            <td>{{ $order->firstname }} {{ $order->lastname }}</td>
+                            <td>{{ $order->menuname }}</td>
+                            <td>{{ $order->quantity }}</td>
+                            <td>₱{{ number_format($order->total, 2) }}</td>
+                            <td>{{ ucfirst($order->status) }}</td>
+                            <td>
+                                @if ($order->status === 'pending')
+                                    <form action="{{ route('orders.prepare', $order->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit">Mark as Preparing</button>
+                                    </form>
+                                @else
+                                    <span>{{ $order->status }}</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            @if (session('success'))
+                <div class="alert-message">
+                    <h2>{{ session('success') }}</h2>
                 </div>
-            `;
-            selectedItemsContainer.appendChild(div);
-        });
-        const totalDiv = document.createElement('div');
-        totalDiv.innerHTML = `
-            <hr>
-            <div style="display:flex; justify-content:space-between; font-weight:bold; width:100%;">
-                <span>Total:</span>
-                <span>₱${grandTotal.toFixed(2)}</span>
+            @endif
+        </div>
+        <div>
+            <div class="pagination">
+                {{ $orders->links() }}
             </div>
-        `;
-        selectedItemsContainer.appendChild(totalDiv);
+        </div>
+    </div>
+
+</body>
+<script>
+    const message = document.querySelector('.alert-message');
+    if (message) {
+        setTimeout(() => {
+            message.style.display = 'none';
+        }, 3500);
     }
-
-    document.querySelectorAll('.menu-card').forEach(card => {
-        const addBtn = card.querySelector('.amount-btn.add');
-        const subBtn = card.querySelector('.amount-btn.sub');
-        const counter = card.querySelector('.amount-wrapper h3');
-        const menuID = card.getAttribute('data-id');
-        const menuName = card.getAttribute('data-name');
-        const menuPrice = parseFloat(card.getAttribute('data-price'));
-        let count = 0;
-
-        addBtn.addEventListener('click', () => {
-            count++;
-            counter.textContent = count;
-            cart[menuID] = { id: menuID, name: menuName, price: menuPrice, quantity: count };
-            updateReceipt();
-        });
-
-        subBtn.addEventListener('click', () => {
-            if (count > 0) {
-                count--;
-                counter.textContent = count;
-                if (count === 0) {
-                    delete cart[menuID];
-                } else {
-                    cart[menuID].quantity = count;
-                }
-                updateReceipt();
-            }
-        });
-    });
-
-    btnClear.addEventListener('click', () => {
-        cart = {};
-        document.querySelectorAll('.menu-card h3').forEach(h3 => h3.textContent = 0);
-        updateReceipt();
-    });
-
-    orderBtn.addEventListener('click', () => {
-        orderItemsContainer.innerHTML = '';
-        orderTotalContainer.innerHTML = '';
-        bookingInputContainer.innerHTML = '';
-        if (Object.keys(cart).length === 0) {
-            orderItemsContainer.innerHTML = "<p>No items selected</p>";
-        } else {
-            let grandTotal = 0;
-            Object.values(cart).forEach(item => {
-                const subtotal = item.price * item.quantity;
-                grandTotal += subtotal;
-                const div = document.createElement('div');
-                div.classList.add('modal-order-item');
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; width:100%;">
-                        <span>${item.name} (x${item.quantity})</span>
-                        <span>₱${subtotal.toFixed(2)}</span>
-                    </div>
-                    <small>₱${item.price.toFixed(2)} each</small>
-                `;
-                orderItemsContainer.appendChild(div);
-
-                const hiddenId = document.createElement('input');
-                hiddenId.type = 'hidden';
-                hiddenId.name = 'order[]';
-                hiddenId.value = item.id;
-                bookingInputContainer.appendChild(hiddenId);
-
-                const hiddenQty = document.createElement('input');
-                hiddenQty.type = 'hidden';
-                hiddenQty.name = 'quantity[]';
-                hiddenQty.value = item.quantity;
-                bookingInputContainer.appendChild(hiddenQty);
-            });
-            orderTotalContainer.innerHTML = `
-                <hr>
-                <div style="display:flex; justify-content:space-between; font-weight:bold; width:100%;">
-                    <span>Total:</span>
-                    <span>₱${grandTotal.toFixed(2)}</span>
-                </div>
-            `;
+    
+   document.getElementById('out').addEventListener('click', function() {
+        const url = this.dataset.url;  
+        if (url) {
+            window.location.href = url;
         }
-        modal.style.display = 'flex';
     });
-
-    closeBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
-    });
-});
 </script>
