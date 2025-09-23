@@ -8,137 +8,121 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 </head>
 <body>
-    <div id="layout">
-        @include('components.receptionist_sidebar')
-        <div id="main-layout">
-            <div id="layout-header">
-                <h1 id="h2">Menu Items</h1>
-                <div class="button-group">
-                    <div class="search-container">
-                        <div id="add-container">
-                            <i id="add-menu" class="fa-solid fa-burger fa-2x" style="cursor:pointer;"></i>
-                            <small>View Orders</small>
-                        </div>
-                        <form action="{{ route('receptionist.search_menu') }}" method="GET">
-                            <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
-                            <button type="submit">
-                                <i class="fa fa-search"></i>
-                            </button>
-                            @if(request()->has('search') && request('search') !== '')
-                                <a href="{{ route('receptionist.search_menu') }}" class="reset-btn">Clear Search</a>
-                            @endif
-                        </form>
+    <body>
+<div id="layout">
+    @include('components.receptionist_sidebar')
+    <div id="main-layout">
+        <div id="layout-header">
+            <h1 id="h2">Menu Items</h1>
+            <div class="button-group">
+                <div class="search-container">
+                    <div id="add-container">
+                        <i id="add-menu" class="fa-solid fa-burger fa-2x"></i>
+                        <small>View Orders</small>
                     </div>
-                </div>
-                
-                
-            </div>
-            <div class="navbar">
-                <div class="navbar-item" data-filter="All"><h3>All</h3></div>
-                @foreach($uniqueMenuTypes as $menutypes)
-                    <div class="navbar-item" data-filter="{{ $menutypes}}">
-                        <h3>{{$menutypes}}</h3>
-                    </div>
-                @endforeach
-            </div>
-            <div class='menu-contianer'>
-                @foreach($menu as $menuitem)
-                    <div class="menu-card" data-type="{{ $menuitem->itemtype }}" data-price="{{ $menuitem->price}}" data-name="{{ $menuitem->menuname}}">
-                        <div id="img-container">
-                            <img src="{{asset('storage/' . $menuitem->image)}}">
-                        </div>
-                        <div id="menu-details">
-                            <h2>Name: {{$menuitem->menuname}}</h2>
-                            <h2>Type: {{$menuitem->itemtype}}</h2>
-                            <h2>Price: ₱ {{$menuitem->price}}</h2>
-                            <hr/>
-                            <div id="manage-container">
-                                <h2>Add Item</h2>
-                                <div class="amount-wrapper">
-                                    <button class="amount-btn sub"><i class="fas fa-circle-minus fa-lg"></i></button>
-                                    <h3>0</h3>
-                                    <button class="amount-btn add"><i class="fas fa-plus-circle fa-lg"></i></button>
-                                </div>
-                            </div>
-                            <div class="drop-down">
-                                <div data-url="{{url('manager/edit_menu/' . $menuitem->menuID)}}">
-                                    <h2>Update</h2>
-                                    <i class="fa-solid fa-pencil fa-lg"></i>
-                                </div>
-                                @if($menuitem->status == 'Available')
-                                    <div data-url="{{url('manager/deactivate_menu/' . $menuitem->menuID)}}">
-                                        <h2>Deactivate</h2>
-                                        <i class="fa-solid fa-times-circle fa-lg" style="color:red;"></i>
-                                    </div>
-                                @else 
-                                    <div data-url="{{url('manager/activate_menu/' . $menuitem->menuID)}}">
-                                        <h2>Activate</h2>
-                                        <i class="fas fa-circle fa-lg" style="color:green;"></i>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-
-            <div class="order-receipt">
-                <h2>Order Details</h2>
-
-                <strong>Selected Items</strong>
-
-                <div class="selected-items">
-                    <strong>Dish 1</strong> 
-                    <p>Price</p>
-                </div>
-
-                <div class="order-button">
-                    <button id="btn-clear" type="reset">Clear All</button>
-                    <button id="orderBtn" type="button">Place Order</button>
-                </div>
-                
-            </div>
-
-
-            <div id="orderModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h2>Enter Booking Information</h2>
-                    <form id="orderForm" action="{{url('receptionist.submitorder')}}">
-                        @csrf
-                        <label for="firstname">First Name</label>
-                        <input type="text" id="firstname" name="firstname" required>
-
-                        <label for="lastname">Last Name</label>
-                        <input type="text" id="lastname" name="lastname" required>
-
-                        <label for="bookingType">Booking Type</label>
-                        <select id="bookingType" name="bookingType" required>
-                            <option value="">-- Select --</option>
-                            <option value="room">Room Number</option>
-                            <option value="cottage">Cottage</option>
-                            <option value="amenity">Amenity</option>
-                        </select>
-
-                        <div id="bookingInputContainer"></div>
-
-                        <button type="submit">Confirm Order</button>
+                    <form action="{{ route('receptionist.search_menu') }}" method="GET">
+                        <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
+                        <button type="submit"><i class="fa fa-search"></i></button>
+                        @if(request()->has('search') && request('search') !== '')
+                            <a href="{{ route('receptionist.search_menu') }}" class="reset-btn">Clear Search</a>
+                        @endif
                     </form>
                 </div>
-
-            @if(session('success'))
-                <div class="alert-message">
-                    <h2>{{ session('success') }}</h2>
-                </div>
-            @endif
-
-        @if (session('error'))
-            <div class="alert-message">
-                <h2>{{ session('error') }}</h2>
-           </div>
-        @endif
+            </div>
         </div>
+
+        <div class="navbar">
+            <div class="navbar-item" data-filter="All"><h3>All</h3></div>
+            @foreach($uniqueMenuTypes as $menutypes)
+                <div class="navbar-item" data-filter="{{ $menutypes}}">
+                    <h3>{{$menutypes}}</h3>
+                </div>
+            @endforeach
+        </div>
+
+        <div class='menu-contianer'>
+            @foreach($menu as $menuitem)
+                <div class="menu-card" data-id="{{ $menuitem->menuID }}" data-type="{{ $menuitem->itemtype }}" data-price="{{ $menuitem->price }}" data-name="{{ $menuitem->menuname }}">
+                    <div id="img-container">
+                        <img src="{{asset('storage/' . $menuitem->image)}}">
+                    </div>
+                    <div id="menu-details">
+                        <h2>Name: {{$menuitem->menuname}}</h2>
+                        <h2>Type: {{$menuitem->itemtype}}</h2>
+                        <h2>Price: ₱ {{$menuitem->price}}</h2>
+                        <hr/>
+                        <div id="manage-container">
+                            <h2>Add Item</h2>
+                            <div class="amount-wrapper">
+                                <button class="amount-btn sub"><i class="fas fa-circle-minus fa-lg"></i></button>
+                                <h3>0</h3>
+                                <button class="amount-btn add"><i class="fas fa-plus-circle fa-lg"></i></button>
+                            </div>
+                        </div>
+                        <div class="drop-down">
+                            <div data-url="{{url('manager/edit_menu/' . $menuitem->menuID)}}">
+                                <h2>Update</h2>
+                                <i class="fa-solid fa-pencil fa-lg"></i>
+                            </div>
+                            @if($menuitem->status == 'Available')
+                                <div data-url="{{url('manager/deactivate_menu/' . $menuitem->menuID)}}">
+                                    <h2>Deactivate</h2>
+                                    <i class="fa-solid fa-times-circle fa-lg" style="color:red;"></i>
+                                </div>
+                            @else
+                                <div data-url="{{url('manager/activate_menu/' . $menuitem->menuID)}}">
+                                    <h2>Activate</h2>
+                                    <i class="fas fa-circle fa-lg" style="color:green;"></i>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="order-receipt">
+            <h2>Order Details</h2>
+            <strong>Selected Items</strong>
+            <div class="selected-items">
+                <p>No items selected</p>
+            </div>
+            <div class="order-button">
+                <button id="btn-clear" type="button">Clear All</button>
+                <button id="orderBtn" type="button">Place Order</button>
+            </div>
+        </div>
+
+        <div id="orderModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Enter Booking Information</h2>
+                <form id="orderForm" action="{{route('receptionist.submitorder')}}" method="POST">
+                    @csrf
+                    <label for="firstname">First Name</label>
+                    <input type="text" id="firstname" name="firstname" required>
+                    <label for="lastname">Last Name</label>
+                    <input type="text" id="lastname" name="lastname" required>
+                    <div id="bookingInputContainer"></div>
+                    <div id="orderSummary">
+                        <h3>Order Summary</h3>
+                        <div id="orderItems"></div>
+                        <div id="orderTotal"></div>
+                    </div>
+                    <button type="submit">Confirm Order</button>
+                </form>
+            </div>
+        </div>
+
+        @if(session('success'))
+            <div class="alert-message"><h2>{{ session('success') }}</h2></div>
+        @endif
+        @if(session('error'))
+            <div class="alert-message"><h2>{{ session('error') }}</h2></div>
+        @endif
     </div>
+</div>
+</body>
 </body>
 <style>
     #menu{color:#F78A21;}   
@@ -503,68 +487,50 @@
     }
 </style>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const filterButtons = document.querySelectorAll('.navbar-item');
-    const menuCards = document.querySelectorAll('.menu-card');
-    const message = document.querySelector('.alert-message');
+document.addEventListener('DOMContentLoaded', () => {
     const receipt = document.querySelector('.order-receipt');
     const selectedItemsContainer = document.querySelector('.selected-items');
     const addContainer = document.getElementById('add-container');
+    const orderBtn = document.getElementById('orderBtn');
+    const btnClear = document.getElementById('btn-clear');
+    const modal = document.getElementById('orderModal');
+    const closeBtn = document.querySelector('.close');
+    const orderForm = document.getElementById('orderForm');
+    const orderItemsContainer = document.getElementById('orderItems');
+    const orderTotalContainer = document.getElementById('orderTotal');
+    const bookingInputContainer = document.getElementById('bookingInputContainer');
 
-    // Store cart data
     let cart = {};
 
-    // Toggle receipt visibility when clicking the "View Orders" container
-    if (addContainer && receipt) {
-        addContainer.addEventListener('click', function () {
-            if (receipt.style.display === 'none' || receipt.style.display === '') {
-                receipt.style.display = 'flex';
-            } else {
-                receipt.style.display = 'none';
-            }
-        });
-    }
+    addContainer.addEventListener('click', () => {
+        receipt.style.display = receipt.style.display === 'flex' ? 'none' : 'flex';
+    });
 
-    // Auto-hide message alert
-    if (message) {
-        setTimeout(() => {
-            message.style.display = 'none';
-        }, 2500);
-    }
-
-    // Update receipt UI
     function updateReceipt() {
-        selectedItemsContainer.innerHTML = ''; // Clear old items
-
+        selectedItemsContainer.innerHTML = '';
         if (Object.keys(cart).length === 0) {
             selectedItemsContainer.innerHTML = '<p>No items selected</p>';
             return;
         }
-
         let grandTotal = 0;
-
         Object.values(cart).forEach(item => {
             const subtotal = item.price * item.quantity;
             grandTotal += subtotal;
-
             const div = document.createElement('div');
             div.classList.add('receipt-item');
             div.innerHTML = `
-                <div class="flex justify-between">
-                    <span><strong>${item.name}</strong> </span> <span>x${item.quantity}</span>
+                <div style="display:flex; justify-content:space-between; width:100%;">
+                    <span><strong>${item.name}</strong></span>
+                    <span>x${item.quantity}</span>
                     <span>₱${subtotal.toFixed(2)}</span>
                 </div>
-                <small>₱${item.price.toFixed(2)} each</small>
             `;
             selectedItemsContainer.appendChild(div);
         });
-
-        // Append grand total
         const totalDiv = document.createElement('div');
-        totalDiv.classList.add('receipt-total');
         totalDiv.innerHTML = `
             <hr>
-            <div class="flex justify-between font-bold" style="width:100%">
+            <div style="display:flex; justify-content:space-between; font-weight:bold; width:100%;">
                 <span>Total:</span>
                 <span>₱${grandTotal.toFixed(2)}</span>
             </div>
@@ -572,128 +538,93 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedItemsContainer.appendChild(totalDiv);
     }
 
-    // Filter menu items
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const filter = this.getAttribute('data-filter');
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-
-            menuCards.forEach(card => {
-                const type = card.getAttribute('data-type');
-                card.style.display = (filter === 'All' || filter === type) ? 'block' : 'none';
-            });
-        });
-    });
-
-    // Add/Subtract menu item
     document.querySelectorAll('.menu-card').forEach(card => {
         const addBtn = card.querySelector('.amount-btn.add');
         const subBtn = card.querySelector('.amount-btn.sub');
         const counter = card.querySelector('.amount-wrapper h3');
-
-        const menuID = card.getAttribute('data-id') || card.dataset.type + Math.random();
-        const menuName = card.querySelector('#menu-details h2').textContent || 'Unnamed Item';
-        const menuPrice = parseFloat(card.getAttribute('data-price')) || 0;
-
+        const menuID = card.getAttribute('data-id');
+        const menuName = card.getAttribute('data-name');
+        const menuPrice = parseFloat(card.getAttribute('data-price'));
         let count = 0;
 
-        if (addBtn) {
-            addBtn.addEventListener('click', function () {
-                count++;
+        addBtn.addEventListener('click', () => {
+            count++;
+            counter.textContent = count;
+            cart[menuID] = { id: menuID, name: menuName, price: menuPrice, quantity: count };
+            updateReceipt();
+        });
+
+        subBtn.addEventListener('click', () => {
+            if (count > 0) {
+                count--;
                 counter.textContent = count;
-
-                cart[menuID] = {
-                    id: menuID,
-                    name: menuName,
-                    price: menuPrice,
-                    quantity: count
-                };
-                updateReceipt();
-            });
-        }
-
-        if (subBtn) {
-            subBtn.addEventListener('click', function () {
-                if (count > 0) {
-                    count--;
-                    counter.textContent = count;
-
-                    if (count === 0) {
-                        delete cart[menuID];
-                    } else {
-                        cart[menuID].quantity = count;
-                    }
-                    updateReceipt();
+                if (count === 0) {
+                    delete cart[menuID];
+                } else {
+                    cart[menuID].quantity = count;
                 }
-            });
-        }
-    });
-
-    // Initialize empty receipt
-    updateReceipt();
-
-    function closeReceipt() {
-        receipt.style.display = "none";
-    }
-
-    document.addEventListener("click", function (event) {
-        if (receipt.style.display === "block" || receipt.style.display === "flex") {
-            // Check if the click happened outside the receipt
-            if (!receipt.contains(event.target) && !event.target.closest("#add-menu")) {
-                closeReceipt();
+                updateReceipt();
             }
+        });
+    });
+
+    btnClear.addEventListener('click', () => {
+        cart = {};
+        document.querySelectorAll('.menu-card h3').forEach(h3 => h3.textContent = 0);
+        updateReceipt();
+    });
+
+    orderBtn.addEventListener('click', () => {
+        orderItemsContainer.innerHTML = '';
+        orderTotalContainer.innerHTML = '';
+        bookingInputContainer.innerHTML = '';
+        if (Object.keys(cart).length === 0) {
+            orderItemsContainer.innerHTML = "<p>No items selected</p>";
+        } else {
+            let grandTotal = 0;
+            Object.values(cart).forEach(item => {
+                const subtotal = item.price * item.quantity;
+                grandTotal += subtotal;
+                const div = document.createElement('div');
+                div.classList.add('modal-order-item');
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; width:100%;">
+                        <span>${item.name} (x${item.quantity})</span>
+                        <span>₱${subtotal.toFixed(2)}</span>
+                    </div>
+                    <small>₱${item.price.toFixed(2)} each</small>
+                `;
+                orderItemsContainer.appendChild(div);
+
+                const hiddenId = document.createElement('input');
+                hiddenId.type = 'hidden';
+                hiddenId.name = 'order[]';
+                hiddenId.value = item.id;
+                bookingInputContainer.appendChild(hiddenId);
+
+                const hiddenQty = document.createElement('input');
+                hiddenQty.type = 'hidden';
+                hiddenQty.name = 'quantity[]';
+                hiddenQty.value = item.quantity;
+                bookingInputContainer.appendChild(hiddenQty);
+            });
+            orderTotalContainer.innerHTML = `
+                <hr>
+                <div style="display:flex; justify-content:space-between; font-weight:bold; width:100%;">
+                    <span>Total:</span>
+                    <span>₱${grandTotal.toFixed(2)}</span>
+                </div>
+            `;
         }
+        modal.style.display = 'flex';
     });
 
-    const modal = document.getElementById("orderModal");
-    const orderBtn = document.getElementById("orderBtn");
-    const closeBtn = document.querySelector(".close");
-    const bookingType = document.getElementById("bookingType");
-    const bookingInputContainer = document.getElementById("bookingInputContainer");
-
-    // Show modal when Order is pressed
-    orderBtn.addEventListener("click", () => {
-        modal.style.display = "flex";
+    closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
     });
 
-    // Close modal
-    closeBtn.addEventListener("click", () => {
-        modal.style.display = "none";
-    });
-
-    // Close if clicked outside
-    window.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.style.display = "none";
-        }
-    });
-
-    // Change input based on booking type
-    bookingType.addEventListener("change", function() {
-        let inputHTML = "";
-        if (this.value === "room") {
-            inputHTML = `<label for="roomNumber">Room Number</label>
-                        <input type="text" id="roomNumber" name="roomNumber" required>`;
-        } else if (this.value === "cottage") {
-            inputHTML = `<label for="cottage">Cottage</label>
-                        <input type="text" id="cottage" name="cottage" required>`;
-        } else if (this.value === "amenity") {
-            inputHTML = `<label for="amenity">Amenity</label>
-                        <input type="text" id="amenity" name="amenity" required>`;
-        }
-        bookingInputContainer.innerHTML = inputHTML;
-    });
-
-    // Handle form submit
-    document.getElementById("orderForm").addEventListener("submit", function(e) {
-        e.preventDefault();
-        modal.style.display = "none";
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
     });
 });
 </script>
-
-
-
-
-
