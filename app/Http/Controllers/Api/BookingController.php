@@ -64,45 +64,47 @@ class BookingController extends Controller
         }
     }
 
-    // Normalize request and log
-    private function normalize(Request $request)
-    {
-        $source = $request->input('payload', $request->all());
-        Log::info("🔹 Raw request source", $source);
+   private function normalize(Request $request)
+{
+    $source = $request->input('payload', $request->all());
+    Log::info("🔹 Raw request source", $source);
 
-        $childguest = $source['childGuest'] ?? 0;
-        $adultguest = $source['adultGuest'] ?? 0;
-        $guestamount = $childguest + $adultguest;
+    $childguest = $source['childguest'] ?? 0;
+    $adultguest = $source['adultguest'] ?? 0;
+    $guestamount = $childguest + $adultguest;
 
-        $roomIDs = collect($source['room_bookings'] ?? [])->pluck('roomID')->toArray();
-        $cottageIDs = collect($source['cottage_bookings'] ?? [])->pluck('cottageID')->toArray();
-        $menuIDs = collect($source['menu_bookings'] ?? [])->pluck('menuID')->toArray();
-        $menuQuantities = collect($source['menu_bookings'] ?? [])->pluck('quantity')->toArray();
-        $billing = $source['billing'] ?? null;
-        $payments = $billing['payments'] ?? [];
+    $roomIDs = collect($source['room_bookings'] ?? [])->pluck('roomID')->toArray();
+    $cottageIDs = collect($source['cottage_bookings'] ?? [])->pluck('cottageID')->toArray();
+    $menuIDs = collect($source['menu_bookings'] ?? [])->pluck('menu_id')->toArray();
+    $menuQuantities = collect($source['menu_bookings'] ?? [])->pluck('quantity')->toArray();
 
-        $normalized = [
-            'childguest' => $childguest,
-            'adultguest' => $adultguest,
-            'guestamount'=> $guestamount,
-            'totalprice' => $source['totalPrice'] ?? 0,
-            'bookingstart' => $this->parseDate($source['bookingStart'] ?? null),
-            'bookingend' => $this->parseDate($source['bookingEnd'] ?? null),
-            'roomIDs' => $roomIDs,
-            'cottageIDs' => $cottageIDs,
-            'menuIDs' => $menuIDs,
-            'menuQuantities' => $menuQuantities,
-            'billing' => $billing,
-            'payments' => $payments,
-            'status' => $source['status'] ?? 'Pending',
-            'guestID' => $source['guestID'] ?? null,
-            'amenityID' => $source['amenityID'] ?? null,
-        ];
+    $amenityID = $source['amenity']['amenityID'] ?? null;
 
-        Log::info("🧹 Normalized data", $normalized);
+    $billing = $source['billing'] ?? null;
+    $payments = $billing['payments'] ?? [];
 
-        return $normalized;
-    }
+    $normalized = [
+        'childguest' => $childguest,
+        'adultguest' => $adultguest,
+        'guestamount'=> $guestamount,
+        'totalprice' => $source['totalprice'] ?? 0,
+        'bookingstart' => $this->parseDate($source['bookingstart'] ?? null),
+        'bookingend' => $this->parseDate($source['bookingend'] ?? null),
+        'roomIDs' => $roomIDs,
+        'cottageIDs' => $cottageIDs,
+        'menuIDs' => $menuIDs,
+        'menuQuantities' => $menuQuantities,
+        'billing' => $billing,
+        'payments' => $payments,
+        'status' => $source['status'] ?? 'Pending',
+        'guestID' => $source['guestID'] ?? null,
+        'amenityID' => $amenityID,
+    ];
+
+    Log::info("🧹 Normalized data", $normalized);
+
+    return $normalized;
+}
 
     private function parseDate($date)
     {
