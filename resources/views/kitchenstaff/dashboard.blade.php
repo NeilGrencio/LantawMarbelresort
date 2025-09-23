@@ -186,9 +186,9 @@
             <table id="order-table">
                 <thead>
                     <th>#</th>
-                    <th>Order Ticket</th>
                     <th>Full Name</th>
                     <th>Order Quantity</th>
+                    <th>Item Name</th>
                     <th>Order Total</th>
                     <th>Order Status</th>
                     <th>Action</th>
@@ -197,8 +197,8 @@
                     @foreach ($orders as $index => $order)
                         <tr>
                             <td>{{ $orders->firstItem() + $index }}</td>
-                            <td>{{ $order->ticket_no ?? 'N/A' }}</td>
                             <td>{{ $order->firstname }} {{ $order->lastname }}</td>
+                            <td>{{ $order->menuname }}</td>
                             <td>{{ $order->quantity }}</td>
                             <td>₱{{ number_format($order->total, 2) }}</td>
                             <td>{{ ucfirst($order->status) }}</td>
@@ -216,20 +216,28 @@
                     @endforeach
                 </tbody>
             </table>
-
-            <div class="pagination">
-                {{ $orders->links() }}
-            </div>
             @if (session('success'))
                 <div class="alert-message">
                     <h2>{{ session('success') }}</h2>
                 </div>
             @endif
         </div>
+        <div>
+            <div class="pagination">
+                {{ $orders->links() }}
+            </div>
+        </div>
     </div>
 
 </body>
 <script>
+    const message = document.querySelector('.alert-message');
+    if (message) {
+        setTimeout(() => {
+            message.style.display = 'none';
+        }, 3500);
+    }
+    
    document.getElementById('out').addEventListener('click', function() {
         const url = this.dataset.url;  
         if (url) {
