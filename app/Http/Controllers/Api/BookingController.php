@@ -105,6 +105,7 @@ class BookingController extends Controller
                 'bookingcreated' => now()->format('Y-m-d'),
                 'bookingend'     => $data['bookingend'],
                 'bookingstart'   => $data['bookingstart'],
+                'booking_type'   => $data['bookingtype'],
                 'status'         => $data['status'] ?? 'Pending',
                 'guestID'        => $data['guestID'],
                 'amenityID'      => $data['amenityID']
