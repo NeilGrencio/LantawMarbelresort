@@ -15,6 +15,7 @@ use App\Models\SessionLogTable;
 use App\Models\RoomTable;
 use App\Models\CottageTable;
 use App\Models\FeedbackTable;
+use App\Models\MenuBookingTable;
 
 class DashboardController extends BaseAuthController
 {
@@ -160,6 +161,25 @@ class DashboardController extends BaseAuthController
             'totalRooms', 
             'currentOccupied'
         ));
+    }
+
+    public function kitchenDashboard()
+    {
+    $orders = MenuBookingTable::join('booking', 'menu_bookings.booking_id', '=', 'booking.bookingID')
+        ->join('guest', 'booking.guestID', '=', 'guest.guestID')
+        ->join('menu', 'menu_bookings.menu_id', '=', 'menu.menuID')
+        ->select(
+            'menu_bookings.*',
+            'guest.firstname',
+            'guest.lastname',
+            'menu.menuname',
+            'menu.itemtype',
+            DB::raw('menu_bookings.price * menu_bookings.quantity as total')
+        )
+        ->orderBy('menu_bookings.created_at', 'desc')
+        ->paginate(10);
+
+        return view('kitchenstaff.dashboard', compact('orders'));
     }
 
 }
