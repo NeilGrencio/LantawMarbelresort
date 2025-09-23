@@ -66,28 +66,69 @@ class BookingController extends Controller
     }
 
     // ✅ Normalize request
-    private function normalize(Request $request)
-    {
-        return [
-            'guestamount'      => $request->input('guestamount') ?? $request->input('guestAmount') ?? 0,
-            'childguest'       => $request->input('childguest') ?? $request->input('childGuest') ?? 0,
-            'adultguest'       => $request->input('adultguest') ?? $request->input('adultGuest') ?? 0,
-            'totalprice'       => $request->input('totalprice') ?? $request->input('totalPrice') ?? 0,
-            'bookingstart'     => $request->input('bookingstart') ?? $request->input('bookingStart'),
-            'bookingend'       => $request->input('bookingend') ?? $request->input('bookingEnd'),
-            'status'           => $request->input('status'),
-            'guestID'          => $request->input('guestID'),
-            'amenityID'        => $request->input('amenityID')
-                                    ?? ($request->input('amenity.amenityID')
-                                    ?? optional($request->input('amenity'))['amenityID'] ?? null),
+   private function normalize(Request $request)
+{
+    return [
+        'guestamount'      => $request->input('guestamount')
+                                ?? $request->input('guestAmount')
+                                ?? $request->input('payload.guestamount')
+                                ?? 0,
 
-            // ✅ handle both snake_case and camelCase
-            'roomBookings'     => $request->input('roomBookings') ?? $request->input('room_bookings') ?? [],
-            'cottageBookings'  => $request->input('cottageBookings') ?? $request->input('cottage_bookings') ?? [],
-            'menuBookings'     => $request->input('menuBookings') ?? $request->input('menu_bookings') ?? [],
-            'billing'          => $request->input('billing') ?? null,
-        ];
-    }
+        'childguest'       => $request->input('childguest')
+                                ?? $request->input('childGuest')
+                                ?? $request->input('payload.childguest')
+                                ?? 0,
+
+        'adultguest'       => $request->input('adultguest')
+                                ?? $request->input('adultGuest')
+                                ?? $request->input('payload.adultguest')
+                                ?? 0,
+
+        'totalprice'       => $request->input('totalprice')
+                                ?? $request->input('totalPrice')
+                                ?? $request->input('payload.totalprice')
+                                ?? 0,
+
+        'bookingstart'     => $request->input('bookingstart')
+                                ?? $request->input('bookingStart')
+                                ?? $request->input('payload.bookingstart'),
+
+        'bookingend'       => $request->input('bookingend')
+                                ?? $request->input('bookingEnd')
+                                ?? $request->input('payload.bookingend'),
+
+        'status'           => $request->input('status')
+                                ?? $request->input('payload.status'),
+
+        'guestID'          => $request->input('guestID')
+                                ?? $request->input('payload.guestID'),
+
+        'amenityID'        => $request->input('amenityID')
+                                ?? $request->input('payload.amenity.amenityID')
+                                ?? ($request->input('amenity.amenityID') ?? null),
+
+        // ✅ related collections
+        'roomBookings'     => $request->input('roomBookings')
+                                ?? $request->input('room_bookings')
+                                ?? $request->input('payload.room_bookings')
+                                ?? [],
+
+        'cottageBookings'  => $request->input('cottageBookings')
+                                ?? $request->input('cottage_bookings')
+                                ?? $request->input('payload.cottage_bookings')
+                                ?? [],
+
+        'menuBookings'     => $request->input('menuBookings')
+                                ?? $request->input('menu_bookings')
+                                ?? $request->input('payload.menu_bookings')
+                                ?? [],
+
+        'billing'          => $request->input('billing')
+                                ?? $request->input('payload.billing')
+                                ?? null,
+    ];
+}
+
 
     // ✅ POST create booking
     public function store(Request $request)
