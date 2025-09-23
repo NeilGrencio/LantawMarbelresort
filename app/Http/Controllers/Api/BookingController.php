@@ -69,21 +69,18 @@ class BookingController extends Controller
     {
         $source = $request->input('payload', $request->all());
         return [
-            'guestamount'    => $source['guestamount'] ?? 0,
-            'childguest'     => $source['childguest'] ?? 0,
-            'adultguest'     => $source['adultguest'] ?? 0,
-            'totalprice'     => $source['totalprice'] ?? 0,
-            'bookingstart'   => $this->parseDate($source['bookingstart'] ?? null),
-            'bookingend'     => $this->parseDate($source['bookingend'] ?? null),
-            'status'         => $source['status'] ?? 'Pending',
-            'guestID'        => $source['guestID'] ?? null,
-            'amenityID'      => $source['amenityID'] ?? null,
-            'roomIDs'        => $source['roomIDs'] ?? [],
-            'cottageIDs'     => $source['cottageIDs'] ?? [],
-            'menuIDs'        => $source['menuIDs'] ?? [],
-            'menuQuantities' => $source['menuQuantities'] ?? [],
-            'billing'        => $source['billing'] ?? null,
-            'payments'       => $source['billing']['payments'] ?? []
+            'childguest' => $source['childGuest'] ?? 0,
+            'adultguest' => $source['adultGuest'] ?? 0,
+            'totalprice' => $source['totalPrice'] ?? 0,
+            'bookingstart' => $this->parseDate($source['bookingStart'] ?? null),
+            'bookingend' => $this->parseDate($source['bookingEnd'] ?? null),
+            'roomIDs' => collect($source['room_bookings'] ?? [])->pluck('roomID')->toArray(),
+            'cottageIDs' => collect($source['cottage_bookings'] ?? [])->pluck('cottageID')->toArray(),
+            'menuIDs' => collect($source['menu_bookings'] ?? [])->pluck('menuID')->toArray(),
+            'menuQuantities' => collect($source['menu_bookings'] ?? [])->pluck('quantity')->toArray(),
+            'billing' => $source['billing'] ?? null,
+            'payments' => $source['billing']['payments'] ?? []
+
         ];
     }
 
