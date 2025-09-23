@@ -66,105 +66,83 @@ class BookingController extends Controller
     }
 
     // ✅ Normalize request (supports payload.* and direct keys)
-    private function normalize(Request $request)
+     private function normalize(Request $request)
     {
         $source = $request->input('payload', $request->all());
 
         return [
-            'guestamount'      => $source['guestamount'] ?? $source['guestAmount'] ?? 0,
-            'childguest'       => $source['childguest'] ?? $source['childGuest'] ?? 0,
-            'adultguest'       => $source['adultguest'] ?? $source['adultGuest'] ?? 0,
-            'totalprice'       => $source['totalprice'] ?? $source['totalPrice'] ?? 0,
-            'bookingstart'     => $this->parseDate($source['bookingstart'] ?? $source['bookingStart'] ?? null),
-            'bookingend'       => $this->parseDate($source['bookingend'] ?? $source['bookingEnd'] ?? null),
-            'status'           => $source['status'] ?? null,
-            'guestID'          => $source['guestID'] ?? null,
-            'amenityID'        => $source['amenityID'] ?? ($source['amenity']['amenityID'] ?? null),
-
-            // relations
-            'roomBookings'     => $source['roomBookings'] ?? $source['room_bookings'] ?? [],
-            'cottageBookings'  => $source['cottageBookings'] ?? $source['cottage_bookings'] ?? [],
-            'menuBookings'     => $source['menuBookings'] ?? $source['menu_bookings'] ?? [],
-            'billing'          => $source['billing'] ?? null,
-            'booking_type'   => $source['booking_type']??'Booking'
+            'guestamount'    => $source['guestamount'] ?? 0,
+            'childguest'     => $source['childguest'] ?? 0,
+            'adultguest'     => $source['adultguest'] ?? 0,
+            'totalprice'     => $source['totalprice'] ?? 0,
+            'bookingstart'   => $this->parseDate($source['bookingstart'] ?? null),
+            'bookingend'     => $this->parseDate($source['bookingend'] ?? null),
+            'status'         => $source['status'] ?? 'Pending',
+            'guestID'        => $source['guestID'] ?? null,
+            'amenityID'      => $source['amenityID'] ?? null,
+            'roomIDs'        => $source['roomIDs'] ?? [],
+            'cottageIDs'     => $source['cottageIDs'] ?? [],
+            'menuIDs'        => $source['menuIDs'] ?? [],
+            'menuQuantities' => $source['menuQuantities'] ?? [],
+            'billing'        => $source['billing'] ?? null,
+            'payments'       => $source['billing']['payments'] ?? []
         ];
     }
 
-    // ✅ POST create booking
+    private function parseDate($date)
+    {
+        return $date ? Carbon::parse($date)->format('Y-m-d') : null;
+    }
+
+    // Create booking
     public function store(Request $request)
     {
         DB::beginTransaction();
-
         try {
             $data = $this->normalize($request);
 
             $booking = BookingTable::create([
-                'guestamount'    => $data['guestamount'],
-                'childguest'     => $data['childguest'],
-                'adultguest'     => $data['adultguest'],
-                'totalprice'     => $data['totalprice'],
-                'bookingcreated' => now()->format('Y-m-d'),
-                'bookingend'     => $data['bookingend'],
-                'bookingstart'   => $data['bookingstart'],
-                'booking_type'   => $data['booking_type'],
-                'status'         => $data['status'] ?? 'Pending',
-                'guestID'        => $data['guestID'],
-                'amenityID'      => $data['amenityID']
+                'guestamount'  => $data['guestamount'],
+                'childguest'   => $data['childguest'],
+                'adultguest'   => $data['adultguest'],
+                'totalprice'   => $data['totalprice'],
+                'bookingstart' => $data['bookingstart'],
+                'bookingend'   => $data['bookingend'],
+                'status'       => $data['status'],
+                'guestID'      => $data['guestID'],
+                'amenityID'    => $data['amenityID'],
             ]);
 
-            foreach ($data['roomBookings'] as $room) {
-                $roomID = !empty($room['roomID']) && $room['roomID'] > 0
-                    ? $room['roomID']
-                    : ($room['room']['roomID'] ?? null);
-
-                if ($roomID) { // only create if valid
-                    $bookingDate = $this->parseDate($room['bookingDate'] ?? null);
-                    RoomBookTable::create([
-                        'bookingID'   => $booking->bookingID,
-                        'roomID'      => $roomID,
-                        'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
-                        'bookingDate' => $bookingDate,
-                    ]);
-                }
+            // Save related room bookings
+            foreach ($data['roomIDs'] as $roomID) {
+                RoomBookTable::create([
+                    'bookingID'   => $booking->bookingID,
+                    'roomID'      => $roomID,
+                    'bookingDate' => now()->format('Y-m-d'),
+                ]);
             }
 
-            // ✅ Cottages
-            foreach ($data['cottageBookings'] as $cottage) {
-                $cottageID = !empty($cottage['cottageID']) && $cottage['cottageID'] > 0
-                    ? $cottage['cottageID']
-                    : ($cottage['cottage']['cottageID'] ?? null);
-
-                if ($cottageID) {
-                    $bookingDate = $this->parseDate($cottage['bookingDate'] ?? null);
-                    CottageBookTable::create([
-                        'bookingID'   => $booking->bookingID ,
-                        'cottageID'   => $cottageID,
-                        'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
-                        'bookingDate' => $bookingDate,
-                    ]);
-                }
+            // Save cottage bookings
+            foreach ($data['cottageIDs'] as $cottageID) {
+                CottageBookTable::create([
+                    'bookingID'   => $booking->bookingID,
+                    'cottageID'   => $cottageID,
+                    'bookingDate' => now()->format('Y-m-d'),
+                ]);
             }
 
-            // ✅ Menus
-            foreach ($data['menuBookings'] as $menu) {
-                $menuID = !empty($menu['menuID']) && $menu['menuID'] > 0
-                    ? $menu['menuID']
-                    : ($menu['menu']['menuID'] ?? null);
-
-                if ($menuID) {
-                    $bookingDate = $this->parseDate($menu['bookingDate'] ?? null);
-                    MenuBookingTable::create([
-                        'booking_id'  => $booking->bookingID ,
-                        'menu_id'     => $menuID,
-                        'quantity'    => $menu['quantity'] ?? ($menu['menu']['qty'] ?? 1),
-                        'price'       => $menu['price'] ?? ($menu['menu']['price'] ?? 0),
-                        'status'      => $menu['status'] ?? ($menu['menu']['status'] ?? 'Pending'),
-                        'bookingDate' => $bookingDate,
-                    ]);
-                }
+            // Save menu bookings
+            foreach ($data['menuIDs'] as $index => $menuID) {
+                MenuBookingTable::create([
+                    'booking_id'  => $booking->bookingID,
+                    'menu_id'     => $menuID,
+                    'quantity'    => $data['menuQuantities'][$index] ?? 1,
+                    'status'      => 'Pending',
+                    'bookingDate' => now()->format('Y-m-d'),
+                ]);
             }
 
-            // ✅ Billing + Payments
+            // Billing + Payments
             if ($data['billing']) {
                 $billing = BillingTable::create([
                     'totalamount' => $data['billing']['totalamount'] ?? 0,
@@ -174,50 +152,37 @@ class BookingController extends Controller
                     'guestID'     => $booking->guestID,
                 ]);
 
-                if (!empty($data['billing']['payments'])) {
-                    foreach ($data['billing']['payments'] as $payment) {
-                        PaymentTable::create([
-                            'totaltender' => $payment['totaltender'] ?? 0,
-                            'totalchange' => $payment['totalchange'] ?? 0,
-                            'datepayment' => $this->parseDate($payment['datepayment'] ?? now()),
-                            'guestID'     => $booking->guestID,
-                            'billingID'   => $billing->billingID,
-                            'refNumber'   => $payment['refNumber'] ?? null,
-                        ]);
-                    }
+                foreach ($data['payments'] as $payment) {
+                    PaymentTable::create([
+                        'totaltender' => $payment['totaltender'] ?? 0,
+                        'totalchange' => $payment['totalchange'] ?? 0,
+                        'datepayment' => $this->parseDate($payment['datepayment'] ?? now()),
+                        'guestID'     => $booking->guestID,
+                        'billingID'   => $billing->billingID,
+                        'refNumber'   => $payment['refNumber'] ?? null,
+                    ]);
                 }
             }
 
             DB::commit();
 
-            $booking = BookingTable::with([
-                'Guest:guestID,firstname,lastname,email',
-                'Amenity:amenityID,amenityname,description',
-                'roomBookings.room',
-                'cottageBookings.cottage',
-                'menuBookings.menu',
-                'billing.payments'
-            ])->find($booking->bookingID);
+            return response()->json(['bookingID' => $booking->bookingID], 201);
 
-            return response()->json($booking, 201, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("❌ store booking failed", [
-                'error'   => $e->getMessage(),
-                'request' => $request->all()
-            ]);
+            Log::error("❌ store booking failed", ['error' => $e->getMessage()]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    // ✅ Update booking
+    // Update booking
     public function update(Request $request, $id)
     {
         DB::beginTransaction();
         try {
-            $booking = BookingTable::findOrFail($id);
             $data = $this->normalize($request);
 
+            $booking = BookingTable::findOrFail($id);
             $booking->update([
                 'guestamount'  => $data['guestamount'],
                 'childguest'   => $data['childguest'],
@@ -225,126 +190,76 @@ class BookingController extends Controller
                 'totalprice'   => $data['totalprice'],
                 'bookingstart' => $data['bookingstart'],
                 'bookingend'   => $data['bookingend'],
-                'status'       => $data['status'] ?? $booking->status,
-                'guestID'      => $data['guestID'] ?? $booking->guestID,
-                'amenityID'    => $data['amenityID'] ?? $booking->amenityID,
+                'status'       => $data['status'],
+                'guestID'      => $data['guestID'],
+                'amenityID'    => $data['amenityID'],
             ]);
 
-            // ✅ Clear old related data
+            // Delete old related records
             RoomBookTable::where('bookingID', $id)->delete();
             CottageBookTable::where('bookingID', $id)->delete();
             MenuBookingTable::where('booking_id', $id)->delete();
+            PaymentTable::whereIn('billingID', function ($q) use ($id) {
+                $q->select('billingID')->from('billing')->where('bookingID', $id);
+            })->delete();
+            BillingTable::where('bookingID', $id)->delete();
 
-            foreach ($data['roomBookings'] as $room) {
-                $roomID = !empty($room['roomID']) && $room['roomID'] > 0
-                    ? $room['roomID']
-                    : ($room['room']['roomID'] ?? null);
-
-                if ($roomID) { // only create if valid
-                    $bookingDate = $this->parseDate($room['bookingDate'] ?? null);
-                    RoomBookTable::create([
-                        'bookingID'   => $booking->bookingID ?? $id,
-                        'roomID'      => $roomID,
-                        'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
-                        'bookingDate' => $bookingDate,
-                    ]);
-                }
+            // Recreate related records
+            foreach ($data['roomIDs'] as $roomID) {
+                RoomBookTable::create([
+                    'bookingID'   => $booking->bookingID,
+                    'roomID'      => $roomID,
+                    'bookingDate' => now()->format('Y-m-d'),
+                ]);
             }
 
-            // ✅ Cottages
-            foreach ($data['cottageBookings'] as $cottage) {
-                $cottageID = !empty($cottage['cottageID']) && $cottage['cottageID'] > 0
-                    ? $cottage['cottageID']
-                    : ($cottage['cottage']['cottageID'] ?? null);
-
-                if ($cottageID) {
-                    $bookingDate = $this->parseDate($cottage['bookingDate'] ?? null);
-                    CottageBookTable::create([
-                        'bookingID'   => $booking->bookingID ?? $id,
-                        'cottageID'   => $cottageID,
-                        'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
-                        'bookingDate' => $bookingDate,
-                    ]);
-                }
+            foreach ($data['cottageIDs'] as $cottageID) {
+                CottageBookTable::create([
+                    'bookingID'   => $booking->bookingID,
+                    'cottageID'   => $cottageID,
+                    'bookingDate' => now()->format('Y-m-d'),
+                ]);
             }
 
-            // ✅ Menus
-            foreach ($data['menuBookings'] as $menu) {
-                $menuID = !empty($menu['menuID']) && $menu['menuID'] > 0
-                    ? $menu['menuID']
-                    : ($menu['menu']['menuID'] ?? null);
-
-                if ($menuID) {
-                    $bookingDate = $this->parseDate($menu['bookingDate'] ?? null);
-                    MenuBookingTable::create([
-                        'booking_id'  => $booking->bookingID ?? $id,
-                        'menu_id'     => $menuID,
-                        'quantity'    => $menu['quantity'] ?? ($menu['menu']['qty'] ?? 1),
-                        'price'       => $menu['price'] ?? ($menu['menu']['price'] ?? 0),
-                        'status'      => $menu['status'] ?? ($menu['menu']['status'] ?? 'Pending'),
-                        'bookingDate' => $bookingDate,
-                    ]);
-                }
+            foreach ($data['menuIDs'] as $index => $menuID) {
+                MenuBookingTable::create([
+                    'booking_id'  => $booking->bookingID,
+                    'menu_id'     => $menuID,
+                    'quantity'    => $data['menuQuantities'][$index] ?? 1,
+                    'status'      => 'Pending',
+                    'bookingDate' => now()->format('Y-m-d'),
+                ]);
             }
 
-            // ✅ Update billing + payments
             if ($data['billing']) {
-                $billing = BillingTable::updateOrCreate(
-                    ['bookingID' => $id],
-                    [
-                        'totalamount' => $data['billing']['totalamount'] ?? 0,
-                        'datebilled'  => $this->parseDate($data['billing']['datebilled'] ?? now()),
-                        'status'      => $data['billing']['status'] ?? 'Unpaid',
-                        'guestID'     => $booking->guestID,
-                    ]
-                );
+                $billing = BillingTable::create([
+                    'totalamount' => $data['billing']['totalamount'] ?? 0,
+                    'datebilled'  => $this->parseDate($data['billing']['datebilled'] ?? now()),
+                    'status'      => $data['billing']['status'] ?? 'Unpaid',
+                    'bookingID'   => $booking->bookingID,
+                    'guestID'     => $booking->guestID,
+                ]);
 
-                if (!empty($data['billing']['payments'])) {
-                    $billing->payments()->delete();
-                    foreach ($data['billing']['payments'] as $payment) {
-                        PaymentTable::create([
-                            'totaltender' => $payment['totaltender'] ?? 0,
-                            'totalchange' => $payment['totalchange'] ?? 0,
-                            'datepayment' => $this->parseDate($payment['datepayment'] ?? now()),
-                            'guestID'     => $booking->guestID,
-                            'billingID'   => $billing->billingID,
-                            'refNumber'   => $payment['refNumber'] ?? null,
-                        ]);
-                    }
+                foreach ($data['payments'] as $payment) {
+                    PaymentTable::create([
+                        'totaltender' => $payment['totaltender'] ?? 0,
+                        'totalchange' => $payment['totalchange'] ?? 0,
+                        'datepayment' => $this->parseDate($payment['datepayment'] ?? now()),
+                        'guestID'     => $booking->guestID,
+                        'billingID'   => $billing->billingID,
+                        'refNumber'   => $payment['refNumber'] ?? null,
+                    ]);
                 }
             }
 
             DB::commit();
 
-            $booking = BookingTable::with([
-                'Guest:guestID,firstname,lastname,email',
-                'Amenity:amenityID,amenityname,description',
-                'roomBookings.room',
-                'cottageBookings.cottage',
-                'menuBookings.menu',
-                'billing.payments'
-            ])->find($id);
+            return response()->json(['bookingID' => $booking->bookingID], 200);
 
-            return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("❌ update booking failed", [
-                'bookingID' => $id,
-                'error'     => $e->getMessage(),
-                'request'   => $request->all()
-            ]);
+            Log::error("❌ update booking failed", ['error' => $e->getMessage()]);
             return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-
-    // ✅ Helper: parse date safely into DATE only
-    private function parseDate($date)
-    {
-        if (!$date) return null;
-        try {
-            return Carbon::parse($date)->format('Y-m-d');
-        } catch (\Exception $e) {
-            return null;
         }
     }
 }
