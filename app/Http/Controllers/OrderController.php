@@ -10,6 +10,7 @@ use App\Models\OrderTable;
 use App\Models\GuestTable;
 use App\Models\BookingTable;
 use App\Models\MenuBookingTable;
+use App\Models\BillingTable;
 use Illuminate\Http\Request;
 use PDO;
 
@@ -59,7 +60,7 @@ public function submitOrder(Request $request)
         // Loop through orders and create entries
         foreach ($validated['order'] as $index => $menuId) {
             $quantity = $validated['quantity'][$index];
-            $menu = MenuTable::where('menuID', $menuId)->first();
+            $menu = MenuTable::find($menuId);
 
             if ($menu) {
                 $itemPrice = $menu->price * $quantity;
@@ -70,8 +71,8 @@ public function submitOrder(Request $request)
                     'booking_id'  => $booking->bookingID,
                     'quantity'    => $quantity,
                     'price'       => $itemPrice,
-                    'created_at'  => Carbon::now(),
-                    'updated_at'  => Carbon::now(),
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
                     'bookingDate' => $booking->bookingstart,
                     'status'      => 'Pending',
                 ]);
@@ -80,29 +81,44 @@ public function submitOrder(Request $request)
             }
         }
 
-        // Create billing entry (linked to the first order, or null if none)
+        // Billing logic
         if (!empty($createdOrders)) {
-            BillingTable::create([
-                'totalamount' => $grandTotal,
-                'datebilled'  => Carbon::now(),
-                'status'      => 'Unpaid',   // or "Pending" depending on your flow
-                'bookingID'   => $booking->bookingID,
-                'orderID'     => $createdOrders[0]->id ?? null, // link to first order if needed
-                'amenityID'   => null,
-                'chargeID'    => null,
-                'discountID'  => null,
-                'guestID'     => $guest->guestID,
-            ]);
+            $billing = BillingTable::where('bookingID', $booking->bookingID)->first();
+
+            if ($billing) {
+                // Update existing billing
+                $billing->update([
+                    'totalamount' => $billing->totalamount + $grandTotal,
+                    'datebilled'  => now(),
+                    'status'      => 'Unpaid',
+                    'guestID'     => $guest->guestID,
+                ]);
+            } else {
+                // Create new billing
+                BillingTable::create([
+                    'totalamount' => $grandTotal,
+                    'datebilled'  => now(),
+                    'status'      => 'Unpaid',
+                    'bookingID'   => $booking->bookingID,
+                    'orderID'     => null,
+                    'amenityID'   => null,
+                    'chargeID'    => null,
+                    'discountID'  => null,
+                    'guestID'     => $guest->guestID,
+                ]);
+            }
         }
 
-        DB::commit();
-        return redirect()->route('receptionist.order')
-            ->with('success', 'Order and billing created successfully!');
+        DB::commit(); // ✅ make sure changes are saved
+
+        return redirect()->back()->with('success', 'Order submitted successfully.');
+
     } catch (\Exception $e) {
         DB::rollBack();
-        return redirect()->back()->with('error', 'Order was not created! ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
     }
 }
+
 
     public function prepareOrder(MenuBookingTable $order)
     {
