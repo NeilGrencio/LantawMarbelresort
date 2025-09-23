@@ -46,6 +46,7 @@ class BookingController extends Controller
         }
     }
 
+    // ✅ GET single booking
     public function show($id)
     {
         Log::info("➡️ show booking called", ['bookingID' => $id]);
@@ -80,7 +81,7 @@ class BookingController extends Controller
             $normalized = $this->normalizePayload($request);
 
             $bookingData = [
-                'guestamount'    => $request->input('guestamount'),
+                'guestamount'    => $request->input('guestamount') ?? $request->input('guestAmount'),
                 'childguest'     => $request->input('childguest') ?? $request->input('childGuest'),
                 'adultguest'     => $request->input('adultguest') ?? $request->input('adultGuest'),
                 'totalprice'     => $request->input('totalprice') ?? $request->input('totalPrice'),
@@ -95,24 +96,27 @@ class BookingController extends Controller
             $booking = BookingTable::create($bookingData);
             Log::info("📝 Booking created", ['bookingID' => $booking->bookingID]);
 
-            // Rooms
+            // ✅ Rooms
             foreach ($normalized['roomBookings'] as $room) {
                 RoomBookTable::create([
-                    'bookingID' => $booking->bookingID,
-                    'roomID'    => $room['roomID'],
-                    'price'     => $room['price'] ?? 0,
+                    'bookingID'   => $booking->bookingID,
+                    'roomID'      => $room['roomID'],
+                    'price'       => $room['price'] ?? 0,
+                    'bookingDate' => $room['bookingDate'] ?? null,
                 ]);
             }
 
-            // Cottages
+            // ✅ Cottages
             foreach ($normalized['cottageBookings'] as $cottage) {
                 CottageBookTable::create([
-                    'bookingID' => $booking->bookingID,
-                    'cottageID' => $cottage['cottageID'],
+                    'bookingID'   => $booking->bookingID,
+                    'cottageID'   => $cottage['cottageID'],
+                    'price'       => $cottage['price'] ?? 0,
+                    'bookingDate' => $cottage['bookingDate'] ?? null,
                 ]);
             }
 
-            // Menus
+            // ✅ Menus
             foreach ($normalized['menuBookings'] as $menu) {
                 MenuBookingTable::create([
                     'booking_id' => $booking->bookingID,
@@ -123,7 +127,7 @@ class BookingController extends Controller
                 ]);
             }
 
-            // Billing + payments
+            // ✅ Billing + Payments
             if ($normalized['billing']) {
                 $billing = BillingTable::create([
                     'totalamount' => $normalized['billing']['totalamount'] ?? 0,
@@ -171,7 +175,6 @@ class BookingController extends Controller
     }
 
     // ✅ PUT update booking
-    // ✅ PUT update booking
     public function update(Request $request, $id)
     {
         Log::info("➡️ update booking called", [
@@ -185,15 +188,15 @@ class BookingController extends Controller
 
             // ✅ Update booking main data
             $booking->update([
-                'guestamount'    => $request->input('guestamount'),
-                'childguest'     => $request->input('childGuest'),
-                'adultguest'     => $request->input('adultGuest'),
-                'totalprice'     => $request->input('totalPrice'),
-                'bookingend'     => $request->input('bookingEnd'),
-                'bookingstart'   => $request->input('bookingStart'),
-                'status'         => $request->input('status', $booking->status),
-                'guestID'        => $request->input('guestID'),
-                'amenityID'      => $request->input('amenityID'),
+                'guestamount'  => $request->input('guestamount') ?? $request->input('guestAmount'),
+                'childguest'   => $request->input('childguest') ?? $request->input('childGuest'),
+                'adultguest'   => $request->input('adultguest') ?? $request->input('adultGuest'),
+                'totalprice'   => $request->input('totalprice') ?? $request->input('totalPrice'),
+                'bookingend'   => $request->input('bookingend') ?? $request->input('bookingEnd'),
+                'bookingstart' => $request->input('bookingstart') ?? $request->input('bookingStart'),
+                'status'       => $request->input('status', $booking->status),
+                'guestID'      => $request->input('guestID', $booking->guestID),
+                'amenityID'    => $request->input('amenityID', $booking->amenityID),
             ]);
             Log::info("📝 Booking updated", ['bookingID' => $id]);
 
@@ -206,9 +209,10 @@ class BookingController extends Controller
             if ($request->has('roomBookings')) {
                 foreach ($request->roomBookings as $room) {
                     RoomBookTable::create([
-                        'bookingID' => $id,
-                        'roomID'    => $room['roomID'],
-                        'price'     => $room['price'] ?? 0,
+                        'bookingID'   => $id,
+                        'roomID'      => $room['roomID'],
+                        'price'       => $room['price'] ?? 0,
+                        'bookingDate' => $room['bookingDate'] ?? null,
                     ]);
                 }
                 Log::info("✅ Room bookings updated", ['count' => count($request->roomBookings)]);
@@ -218,8 +222,10 @@ class BookingController extends Controller
             if ($request->has('cottageBookings')) {
                 foreach ($request->cottageBookings as $cottage) {
                     CottageBookTable::create([
-                        'bookingID' => $id,
-                        'cottageID' => $cottage['cottageID'],
+                        'bookingID'   => $id,
+                        'cottageID'   => $cottage['cottageID'],
+                        'price'       => $cottage['price'] ?? 0,
+                        'bookingDate' => $cottage['bookingDate'] ?? null,
                     ]);
                 }
                 Log::info("✅ Cottage bookings updated", ['count' => count($request->cottageBookings)]);
@@ -230,7 +236,7 @@ class BookingController extends Controller
                 foreach ($request->menuBookings as $menu) {
                     MenuBookingTable::create([
                         'booking_id' => $id,
-                        'menu_id'    => $menu['menuID'],
+                        'menu_id'    => $menu['menuID'] ?? $menu['menu_id'],
                         'quantity'   => $menu['quantity'] ?? 1,
                         'price'      => $menu['price'] ?? 0,
                         'status'     => $menu['status'] ?? 'pending',
