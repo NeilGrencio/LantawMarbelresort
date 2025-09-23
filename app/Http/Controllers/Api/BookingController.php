@@ -174,149 +174,155 @@ class BookingController extends Controller
         }
     }
 
-    // ✅ PUT update booking
-    // ✅ PUT update booking
-public function update(Request $request, $id)
-{
-    Log::info("➡️ update booking called", [
-        'bookingID' => $id,
-        'payload'   => $request->all()
-    ]);
-
-    DB::beginTransaction();
-    try {
-        $booking = BookingTable::findOrFail($id);
-
-        // ✅ Always provide guestamount (avoid null error)
-        $guestAmount = $request->input('guestamount') 
-            ?? $request->input('guestAmount') 
-            ?? $booking->guestamount 
-            ?? 0;
-
-        $childGuest = $request->input('childguest') 
-            ?? $request->input('childGuest') 
-            ?? $booking->childguest 
-            ?? 0;
-
-        $adultGuest = $request->input('adultguest') 
-            ?? $request->input('adultGuest') 
-            ?? $booking->adultguest 
-            ?? 0;
-
-        $booking->update([
-            'guestamount'  => $guestAmount,
-            'childguest'   => $childGuest,
-            'adultguest'   => $adultGuest,
-            'totalprice'   => $request->input('totalprice') ?? $request->input('totalPrice') ?? $booking->totalprice ?? 0,
-            'bookingend'   => $request->input('bookingend') ?? $request->input('bookingEnd') ?? $booking->bookingend,
-            'bookingstart' => $request->input('bookingstart') ?? $request->input('bookingStart') ?? $booking->bookingstart,
-            'status'       => $request->input('status', $booking->status),
-            'guestID'      => $request->input('guestID', $booking->guestID),
-            'amenityID'    => $request->input('amenityID', $booking->amenityID),
+    public function update(Request $request, $id)
+    {
+        Log::info("➡️ update booking called", [
+            'bookingID' => $id,
+            'payload'   => $request->all()
         ]);
-        Log::info("📝 Booking updated", ['bookingID' => $id]);
 
-        // ✅ Clear old related data
-        RoomBookTable::where('bookingID', $id)->delete();
-        CottageBookTable::where('bookingID', $id)->delete();
-        MenuBookingTable::where('booking_id', $id)->delete();
+        DB::beginTransaction();
+        try {
+            $booking = BookingTable::findOrFail($id);
 
-        // ✅ Recreate room bookings
-        if ($request->has('roomBookings') || $request->has('room_bookings')) {
-            $rooms = $request->roomBookings ?? $request->room_bookings;
-            foreach ($rooms as $room) {
-                RoomBookTable::create([
-                    'bookingID'   => $id,
-                    'roomID'      => $room['roomID'],
-                    'price'       => $room['price'] ?? 0,
-                    'bookingDate' => $room['bookingDate'] ?? null,
-                ]);
-            }
-            Log::info("✅ Room bookings updated", ['count' => count($rooms)]);
-        }
+            // ✅ Always provide safe values (avoid null constraint errors)
+            $guestAmount = $request->input('guestamount')
+                ?? $request->input('guestAmount')
+                ?? $booking->guestamount
+                ?? 0;
 
-        // ✅ Recreate cottage bookings
-        if ($request->has('cottageBookings') || $request->has('cottage_bookings')) {
-            $cottages = $request->cottageBookings ?? $request->cottage_bookings;
-            foreach ($cottages as $cottage) {
-                CottageBookTable::create([
-                    'bookingID'   => $id,
-                    'cottageID'   => $cottage['cottageID'],
-                    'price'       => $cottage['price'] ?? 0,
-                    'bookingDate' => $cottage['bookingDate'] ?? null,
-                ]);
-            }
-            Log::info("✅ Cottage bookings updated", ['count' => count($cottages)]);
-        }
+            $childGuest = $request->input('childguest')
+                ?? $request->input('childGuest')
+                ?? $booking->childguest
+                ?? 0;
 
-        // ✅ Recreate menu bookings
-        if ($request->has('menuBookings') || $request->has('menu_bookings')) {
-            $menus = $request->menuBookings ?? $request->menu_bookings;
-            foreach ($menus as $menu) {
-                MenuBookingTable::create([
-                    'booking_id' => $id,
-                    'menu_id'    => $menu['menuID'] ?? $menu['menu_id'],
-                    'quantity'   => $menu['quantity'] ?? 1,
-                    'price'      => $menu['price'] ?? 0,
-                    'status'     => $menu['status'] ?? 'pending',
-                ]);
-            }
-            Log::info("✅ Menu bookings updated", ['count' => count($menus)]);
-        }
+            $adultGuest = $request->input('adultguest')
+                ?? $request->input('adultGuest')
+                ?? $booking->adultguest
+                ?? 0;
 
-        // ✅ Update billing + payments
-        if ($request->has('billing')) {
-            $billing = BillingTable::updateOrCreate(
-                ['bookingID' => $id],
-                [
-                    'totalamount' => $request->billing['totalamount'] ?? 0,
-                    'datebilled'  => $request->billing['datebilled'] ?? now(),
-                    'status'      => $request->billing['status'] ?? 'unpaid',
-                    'guestID'     => $booking->guestID,
-                ]
-            );
-            Log::info("✅ Billing updated", ['billingID' => $billing->billingID]);
+            $booking->update([
+                'guestamount'  => $guestAmount,
+                'childguest'   => $childGuest,
+                'adultguest'   => $adultGuest,
+                'totalprice'   => $request->input('totalprice')
+                    ?? $request->input('totalPrice')
+                    ?? $booking->totalprice
+                    ?? 0,
+                'bookingend'   => $request->input('bookingend')
+                    ?? $request->input('bookingEnd')
+                    ?? $booking->bookingend,
+                'bookingstart' => $request->input('bookingstart')
+                    ?? $request->input('bookingStart')
+                    ?? $booking->bookingstart,
+                'status'       => $request->input('status', $booking->status),
+                'guestID'      => $request->input('guestID', $booking->guestID),
+                'amenityID'    => $request->input('amenityID')
+                    ?? ($request->amenity['amenityID'] ?? $booking->amenityID),
+            ]);
+            Log::info("📝 Booking updated", ['bookingID' => $id]);
 
-            if (!empty($request->billing['payments'])) {
-                $billing->payments()->delete();
-                foreach ($request->billing['payments'] as $payment) {
-                    PaymentTable::create([
-                        'totaltender' => $payment['totaltender'] ?? 0,
-                        'totalchange' => $payment['totalchange'] ?? 0,
-                        'datepayment' => $payment['datepayment'] ?? now(),
-                        'guestID'     => $booking->guestID,
-                        'billingID'   => $billing->billingID,
-                        'refNumber'   => $payment['refNumber'] ?? null,
+            // ✅ Clear old related data
+            RoomBookTable::where('bookingID', $id)->delete();
+            CottageBookTable::where('bookingID', $id)->delete();
+            MenuBookingTable::where('booking_id', $id)->delete();
+
+            // ✅ Recreate room bookings
+            if ($request->has('roomBookings') || $request->has('room_bookings')) {
+                $rooms = $request->roomBookings ?? $request->room_bookings;
+                foreach ($rooms as $room) {
+                    RoomBookTable::create([
+                        'bookingID'   => $id,
+                        'roomID'      => $room['roomID'] ?? ($room['room']['roomID'] ?? null),
+                        'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
+                        'bookingDate' => $room['bookingDate'] ?? null,
                     ]);
                 }
-                Log::info("✅ Payments updated", ['count' => count($request->billing['payments'])]);
+                Log::info("✅ Room bookings updated", ['count' => count($rooms)]);
             }
+
+            // ✅ Recreate cottage bookings
+            if ($request->has('cottageBookings') || $request->has('cottage_bookings')) {
+                $cottages = $request->cottageBookings ?? $request->cottage_bookings;
+                foreach ($cottages as $cottage) {
+                    CottageBookTable::create([
+                        'bookingID'   => $id,
+                        'cottageID'   => $cottage['cottageID'] ?? ($cottage['cottage']['cottageID'] ?? null),
+                        'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
+                        'bookingDate' => $cottage['bookingDate'] ?? null,
+                    ]);
+                }
+                Log::info("✅ Cottage bookings updated", ['count' => count($cottages)]);
+            }
+
+            // ✅ Recreate menu bookings
+            if ($request->has('menuBookings') || $request->has('menu_bookings')) {
+                $menus = $request->menuBookings ?? $request->menu_bookings;
+                foreach ($menus as $menu) {
+                    MenuBookingTable::create([
+                        'booking_id' => $id,
+                        'menu_id'    => $menu['menuID'] ?? ($menu['menu']['menuID'] ?? null),
+                        'quantity'   => $menu['quantity'] ?? ($menu['menu']['qty'] ?? 1),
+                        'price'      => $menu['price'] ?? ($menu['menu']['price'] ?? 0),
+                        'status'     => $menu['status'] ?? ($menu['menu']['status'] ?? 'pending'),
+                    ]);
+                }
+                Log::info("✅ Menu bookings updated", ['count' => count($menus)]);
+            }
+
+            // ✅ Update billing + payments
+            if ($request->has('billing')) {
+                $billing = BillingTable::updateOrCreate(
+                    ['bookingID' => $id],
+                    [
+                        'totalamount' => $request->billing['totalamount'] ?? 0,
+                        'datebilled'  => $request->billing['datebilled'] ?? now(),
+                        'status'      => $request->billing['status'] ?? 'unpaid',
+                        'guestID'     => $booking->guestID,
+                    ]
+                );
+                Log::info("✅ Billing updated", ['billingID' => $billing->billingID]);
+
+                if (!empty($request->billing['payments'])) {
+                    $billing->payments()->delete();
+                    foreach ($request->billing['payments'] as $payment) {
+                        PaymentTable::create([
+                            'totaltender' => $payment['totaltender'] ?? 0,
+                            'totalchange' => $payment['totalchange'] ?? 0,
+                            'datepayment' => $payment['datepayment'] ?? now(),
+                            'guestID'     => $booking->guestID,
+                            'billingID'   => $billing->billingID,
+                            'refNumber'   => $payment['refNumber'] ?? null,
+                        ]);
+                    }
+                    Log::info("✅ Payments updated", ['count' => count($request->billing['payments'])]);
+                }
+            }
+
+            DB::commit();
+
+            // ✅ Return refreshed booking with relations
+            $booking = BookingTable::with([
+                'Guest:guestID,firstname,lastname,email',
+                'Amenity:amenityID,amenityname,description',
+                'roomBookings.room',
+                'cottageBookings.cottage',
+                'menuBookings.menu',
+                'billing.payments'
+            ])->find($id);
+
+            Log::info("🎉 Booking update success", ['bookingID' => $id]);
+            return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("❌ update booking failed", [
+                'bookingID' => $id,
+                'error'     => $e->getMessage(),
+                'request'   => $request->all()
+            ]);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        DB::commit();
-
-        // ✅ Return refreshed booking with relations
-        $booking = BookingTable::with([
-            'Guest:guestID,firstname,lastname,email',
-            'Amenity:amenityID,amenityname,description',
-            'roomBookings.room',
-            'cottageBookings.cottage',
-            'menuBookings.menu',
-            'billing.payments'
-        ])->find($id);
-
-        Log::info("🎉 Booking update success", ['bookingID' => $id]);
-        return response()->json($booking, 200, [], JSON_UNESCAPED_UNICODE);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error("❌ update booking failed", [
-            'bookingID' => $id,
-            'error'     => $e->getMessage(),
-            'request'   => $request->all()
-        ]);
-        return response()->json(['error' => $e->getMessage()], 500);
     }
-}
 
 
     private function normalizePayload(Request $request)
