@@ -668,50 +668,50 @@ class BookingController extends Controller
 
     //     return view('receptionist.view_booking', compact('rooms', 'cottages', 'amenities', 'bookingData'));
     // }
-public function viewBooking($bookingID)
-{
-    // Load booking with relationships
-    $booking = BookingTable::with([
-        'Guest',
-        'roomBookings.Room',
-        'cottageBookings.Cottage',
-        'Amenity',
-        'billing.Payments',
-        'menuBookings.Menu'
-    ])->find($bookingID);
+    public function viewBooking($bookingID)
+    {
+        // Load booking with relationships
+        $booking = BookingTable::with([
+            'Guest',
+            'roomBookings.Room',
+            'cottageBookings.Cottage',
+            'Amenity',
+            'billing.Payments',
+            'menuBookings.Menu'
+        ])->find($bookingID);
 
-    if (!$booking) {
-        return redirect()->back()->with('error', 'Booking not found');
+        if (!$booking) {
+            return redirect()->back()->with('error', 'Booking not found');
+        }
+
+        // Fetch all rooms, cottages, amenities
+        $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
+        $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
+        $amenities = AmenityTable::all();
+
+        // Prepare structured booking data for view
+        $bookingData = (object) [
+            'bookingID' => $booking->bookingID,
+            'firstname' => $booking->Guest->firstname ?? '',
+            'lastname' => $booking->Guest->lastname ?? '',
+            'guestamount' => $booking->guestamount,
+            'adultguest' => $booking->adultguest,
+            'childguest' => $booking->childguest,
+            'checkin' => $booking->bookingstart,
+            'checkout' => $booking->bookingend,
+            'rooms' => $booking->roomBookings->pluck('roomID')->toArray(),
+            'cottages' => $booking->cottageBookings->pluck('cottageID')->toArray(),
+            'amenities' => $booking->Amenity ? [$booking->Amenity->amenityID] : [],
+            'billing' => $booking->billing,
+            'payments' => $booking->billing ? $booking->billing->payments : [],
+            'menuOrders' => $booking->menuBookings ?? []
+        ];
+
+        // Log the booking data for debugging
+        Log::info('Booking Data for viewBooking:', (array) $bookingData);
+
+        return view('receptionist.view_booking', compact('rooms', 'cottages', 'amenities', 'bookingData'));
     }
-
-    // Fetch all rooms, cottages, amenities
-    $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
-    $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
-    $amenities = AmenityTable::all();
-
-    // Prepare structured booking data for view
-    $bookingData = (object) [
-        'bookingID' => $booking->bookingID,
-        'firstname' => $booking->Guest->firstname ?? '',
-        'lastname' => $booking->Guest->lastname ?? '',
-        'guestamount' => $booking->guestamount,
-        'adultguest' => $booking->adultguest,
-        'childguest' => $booking->childguest,
-        'checkin' => $booking->bookingstart,
-        'checkout' => $booking->bookingend,
-        'rooms' => $booking->roomBookings->pluck('roomID')->toArray(),
-        'cottages' => $booking->cottageBookings->pluck('cottageID')->toArray(),
-        'amenities' => $booking->Amenity ? [$booking->Amenity->amenityID] : [],
-        'billing' => $booking->billing,
-        'payments' => $booking->billing ? $booking->billing->payments : [],
-        'menuOrders' => $booking->menuBookings ?? []
-    ];
-
-    // Log the booking data for debugging
-    Log::info('Booking Data for viewBooking:', (array) $bookingData);
-
-    return view('receptionist.view_booking', compact('rooms', 'cottages', 'amenities', 'bookingData'));
-}
 
     private function getSelectedRooms($bookingID)
     {
@@ -1105,48 +1105,69 @@ public function viewBooking($bookingID)
         }
     }
 
- public function edit($id)
+    public function edit($id)
     {
-        $bookingData = BookingTable::with(['rooms', 'cottages', 'amenities', 'menuOrders', 'payments', 'billing'])
+        $booking = BookingTable::with(['rooms', 'cottages', 'amenities', 'menuOrders', 'payments', 'billing'])
             ->findOrFail($id);
 
         $rooms = RoomTable::all();
         $cottages = CottageTable::all();
         $amenities = AmenityTable::all();
 
-        return view('receptionist.edit_booking', compact('bookingData', 'rooms', 'cottages', 'amenities'));
+        return view('receptionist.edit_booking', compact('booking', 'rooms', 'cottages', 'amenities'));
     }
 
-    // Update booking
     public function update(Request $request, $id)
     {
         $booking = BookingTable::findOrFail($id);
 
-        $request->validate([
-            'checkin' => 'required|date',
-            'checkout' => 'required|date|after:checkin',
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
+        $validated = $request->validate([
+            'room' => 'nullable|array',
+            'room.*' => 'integer|exists:rooms,roomID',
+            'cottage' => 'nullable|array',
+            'cottage.*' => 'integer|exists:cottages,cottageID',
+            'amenity' => 'nullable|array',
+            'amenity.*' => 'integer|exists:amenities,amenityID',
             'guestamount' => 'required|integer|min:1',
             'adultguest' => 'required|integer|min:0',
             'childguest' => 'required|integer|min:0',
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'checkin' => 'required|date',
+            'checkout' => 'required|date|after_or_equal:checkin',
         ]);
 
-        DB::transaction(function () use ($request, $booking) {
+        // Validate at least one item is selected
+        if (empty($validated['room']) && empty($validated['cottage']) && empty($validated['amenity'])) {
+            return redirect()->back()
+                ->with('error', 'Please select at least a room, a cottage, or an amenity.')
+                ->withInput();
+        }
+
+        // Optional: Check availability
+        $availabilityError = $this->checkAvailability($validated, $booking->bookingID);
+        if ($availabilityError) {
+            return redirect()->back()->with('error', $availabilityError)->withInput();
+        }
+
+        // Calculate prices
+        $prices = $this->calculatePrices($validated);
+
+        DB::transaction(function () use ($booking, $validated, $prices) {
             $booking->update([
-                'checkin' => $request->checkin,
-                'checkout' => $request->checkout,
-                'firstname' => $request->firstname,
-                'lastname' => $request->lastname,
-                'guestamount' => $request->guestamount,
-                'adultguest' => $request->adultguest,
-                'childguest' => $request->childguest,
+                'firstname' => $validated['firstname'],
+                'lastname' => $validated['lastname'],
+                'guestamount' => $validated['guestamount'],
+                'adultguest' => $validated['adultguest'],
+                'childguest' => $validated['childguest'],
+                'checkin' => $validated['checkin'],
+                'checkout' => $validated['checkout'],
+                'totalprice' => $prices['total'] ?? $booking->totalprice,
             ]);
 
-            // Sync Rooms, Cottages, Amenities
-            $booking->rooms()->sync($request->room ?? []);
-            $booking->cottages()->sync($request->cottage ?? []);
-            $booking->amenities()->sync($request->amenity ?? []);
+            $booking->rooms()->sync($validated['room'] ?? []);
+            $booking->cottages()->sync($validated['cottage'] ?? []);
+            $booking->amenities()->sync($validated['amenity'] ?? []);
         });
 
         return redirect()->route('receptionist.booking.edit', $booking->bookingID)
