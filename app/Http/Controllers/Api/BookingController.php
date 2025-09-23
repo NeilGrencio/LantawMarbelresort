@@ -65,75 +65,33 @@ class BookingController extends Controller
         }
     }
 
-    // ✅ Normalize request
-   private function normalize(Request $request)
-{
-    return [
-        'guestamount'      => $request->input('guestamount')
-                                ?? $request->input('guestAmount')
-                                ?? $request->input('payload.guestamount')
-                                ?? 0,
+    // ✅ Normalize request (supports payload.* and direct keys)
+    private function normalize(Request $request)
+    {
+        $source = $request->input('payload', $request->all());
 
-        'childguest'       => $request->input('childguest')
-                                ?? $request->input('childGuest')
-                                ?? $request->input('payload.childguest')
-                                ?? 0,
+        return [
+            'guestamount'      => $source['guestamount'] ?? $source['guestAmount'] ?? 0,
+            'childguest'       => $source['childguest'] ?? $source['childGuest'] ?? 0,
+            'adultguest'       => $source['adultguest'] ?? $source['adultGuest'] ?? 0,
+            'totalprice'       => $source['totalprice'] ?? $source['totalPrice'] ?? 0,
+            'bookingstart'     => $source['bookingstart'] ?? $source['bookingStart'] ?? null,
+            'bookingend'       => $source['bookingend'] ?? $source['bookingEnd'] ?? null,
+            'status'           => $source['status'] ?? null,
+            'guestID'          => $source['guestID'] ?? null,
+            'amenityID'        => $source['amenityID'] ?? ($source['amenity']['amenityID'] ?? null),
 
-        'adultguest'       => $request->input('adultguest')
-                                ?? $request->input('adultGuest')
-                                ?? $request->input('payload.adultguest')
-                                ?? 0,
-
-        'totalprice'       => $request->input('totalprice')
-                                ?? $request->input('totalPrice')
-                                ?? $request->input('payload.totalprice')
-                                ?? 0,
-
-        'bookingstart'     => $request->input('bookingstart')
-                                ?? $request->input('bookingStart')
-                                ?? $request->input('payload.bookingstart'),
-
-        'bookingend'       => $request->input('bookingend')
-                                ?? $request->input('bookingEnd')
-                                ?? $request->input('payload.bookingend'),
-
-        'status'           => $request->input('status')
-                                ?? $request->input('payload.status'),
-
-        'guestID'          => $request->input('guestID')
-                                ?? $request->input('payload.guestID'),
-
-        'amenityID'        => $request->input('amenityID')
-                                ?? $request->input('payload.amenity.amenityID')
-                                ?? ($request->input('amenity.amenityID') ?? null),
-
-        // ✅ related collections
-        'roomBookings'     => $request->input('roomBookings')
-                                ?? $request->input('room_bookings')
-                                ?? $request->input('payload.room_bookings')
-                                ?? [],
-
-        'cottageBookings'  => $request->input('cottageBookings')
-                                ?? $request->input('cottage_bookings')
-                                ?? $request->input('payload.cottage_bookings')
-                                ?? [],
-
-        'menuBookings'     => $request->input('menuBookings')
-                                ?? $request->input('menu_bookings')
-                                ?? $request->input('payload.menu_bookings')
-                                ?? [],
-
-        'billing'          => $request->input('billing')
-                                ?? $request->input('payload.billing')
-                                ?? null,
-    ];
-}
-
+            // relations
+            'roomBookings'     => $source['roomBookings'] ?? $source['room_bookings'] ?? [],
+            'cottageBookings'  => $source['cottageBookings'] ?? $source['cottage_bookings'] ?? [],
+            'menuBookings'     => $source['menuBookings'] ?? $source['menu_bookings'] ?? [],
+            'billing'          => $source['billing'] ?? null,
+        ];
+    }
 
     // ✅ POST create booking
     public function store(Request $request)
     {
-        Log::info("➡️ store booking called", ['payload' => $request->all()]);
         DB::beginTransaction();
 
         try {
@@ -145,8 +103,8 @@ class BookingController extends Controller
                 'adultguest'     => $data['adultguest'],
                 'totalprice'     => $data['totalprice'],
                 'bookingcreated' => now(),
-                'bookingstart'   => $data['bookingstart'],
                 'bookingend'     => $data['bookingend'],
+                'bookingstart'   => $data['bookingstart'],
                 'status'         => $data['status'] ?? 'Pending',
                 'guestID'        => $data['guestID'],
                 'amenityID'      => $data['amenityID']
@@ -154,32 +112,36 @@ class BookingController extends Controller
 
             // ✅ Rooms
             foreach ($data['roomBookings'] as $room) {
+                $bookingDate = $this->parseDate($room['bookingDate'] ?? null);
                 RoomBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'roomID'      => $room['roomID'] ?? ($room['room']['roomID'] ?? null),
                     'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
-                    'bookingDate' => $room['bookingDate'] ?? now(),
+                    'bookingDate' => $bookingDate,
                 ]);
             }
 
             // ✅ Cottages
             foreach ($data['cottageBookings'] as $cottage) {
+                $bookingDate = $this->parseDate($cottage['bookingDate'] ?? null);
                 CottageBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'cottageID'   => $cottage['cottageID'] ?? ($cottage['cottage']['cottageID'] ?? null),
                     'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
-                    'bookingDate' => $cottage['bookingDate'] ?? now(),
+                    'bookingDate' => $bookingDate,
                 ]);
             }
 
             // ✅ Menus
             foreach ($data['menuBookings'] as $menu) {
+                $bookingDate = $this->parseDate($menu['bookingDate'] ?? null);
                 MenuBookingTable::create([
                     'booking_id' => $booking->bookingID,
                     'menu_id'    => $menu['menuID'] ?? ($menu['menu']['menuID'] ?? null),
                     'quantity'   => $menu['quantity'] ?? ($menu['menu']['qty'] ?? 1),
                     'price'      => $menu['price'] ?? ($menu['menu']['price'] ?? 0),
-                    'status'     => $menu['status'] ?? ($menu['menu']['status'] ?? 'pending'),
+                    'status'     => $menu['status'] ?? ($menu['menu']['status'] ?? 'Pending'),
+                    'bookingDate'=> $bookingDate,
                 ]);
             }
 
@@ -232,18 +194,11 @@ class BookingController extends Controller
     // ✅ Update booking
     public function update(Request $request, $id)
     {
-        Log::info("➡️ update booking called", [
-            'bookingID' => $id,
-            'payload'   => $request->all()
-        ]);
-
         DB::beginTransaction();
         try {
             $booking = BookingTable::findOrFail($id);
-
             $data = $this->normalize($request);
 
-            // ✅ Update booking main data
             $booking->update([
                 'guestamount'  => $data['guestamount'],
                 'childguest'   => $data['childguest'],
@@ -253,7 +208,7 @@ class BookingController extends Controller
                 'bookingend'   => $data['bookingend'],
                 'status'       => $data['status'] ?? $booking->status,
                 'guestID'      => $data['guestID'] ?? $booking->guestID,
-                'amenityID'    => $data['amenityID'],
+                'amenityID'    => $data['amenityID'] ?? $booking->amenityID,
             ]);
 
             // ✅ Clear old related data
@@ -263,32 +218,36 @@ class BookingController extends Controller
 
             // ✅ Recreate room bookings
             foreach ($data['roomBookings'] as $room) {
+                $bookingDate = $this->parseDate($room['bookingDate'] ?? null);
                 RoomBookTable::create([
                     'bookingID'   => $id,
                     'roomID'      => $room['roomID'] ?? ($room['room']['roomID'] ?? null),
                     'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
-                    'bookingDate' => $room['bookingDate'] ?? now(),
+                    'bookingDate' => $bookingDate,
                 ]);
             }
 
             // ✅ Recreate cottage bookings
             foreach ($data['cottageBookings'] as $cottage) {
+                $bookingDate = $this->parseDate($cottage['bookingDate'] ?? null);
                 CottageBookTable::create([
                     'bookingID'   => $id,
                     'cottageID'   => $cottage['cottageID'] ?? ($cottage['cottage']['cottageID'] ?? null),
                     'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
-                    'bookingDate' => $cottage['bookingDate'] ?? now(),
+                    'bookingDate' => $bookingDate,
                 ]);
             }
 
             // ✅ Recreate menu bookings
             foreach ($data['menuBookings'] as $menu) {
+                $bookingDate = $this->parseDate($menu['bookingDate'] ?? null);
                 MenuBookingTable::create([
                     'booking_id' => $id,
                     'menu_id'    => $menu['menuID'] ?? ($menu['menu']['menuID'] ?? null),
                     'quantity'   => $menu['quantity'] ?? ($menu['menu']['qty'] ?? 1),
                     'price'      => $menu['price'] ?? ($menu['menu']['price'] ?? 0),
-                    'status'     => $menu['status'] ?? ($menu['menu']['status'] ?? 'pending'),
+                    'status'     => $menu['status'] ?? ($menu['menu']['status'] ?? 'Pending'),
+                    'bookingDate'=> $bookingDate,
                 ]);
             }
 
@@ -339,6 +298,17 @@ class BookingController extends Controller
                 'request'   => $request->all()
             ]);
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // ✅ Helper: parse bookingDate safely
+    private function parseDate($date)
+    {
+        if (!$date) return null;
+        try {
+            return Carbon::parse($date)->format('Y-m-d H:i:s');
+        } catch (\Exception $e) {
+            return null;
         }
     }
 }
