@@ -66,7 +66,7 @@ class BookingController extends Controller
     }
 
     // ✅ Normalize request (supports payload.* and direct keys)
-     private function normalize(Request $request)
+    private function normalize(Request $request)
     {
         $source = $request->input('payload', $request->all());
 
@@ -102,17 +102,17 @@ class BookingController extends Controller
             $data = $this->normalize($request);
 
             $booking = BookingTable::create([
-                'guestamount'  => $data['guestamount'],
-                'childguest'   => $data['childguest'],
-                'adultguest'   => $data['adultguest'],
-                'totalprice'   => $data['totalprice'],
-                'bookingstart' => $data['bookingstart'],
-                'bookingend'   => $data['bookingend'],
-                'status'       => $data['status'],
-                'guestID'      => $data['guestID'],
-                'amenityID'    => $data['amenityID'],
+                'guestamount'    => $data['guestamount'],
+                'childguest'     => $data['childguest'],
+                'adultguest'     => $data['adultguest'],
+                'totalprice'     => $data['totalprice'],
+                'bookingstart'   => $data['bookingstart'],
+                'bookingend'     => $data['bookingend'],
+                'status'         => $data['status'],
+                'guestID'        => $data['guestID'],
+                'amenityID'      => $data['amenityID'],
+                'bookingcreated' => now()->format('Y-m-d'), // <-- add this
             ]);
-
             // Save related room bookings
             foreach ($data['roomIDs'] as $roomID) {
                 RoomBookTable::create([
@@ -167,7 +167,6 @@ class BookingController extends Controller
             DB::commit();
 
             return response()->json(['bookingID' => $booking->bookingID], 201);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("❌ store booking failed", ['error' => $e->getMessage()]);
@@ -255,7 +254,6 @@ class BookingController extends Controller
             DB::commit();
 
             return response()->json(['bookingID' => $booking->bookingID], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("❌ update booking failed", ['error' => $e->getMessage()]);
