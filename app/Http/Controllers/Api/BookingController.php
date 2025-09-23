@@ -86,6 +86,7 @@ class BookingController extends Controller
             'cottageBookings'  => $source['cottageBookings'] ?? $source['cottage_bookings'] ?? [],
             'menuBookings'     => $source['menuBookings'] ?? $source['menu_bookings'] ?? [],
             'billing'          => $source['billing'] ?? null,
+            'booking_type'   => $source['booking_type']??'Booking'
         ];
     }
 
@@ -119,7 +120,7 @@ class BookingController extends Controller
                 if ($roomID) { // only create if valid
                     $bookingDate = $this->parseDate($room['bookingDate'] ?? null);
                     RoomBookTable::create([
-                        'bookingID'   => $booking->bookingID ?? $id,
+                        'bookingID'   => $booking->bookingID,
                         'roomID'      => $roomID,
                         'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
                         'bookingDate' => $bookingDate,
@@ -136,7 +137,7 @@ class BookingController extends Controller
                 if ($cottageID) {
                     $bookingDate = $this->parseDate($cottage['bookingDate'] ?? null);
                     CottageBookTable::create([
-                        'bookingID'   => $booking->bookingID ?? $id,
+                        'bookingID'   => $booking->bookingID ,
                         'cottageID'   => $cottageID,
                         'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
                         'bookingDate' => $bookingDate,
@@ -153,7 +154,7 @@ class BookingController extends Controller
                 if ($menuID) {
                     $bookingDate = $this->parseDate($menu['bookingDate'] ?? null);
                     MenuBookingTable::create([
-                        'booking_id'  => $booking->bookingID ?? $id,
+                        'booking_id'  => $booking->bookingID ,
                         'menu_id'     => $menuID,
                         'quantity'    => $menu['quantity'] ?? ($menu['menu']['qty'] ?? 1),
                         'price'       => $menu['price'] ?? ($menu['menu']['price'] ?? 0),
