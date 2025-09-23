@@ -180,32 +180,27 @@
     <div id="layout">
         <div id="layout-header">
             <h2>Welcome Kitchen Staff</h2>
-            <form id="logout-form" action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" style="all:unset; cursor:pointer; font-size:12px;">Log Out</button>
-            </form>
+            <h3 id="out" data-url="{{route('logout')}}">Log Out</h3>
         </div>
         <div class="table-container">
             <table id="order-table">
                 <thead>
                     <th>#</th>
+                    <th>Order Ticket</th>
                     <th>Full Name</th>
-                    <th>Order Name</th>
-                    <th>Order Type</th>
                     <th>Order Quantity</th>
-                    <th>Order Amount</th>
-                    <th>Status</th>
+                    <th>Order Total</th>
+                    <th>Order Status</th>
                     <th>Action</th>
                 </thead>
                 <tbody>
-                    @foreach ($orders as $order)
+                    @foreach ($orders as $index => $order)
                         <tr>
-                            <td>{{ $order->id }}</td>
+                            <td>{{ $orders->firstItem() + $index }}</td>
+                            <td>{{ $order->ticket_no ?? 'N/A' }}</td>
                             <td>{{ $order->firstname }} {{ $order->lastname }}</td>
-                            <td>{{ $order->menuname }}</td>
-                            <td>{{ $order->itemtype }}</td>
                             <td>{{ $order->quantity }}</td>
-                            <td>₱{{ number_format($order->price, 2) }}</td>
+                            <td>₱{{ number_format($order->total, 2) }}</td>
                             <td>{{ ucfirst($order->status) }}</td>
                             <td>
                                 @if ($order->status === 'pending')
@@ -214,32 +209,23 @@
                                         <button type="submit">Mark as Preparing</button>
                                     </form>
                                 @else
-                                    <span>{{ ucfirst($order->status) }}</span>
+                                    <span>{{ $order->status }}</span>
                                 @endif
                             </td>
-
                         </tr>
                     @endforeach
                 </tbody>
-
             </table>
 
             <div class="pagination">
                 {{ $orders->links() }}
             </div>
+            @if (session('success'))
+                <div class="alert-message">
+                    <h2>{{ session('success') }}</h2>
+                </div>
+            @endif
         </div>
-        
-         @if(session('success'))
-            <div class="alert-message">
-                <h2>{{ session('success') }}</h2>
-            </div>
-        @endif
-
-        @if (session('error'))
-            <div class="alert-message">
-                <h2>{{ session('error') }}</h2>
-            </div>
-        @endif
     </div>
 
 </body>
@@ -250,10 +236,4 @@
             window.location.href = url;
         }
     });
-    
-    if (message) {
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 1500);
-        }
 </script>

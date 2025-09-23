@@ -357,6 +357,10 @@ Route::post('receptionist/add_guest', [ManageGuestController::class, 'submitGues
 Route::get('receptionist/order', [OrderController::class, 'viewMenu'])->name('receptionist.order');
 Route::post('receptionist/order', [OrderController::class, 'submitOrder'])->name('receptionist.submitorder');
 
+//Kitchen
+Route::get('kitchen/dashboard', [DashboardController::class, 'kitchenDashboard'])->name('kitchen.dashboard');
+Route::post('/orders/{order}/prepare', [OrderController::class, 'prepareOrder'])->name('orders.prepare');
+
 //For Mobile
 // Route::get('mobile/rooms', [RoomMobile::class, 'roomList']);
 
