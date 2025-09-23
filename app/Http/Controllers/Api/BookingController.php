@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
-    // ✅ GET all bookings by guestID
+    // GET all bookings by guestID
     public function getByGuest($guestID)
     {
         Log::info("➡️ getByGuest called", ['guestID' => $guestID]);
@@ -28,9 +28,7 @@ class BookingController extends Controller
                 'roomBookings.room',
                 'cottageBookings.cottage',
                 'menuBookings.menu'
-            ])
-                ->where('guestID', $guestID)
-                ->get();
+            ])->where('guestID', $guestID)->get();
 
             return response()->json($bookings, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
@@ -42,9 +40,10 @@ class BookingController extends Controller
         }
     }
 
-    // ✅ GET single booking
+    // GET single booking
     public function show($id)
     {
+        Log::info("➡️ show booking called", ['bookingID' => $id]);
         try {
             $booking = BookingTable::with([
                 'Guest:guestID,firstname,lastname,email',
@@ -65,11 +64,10 @@ class BookingController extends Controller
         }
     }
 
-    // ✅ Normalize request (supports payload.* and direct keys)
+    // Normalize request
     private function normalize(Request $request)
     {
         $source = $request->input('payload', $request->all());
-
         return [
             'guestamount'    => $source['guestamount'] ?? 0,
             'childguest'     => $source['childguest'] ?? 0,
@@ -93,6 +91,7 @@ class BookingController extends Controller
     {
         return $date ? Carbon::parse($date)->format('Y-m-d') : null;
     }
+
     // Create booking
     public function store(Request $request)
     {
@@ -112,30 +111,33 @@ class BookingController extends Controller
                 'amenityID'      => $data['amenityID'],
                 'bookingcreated' => now()->format('Y-m-d'),
             ]);
+            Log::info("📌 Booking created", ['bookingID' => $booking->bookingID]);
 
             $roomIDs = [];
             foreach ($data['roomIDs'] as $roomID) {
-                RoomBookTable::create([
+                $rb = RoomBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'roomID'      => $roomID,
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
                 $roomIDs[] = $roomID;
+                Log::info("📌 Room booked", ['bookingID' => $booking->bookingID, 'roomID' => $roomID, 'recordID' => $rb->id ?? null]);
             }
 
             $cottageIDs = [];
             foreach ($data['cottageIDs'] as $cottageID) {
-                CottageBookTable::create([
+                $cb = CottageBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'cottageID'   => $cottageID,
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
                 $cottageIDs[] = $cottageID;
+                Log::info("📌 Cottage booked", ['bookingID' => $booking->bookingID, 'cottageID' => $cottageID, 'recordID' => $cb->id ?? null]);
             }
 
             $menuIDs = [];
             foreach ($data['menuIDs'] as $index => $menuID) {
-                MenuBookingTable::create([
+                $mb = MenuBookingTable::create([
                     'booking_id'  => $booking->bookingID,
                     'menu_id'     => $menuID,
                     'quantity'    => $data['menuQuantities'][$index] ?? 1,
@@ -143,6 +145,7 @@ class BookingController extends Controller
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
                 $menuIDs[] = $menuID;
+                Log::info("📌 Menu booked", ['bookingID' => $booking->bookingID, 'menuID' => $menuID, 'recordID' => $mb->id ?? null]);
             }
 
             $billingID = null;
@@ -156,6 +159,7 @@ class BookingController extends Controller
                     'guestID'     => $booking->guestID,
                 ]);
                 $billingID = $billing->billingID;
+                Log::info("📌 Billing created", ['bookingID' => $booking->bookingID, 'billingID' => $billingID]);
 
                 foreach ($data['payments'] as $payment) {
                     $p = PaymentTable::create([
@@ -167,6 +171,7 @@ class BookingController extends Controller
                         'refNumber'   => $payment['refNumber'] ?? null,
                     ]);
                     $paymentIDs[] = $p->paymentID;
+                    Log::info("📌 Payment created", ['billingID' => $billingID, 'paymentID' => $p->paymentID]);
                 }
             }
 
@@ -188,8 +193,8 @@ class BookingController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-    // Update booking
-    // Update booking
+
+    // Update booking with detailed logs
     public function update(Request $request, $id)
     {
         DB::beginTransaction();
@@ -208,38 +213,56 @@ class BookingController extends Controller
                 'guestID'      => $data['guestID'],
                 'amenityID'    => $data['amenityID'],
             ]);
+            Log::info("📌 Booking updated", ['bookingID' => $booking->bookingID]);
+
+            // Delete old related records
+            $deletedRooms = RoomBookTable::where('bookingID', $id)->pluck('roomID')->toArray();
+            $deletedCottages = CottageBookTable::where('bookingID', $id)->pluck('cottageID')->toArray();
+            $deletedMenus = MenuBookingTable::where('booking_id', $id)->pluck('menu_id')->toArray();
+            $deletedPayments = PaymentTable::whereIn('billingID', function ($q) use ($id) {
+                $q->select('billingID')->from('billing')->where('bookingID', $id);
+            })->pluck('paymentID')->toArray();
+            $deletedBilling = BillingTable::where('bookingID', $id)->pluck('billingID')->toArray();
 
             RoomBookTable::where('bookingID', $id)->delete();
             CottageBookTable::where('bookingID', $id)->delete();
             MenuBookingTable::where('booking_id', $id)->delete();
-            PaymentTable::whereIn('billingID', function ($q) use ($id) {
-                $q->select('billingID')->from('billing')->where('bookingID', $id);
-            })->delete();
+            PaymentTable::whereIn('billingID', $deletedBilling)->delete();
             BillingTable::where('bookingID', $id)->delete();
+
+            Log::info("🗑️ Deleted old related records", [
+                'rooms' => $deletedRooms,
+                'cottages' => $deletedCottages,
+                'menus' => $deletedMenus,
+                'billing' => $deletedBilling,
+                'payments' => $deletedPayments,
+            ]);
 
             $roomIDs = [];
             foreach ($data['roomIDs'] as $roomID) {
-                RoomBookTable::create([
+                $rb = RoomBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'roomID'      => $roomID,
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
                 $roomIDs[] = $roomID;
+                Log::info("📌 Room booked", ['bookingID' => $booking->bookingID, 'roomID' => $roomID, 'recordID' => $rb->id ?? null]);
             }
 
             $cottageIDs = [];
             foreach ($data['cottageIDs'] as $cottageID) {
-                CottageBookTable::create([
+                $cb = CottageBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'cottageID'   => $cottageID,
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
                 $cottageIDs[] = $cottageID;
+                Log::info("📌 Cottage booked", ['bookingID' => $booking->bookingID, 'cottageID' => $cottageID, 'recordID' => $cb->id ?? null]);
             }
 
             $menuIDs = [];
             foreach ($data['menuIDs'] as $index => $menuID) {
-                MenuBookingTable::create([
+                $mb = MenuBookingTable::create([
                     'booking_id'  => $booking->bookingID,
                     'menu_id'     => $menuID,
                     'quantity'    => $data['menuQuantities'][$index] ?? 1,
@@ -247,6 +270,7 @@ class BookingController extends Controller
                     'bookingDate' => now()->format('Y-m-d'),
                 ]);
                 $menuIDs[] = $menuID;
+                Log::info("📌 Menu booked", ['bookingID' => $booking->bookingID, 'menuID' => $menuID, 'recordID' => $mb->id ?? null]);
             }
 
             $billingID = null;
@@ -260,6 +284,7 @@ class BookingController extends Controller
                     'guestID'     => $booking->guestID,
                 ]);
                 $billingID = $billing->billingID;
+                Log::info("📌 Billing created", ['bookingID' => $booking->bookingID, 'billingID' => $billingID]);
 
                 foreach ($data['payments'] as $payment) {
                     $p = PaymentTable::create([
@@ -271,6 +296,7 @@ class BookingController extends Controller
                         'refNumber'   => $payment['refNumber'] ?? null,
                     ]);
                     $paymentIDs[] = $p->paymentID;
+                    Log::info("📌 Payment created", ['billingID' => $billingID, 'paymentID' => $p->paymentID]);
                 }
             }
 
