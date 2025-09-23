@@ -1,6 +1,5 @@
 
-
-@section('content')
+<body>
     <div id="layout">
         @include('components.receptionist_sidebar')
 
@@ -138,4 +137,4 @@
     <script>
         // Add your toggle and scroll functionality here (same as in your existing blade)
     </script>
-@endsection
+</body>
