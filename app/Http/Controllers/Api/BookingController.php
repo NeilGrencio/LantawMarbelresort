@@ -110,39 +110,56 @@ class BookingController extends Controller
                 'amenityID'      => $data['amenityID']
             ]);
 
-            // ✅ Rooms
             foreach ($data['roomBookings'] as $room) {
-                $bookingDate = $this->parseDate($room['bookingDate'] ?? null);
-                RoomBookTable::create([
-                    'bookingID'   => $booking->bookingID,
-                    'roomID'      => $room['roomID'] ?? ($room['room']['roomID'] ?? null),
-                    'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
-                    'bookingDate' => $bookingDate,
-                ]);
+                $roomID = !empty($room['roomID']) && $room['roomID'] > 0
+                    ? $room['roomID']
+                    : ($room['room']['roomID'] ?? null);
+
+                if ($roomID) { // only create if valid
+                    $bookingDate = $this->parseDate($room['bookingDate'] ?? null);
+                    RoomBookTable::create([
+                        'bookingID'   => $booking->bookingID ?? $id,
+                        'roomID'      => $roomID,
+                        'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
+                        'bookingDate' => $bookingDate,
+                    ]);
+                }
             }
 
             // ✅ Cottages
             foreach ($data['cottageBookings'] as $cottage) {
-                $bookingDate = $this->parseDate($cottage['bookingDate'] ?? null);
-                CottageBookTable::create([
-                    'bookingID'   => $booking->bookingID,
-                    'cottageID'   => $cottage['cottageID'] ?? ($cottage['cottage']['cottageID'] ?? null),
-                    'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
-                    'bookingDate' => $bookingDate,
-                ]);
+                $cottageID = !empty($cottage['cottageID']) && $cottage['cottageID'] > 0
+                    ? $cottage['cottageID']
+                    : ($cottage['cottage']['cottageID'] ?? null);
+
+                if ($cottageID) {
+                    $bookingDate = $this->parseDate($cottage['bookingDate'] ?? null);
+                    CottageBookTable::create([
+                        'bookingID'   => $booking->bookingID ?? $id,
+                        'cottageID'   => $cottageID,
+                        'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
+                        'bookingDate' => $bookingDate,
+                    ]);
+                }
             }
 
             // ✅ Menus
             foreach ($data['menuBookings'] as $menu) {
-                $bookingDate = $this->parseDate($menu['bookingDate'] ?? null);
-                MenuBookingTable::create([
-                    'booking_id' => $booking->bookingID,
-                    'menu_id'    => $menu['menuID'] ?? ($menu['menu']['menuID'] ?? null),
-                    'quantity'   => $menu['quantity'] ?? ($menu['menu']['qty'] ?? 1),
-                    'price'      => $menu['price'] ?? ($menu['menu']['price'] ?? 0),
-                    'status'     => $menu['status'] ?? ($menu['menu']['status'] ?? 'Pending'),
-                    'bookingDate'=> $bookingDate,
-                ]);
+                $menuID = !empty($menu['menuID']) && $menu['menuID'] > 0
+                    ? $menu['menuID']
+                    : ($menu['menu']['menuID'] ?? null);
+
+                if ($menuID) {
+                    $bookingDate = $this->parseDate($menu['bookingDate'] ?? null);
+                    MenuBookingTable::create([
+                        'booking_id'  => $booking->bookingID ?? $id,
+                        'menu_id'     => $menuID,
+                        'quantity'    => $menu['quantity'] ?? ($menu['menu']['qty'] ?? 1),
+                        'price'       => $menu['price'] ?? ($menu['menu']['price'] ?? 0),
+                        'status'      => $menu['status'] ?? ($menu['menu']['status'] ?? 'Pending'),
+                        'bookingDate' => $bookingDate,
+                    ]);
+                }
             }
 
             // ✅ Billing + Payments
@@ -216,39 +233,56 @@ class BookingController extends Controller
             CottageBookTable::where('bookingID', $id)->delete();
             MenuBookingTable::where('booking_id', $id)->delete();
 
-            // ✅ Recreate room bookings
             foreach ($data['roomBookings'] as $room) {
-                $bookingDate = $this->parseDate($room['bookingDate'] ?? null);
-                RoomBookTable::create([
-                    'bookingID'   => $id,
-                    'roomID'      => $room['roomID'] ?? ($room['room']['roomID'] ?? null),
-                    'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
-                    'bookingDate' => $bookingDate,
-                ]);
+                $roomID = !empty($room['roomID']) && $room['roomID'] > 0
+                    ? $room['roomID']
+                    : ($room['room']['roomID'] ?? null);
+
+                if ($roomID) { // only create if valid
+                    $bookingDate = $this->parseDate($room['bookingDate'] ?? null);
+                    RoomBookTable::create([
+                        'bookingID'   => $booking->bookingID ?? $id,
+                        'roomID'      => $roomID,
+                        'price'       => $room['price'] ?? ($room['room']['price'] ?? 0),
+                        'bookingDate' => $bookingDate,
+                    ]);
+                }
             }
 
-            // ✅ Recreate cottage bookings
+            // ✅ Cottages
             foreach ($data['cottageBookings'] as $cottage) {
-                $bookingDate = $this->parseDate($cottage['bookingDate'] ?? null);
-                CottageBookTable::create([
-                    'bookingID'   => $id,
-                    'cottageID'   => $cottage['cottageID'] ?? ($cottage['cottage']['cottageID'] ?? null),
-                    'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
-                    'bookingDate' => $bookingDate,
-                ]);
+                $cottageID = !empty($cottage['cottageID']) && $cottage['cottageID'] > 0
+                    ? $cottage['cottageID']
+                    : ($cottage['cottage']['cottageID'] ?? null);
+
+                if ($cottageID) {
+                    $bookingDate = $this->parseDate($cottage['bookingDate'] ?? null);
+                    CottageBookTable::create([
+                        'bookingID'   => $booking->bookingID ?? $id,
+                        'cottageID'   => $cottageID,
+                        'price'       => $cottage['price'] ?? ($cottage['cottage']['price'] ?? 0),
+                        'bookingDate' => $bookingDate,
+                    ]);
+                }
             }
 
-            // ✅ Recreate menu bookings
+            // ✅ Menus
             foreach ($data['menuBookings'] as $menu) {
-                $bookingDate = $this->parseDate($menu['bookingDate'] ?? null);
-                MenuBookingTable::create([
-                    'booking_id' => $id,
-                    'menu_id'    => $menu['menuID'] ?? ($menu['menu']['menuID'] ?? null),
-                    'quantity'   => $menu['quantity'] ?? ($menu['menu']['qty'] ?? 1),
-                    'price'      => $menu['price'] ?? ($menu['menu']['price'] ?? 0),
-                    'status'     => $menu['status'] ?? ($menu['menu']['status'] ?? 'Pending'),
-                    'bookingDate'=> $bookingDate,
-                ]);
+                $menuID = !empty($menu['menuID']) && $menu['menuID'] > 0
+                    ? $menu['menuID']
+                    : ($menu['menu']['menuID'] ?? null);
+
+                if ($menuID) {
+                    $bookingDate = $this->parseDate($menu['bookingDate'] ?? null);
+                    MenuBookingTable::create([
+                        'booking_id'  => $booking->bookingID ?? $id,
+                        'menu_id'     => $menuID,
+                        'quantity'    => $menu['quantity'] ?? ($menu['menu']['qty'] ?? 1),
+                        'price'       => $menu['price'] ?? ($menu['menu']['price'] ?? 0),
+                        'status'      => $menu['status'] ?? ($menu['menu']['status'] ?? 'Pending'),
+                        'bookingDate' => $bookingDate,
+                    ]);
+                }
             }
 
             // ✅ Update billing + payments
