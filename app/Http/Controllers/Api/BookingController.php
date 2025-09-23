@@ -75,8 +75,8 @@ class BookingController extends Controller
             'childguest'       => $source['childguest'] ?? $source['childGuest'] ?? 0,
             'adultguest'       => $source['adultguest'] ?? $source['adultGuest'] ?? 0,
             'totalprice'       => $source['totalprice'] ?? $source['totalPrice'] ?? 0,
-            'bookingstart'     => $source['bookingstart'] ?? $source['bookingStart'] ?? null,
-            'bookingend'       => $source['bookingend'] ?? $source['bookingEnd'] ?? null,
+            'bookingstart'     => $this->parseDate($source['bookingstart'] ?? $source['bookingStart'] ?? null),
+            'bookingend'       => $this->parseDate($source['bookingend'] ?? $source['bookingEnd'] ?? null),
             'status'           => $source['status'] ?? null,
             'guestID'          => $source['guestID'] ?? null,
             'amenityID'        => $source['amenityID'] ?? ($source['amenity']['amenityID'] ?? null),
@@ -102,7 +102,7 @@ class BookingController extends Controller
                 'childguest'     => $data['childguest'],
                 'adultguest'     => $data['adultguest'],
                 'totalprice'     => $data['totalprice'],
-                'bookingcreated' => now(),
+                'bookingcreated' => now()->format('Y-m-d'),
                 'bookingend'     => $data['bookingend'],
                 'bookingstart'   => $data['bookingstart'],
                 'status'         => $data['status'] ?? 'Pending',
@@ -149,7 +149,7 @@ class BookingController extends Controller
             if ($data['billing']) {
                 $billing = BillingTable::create([
                     'totalamount' => $data['billing']['totalamount'] ?? 0,
-                    'datebilled'  => $data['billing']['datebilled'] ?? now(),
+                    'datebilled'  => $this->parseDate($data['billing']['datebilled'] ?? now()),
                     'status'      => $data['billing']['status'] ?? 'Unpaid',
                     'bookingID'   => $booking->bookingID,
                     'guestID'     => $booking->guestID,
@@ -160,7 +160,7 @@ class BookingController extends Controller
                         PaymentTable::create([
                             'totaltender' => $payment['totaltender'] ?? 0,
                             'totalchange' => $payment['totalchange'] ?? 0,
-                            'datepayment' => $payment['datepayment'] ?? now(),
+                            'datepayment' => $this->parseDate($payment['datepayment'] ?? now()),
                             'guestID'     => $booking->guestID,
                             'billingID'   => $billing->billingID,
                             'refNumber'   => $payment['refNumber'] ?? null,
@@ -257,7 +257,7 @@ class BookingController extends Controller
                     ['bookingID' => $id],
                     [
                         'totalamount' => $data['billing']['totalamount'] ?? 0,
-                        'datebilled'  => $data['billing']['datebilled'] ?? now(),
+                        'datebilled'  => $this->parseDate($data['billing']['datebilled'] ?? now()),
                         'status'      => $data['billing']['status'] ?? 'Unpaid',
                         'guestID'     => $booking->guestID,
                     ]
@@ -269,7 +269,7 @@ class BookingController extends Controller
                         PaymentTable::create([
                             'totaltender' => $payment['totaltender'] ?? 0,
                             'totalchange' => $payment['totalchange'] ?? 0,
-                            'datepayment' => $payment['datepayment'] ?? now(),
+                            'datepayment' => $this->parseDate($payment['datepayment'] ?? now()),
                             'guestID'     => $booking->guestID,
                             'billingID'   => $billing->billingID,
                             'refNumber'   => $payment['refNumber'] ?? null,
@@ -301,12 +301,12 @@ class BookingController extends Controller
         }
     }
 
-    // ✅ Helper: parse bookingDate safely
+    // ✅ Helper: parse date safely into DATE only
     private function parseDate($date)
     {
         if (!$date) return null;
         try {
-            return Carbon::parse($date)->format('Y-m-d H:i:s');
+            return Carbon::parse($date)->format('Y-m-d');
         } catch (\Exception $e) {
             return null;
         }
