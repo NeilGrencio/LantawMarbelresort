@@ -301,7 +301,7 @@
 <script>
     $(document).ready(function() {
         $('#booking-table').DataTable({
-            paging: false, // remove pagination
+            paging: true, // remove pagination
             searching: true, // keep search box
             ordering: true, // enable column sorting
             info: false, // remove "Showing X of Y entries"
