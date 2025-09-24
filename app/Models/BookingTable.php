@@ -12,7 +12,7 @@ class BookingTable extends Model
     protected $keyType = 'int';
     public $timestamps = false;
     protected $fillable = [
-        'guestamount', 'childguest', 'adultguest', 'totalprice', 'bookingcreated', 'bookingend', 'bookingstart', 'status', 'guestID', 'amenityID',
+        'guestamount', 'childguest', 'adultguest', 'totalprice', 'bookingcreated', 'bookingend', 'bookingstart', 'status', 'guestID', 'amenityID','booking_type'
     ];
 
     public function Guest(){

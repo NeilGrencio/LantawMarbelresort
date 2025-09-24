@@ -203,8 +203,8 @@
                             <th>Booking #</th>
                             <th>Guest Name</th>
                             <th>Guest Count</th>
-                            <th>Room Count</th>
-                            <th>Cottage Count</th>
+                            {{-- <th>Room Count</th>
+                            <th>Cottage Count</th> --}}
                             <th>Amenity</th>
                             <th>Check In</th>
                             <th>Check Out</th>
@@ -222,13 +222,13 @@
                                 <td>{{ $count }}</td>
                                 <td>{{ $booking->guestname }}</td>
                                 <td>{{ $booking->guestamount }}</td>
-                                <td>{{ $booking->roomcount }}</td>
-                                <td>{{ $booking->cottagecount }}</td>
+                                {{-- <td>{{ $booking->roomcount }}</td>
+                                <td>{{ $booking->cottagecount }}</td> --}}
                                 <td>{{ $booking->amenityname }}</td>
                                 <td>{{ $booking->bookingstart }}</td>
                                 <td>{{ $booking->bookingend }}</td>
                                 <td>{{ $booking->totalprice }}</td>
-                                <td>{{ $booking->type }}</td>
+                                <td>{{ $booking->booking_type }}</td>
                                 <td>{{ $booking->status }}</td>
                                 <td>
                                     <button class="btn btn-primary"
