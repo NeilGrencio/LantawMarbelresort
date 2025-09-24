@@ -56,7 +56,7 @@
             gap: 1rem;
         }
 
-       
+
 
         /* Table container */
         .table-container {
@@ -68,8 +68,8 @@
             background: white;
             border-radius: 0.7rem;
             box-shadow: 0.1rem 0.1rem 0 black;
-          overflow-x: auto;  
-    overflow-y: visible;
+            overflow-x: auto;
+            overflow-y: visible;
         }
 
         /* Table styling */
@@ -176,6 +176,21 @@
                 <h1>Booking List</h1>
                 <div id="add-container">
                     <div class="add-action">
+                        <i id="add-action" class="fa-solid fa-list-ol fa-2x"
+                            data-url="{{ url('receptionist/booking_list') }}" style="cursor:pointer;"></i>
+                        <small>Booking List</small>
+                    </div>
+                    <div class="add-action">
+                        <i id="add-action" class="fas fa-hotel fa-2x" data-url="{{ url('receptionist/walk-booking') }}"
+                            style="cursor:pointer;"></i>
+                        <small>Walk In Booking</small>
+                    </div>
+                    <div class="add-action">
+                        <i id="add-action" id="add-menu" class="fas fa-plus-circle fa-2x"
+                            data-url="{{ url('receptionist/create_booking') }}" style="cursor:pointer;"></i>
+                        <small>Normal Booking</small>
+                    </div>
+                    <div class="add-action">
                         <i id="add-action-btn" class="fa-solid fa-calendar-days fa-2x"
                             data-url="{{ url('receptionist/booking') }}"></i>
                         <small>Calendar View</small>
@@ -263,37 +278,37 @@
 
     <script>
         $(document).ready(function() {
-    var table = $('#booking-table').DataTable({
-        paging: true,           // pagination enabled
-        searching: true,
-        ordering: true,
-        info: true,
-        lengthChange: true,
-        autoWidth: false,
-        responsive: true,
-        scrollX: true,          // horizontal scroll only
-        pageLength: 25,
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, "All"]
-        ],
-        columnDefs: [{
-            orderable: false,
-            targets: -1 // Actions column
-        }],
-        dom: '<"top"f>rt<"bottom"lip><"clear">'
-    });
+            var table = $('#booking-table').DataTable({
+                paging: true, // pagination enabled
+                searching: true,
+                ordering: true,
+                info: true,
+                lengthChange: true,
+                autoWidth: false,
+                responsive: true,
+                scrollX: true, // horizontal scroll only
+                pageLength: 25,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                columnDefs: [{
+                    orderable: false,
+                    targets: -1 // Actions column
+                }],
+                dom: '<"top"f>rt<"bottom"lip><"clear">'
+            });
 
-    // Client-side status filter
-    $('#status-filter').on('change', function() {
-        var val = $(this).val();
-        if (val) {
-            table.column(10).search('^' + val + '$', true, false).draw();
-        } else {
-            table.column(10).search('').draw();
-        }
-    });
-});
+            // Client-side status filter
+            $('#status-filter').on('change', function() {
+                var val = $(this).val();
+                if (val) {
+                    table.column(10).search('^' + val + '$', true, false).draw();
+                } else {
+                    table.column(10).search('').draw();
+                }
+            });
+        });
     </script>
 </body>
 
