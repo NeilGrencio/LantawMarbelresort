@@ -6,10 +6,19 @@
     <link rel="icon" href="{{ asset('favico.ico') }}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
     <title>Lantaw-Marbel Resort</title>
+
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
     <style>
         /* Highlight active menu item */
         #booking {
@@ -19,18 +28,17 @@
         /* Layout */
         #layout {
             display: flex;
-            flex-direction: row;
             height: 100vh;
         }
 
         #main-layout {
+            flex: 1;
             display: flex;
             flex-direction: column;
             padding: 1rem;
-            width: 100%;
-            margin-left: 12rem;
-            /* sidebar width */
+            margin-left: 12rem; /* sidebar width */
             height: 100vh;
+            overflow: hidden;
         }
 
         /* Header */
@@ -64,32 +72,31 @@
 
         /* Table container */
         .table-container {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
-            padding: 0.5rem;
             margin-top: 1rem;
+            padding: 0.5rem;
             background: white;
             border-radius: 0.7rem;
             box-shadow: 0.1rem 0.1rem 0 black;
             overflow-x: auto;
-            /* horizontal scroll if needed */
-            max-height: calc(100vh - 6rem);
-            /* adjust for header height */
+            overflow-y: hidden;
         }
 
-        /* Table */
+        /* Table styling */
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.75rem;
+            table-layout: fixed; /* make columns responsive */
         }
 
         th,
         td {
             padding: 10px;
             text-align: center;
-            min-width: 80px;
+            word-wrap: break-word;
         }
 
         thead {
@@ -98,16 +105,6 @@
             position: sticky;
             top: 0;
             z-index: 1;
-        }
-
-        tbody {
-            display: block;
-            overflow-y: auto;
-        }
-
-        /* DataTables wrapper */
-        .dataTables_wrapper {
-            width: 100%;
         }
 
         /* Search box styling */
@@ -132,7 +129,7 @@
             border: 1px solid #F78A21;
         }
 
-        /* Buttons inside table */
+        /* Table buttons */
         .btn {
             padding: 0.3rem 0.6rem;
             font-size: 0.75rem;
@@ -163,20 +160,20 @@
             color: #fff;
             border: none;
         }
+
+        /* Responsive adjustments */
+        @media screen and (max-width: 1200px) {
+            #main-layout {
+                margin-left: 0;
+            }
+        }
     </style>
-
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 </head>
 
 <body>
     <div id="layout">
         @include('components.receptionist_sidebar')
+
         <div id="main-layout">
             <div id="layout-header">
                 <h1>Booking List</h1>
@@ -189,7 +186,7 @@
                 </div>
             </div>
 
-            <!----------TABLE VIEW STARTS HERE--------->
+            <!-- Table -->
             <div class="table-container">
                 <table id="booking-table">
                     <thead>
@@ -208,7 +205,6 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-
                     <tbody>
                         @php $count = 0; @endphp
                         @foreach ($bookings as $booking)
@@ -228,57 +224,50 @@
                                 <td>
                                     <button class="btn btn-primary"
                                         onclick="window.location='{{ route('receptionist.view_booking', ['bookingID' => $booking->bookingID]) }}'">
-                                        View Details
+                                        View
                                     </button>
-                                    {{-- <!-- Approve Booking -->
-                                    <button class="btn btn-success"
-                                        onclick="approveBooking({{ $booking->bookingID }})">Approve</button>
-                                    <button class="btn btn-danger"
-                                        onclick="declineBooking({{ $booking->bookingID }})">Decline</button> --}}
                                     <button class="btn btn-info"
                                         onclick="window.location='{{ route('booking.edit', ['bookingID' => $booking->bookingID]) }}'">
                                         Edit
                                     </button>
-                                    {{-- <button class="btn btn-danger"
-                                        onclick="cancelBooking({{ $booking->bookingID }})">Cancel</button> --}}
-
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
-            {{-- <div id="page-container">
-                {{ $bookings->links() }}
-            </div> --}}
-</body>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const calendar_view = document.getElementById('add-action-btn')
-        if (calendar_view) {
-            const url = calendar_view.dataset.url;
-            calendar_view.addEventListener('click', function() {
-                window.location.href = url;
-            });
-        };
-    });
-</script>
-<script>
-   $(document).ready(function() {
-    $('#booking-table').DataTable({
-        paging: true,        // enable pagination
-        searching: true,     // search box
-        ordering: true,      // enable sorting
-        info: true,          // show "Showing X of Y"
-        lengthChange: false, // hide rows-per-page dropdown
-        autoWidth: false,
-        scrollY: false,      // remove scrollY to allow pagination
-        scrollCollapse: false,
-        columnDefs: [
-            { orderable: false, targets: -1 } // disable sorting on Actions
-        ],
-        dom: '<"top"f>rt<"bottom"ip><"clear">'
-    });
-});
+        </div>
+    </div>
 
-</script>
+    <script>
+        // Calendar button
+        document.addEventListener("DOMContentLoaded", function () {
+            const calendar_view = document.getElementById('add-action-btn');
+            if (calendar_view) {
+                const url = calendar_view.dataset.url;
+                calendar_view.addEventListener('click', function () {
+                    window.location.href = url;
+                });
+            }
+        });
+
+        // Initialize DataTables
+        $(document).ready(function () {
+            $('#booking-table').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                lengthChange: false,
+                autoWidth: false,
+                responsive: true,
+                columnDefs: [
+                    { orderable: false, targets: -1 } // Actions column not sortable
+                ],
+                dom: '<"top"f>rt<"bottom"ip><"clear">'
+            });
+        });
+    </script>
+</body>
+
+</html>
