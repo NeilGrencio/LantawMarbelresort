@@ -37,9 +37,8 @@
             flex-direction: column;
             padding: 1rem;
             margin-left: 12rem;
-            /* sidebar width */
+            overflow: visible;
             height: 100vh;
-            overflow: hidden;
         }
 
         /* Header */
@@ -57,19 +56,7 @@
             gap: 1rem;
         }
 
-        #add-container {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .add-action {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
+       
 
         /* Table container */
         .table-container {
@@ -81,8 +68,8 @@
             background: white;
             border-radius: 0.7rem;
             box-shadow: 0.1rem 0.1rem 0 black;
-            overflow-x: auto;
-            overflow-y: hidden;
+          overflow-x: auto;  
+    overflow-y: visible;
         }
 
         /* Table styling */
