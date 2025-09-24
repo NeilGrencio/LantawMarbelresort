@@ -46,10 +46,12 @@ public function submitOrder(Request $request)
         }
 
         // Find latest booking
-        $booking = BookingTable::where('guestID', $guest->guestID)
-            ->orderBy('bookingstart', 'desc')
-            ->first();
+        $today = Carbon::today();
 
+        $booking = BookingTable::where('guestID', $guest->guestID)
+            ->whereDate('bookingstart', '<=', $today)
+            ->whereDate('bookingend', '>=', $today)
+            ->first();
         if (!$booking) {
             return redirect()->back()->with('error', 'No booking found for this guest.');
         }
@@ -81,20 +83,19 @@ public function submitOrder(Request $request)
             }
         }
 
-        // Billing logic
+        // Billing logic: update if exists, else create
         if (!empty($createdOrders)) {
             $billing = BillingTable::where('bookingID', $booking->bookingID)->first();
 
             if ($billing) {
-                // Update existing billing
-                $billing->update([
-                    'totalamount' => $billing->totalamount + $grandTotal,
-                    'datebilled'  => now(),
-                    'status'      => 'Unpaid',
-                    'guestID'     => $guest->guestID,
-                ]);
+                // Add to existing total
+                $billing->totalamount = $billing->totalamount + $grandTotal;
+                $billing->datebilled  = now();
+                $billing->status      = 'Unpaid';
+                $billing->guestID     = $guest->guestID;
+                $billing->save();
             } else {
-                // Create new billing
+                // Create a new billing record
                 BillingTable::create([
                     'totalamount' => $grandTotal,
                     'datebilled'  => now(),
@@ -109,7 +110,7 @@ public function submitOrder(Request $request)
             }
         }
 
-        DB::commit(); // ✅ make sure changes are saved
+        DB::commit();
 
         return redirect()->back()->with('success', 'Order submitted successfully.');
 
@@ -118,6 +119,8 @@ public function submitOrder(Request $request)
         return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
     }
 }
+
+
 
 
     public function prepareOrder(MenuBookingTable $order)
