@@ -200,7 +200,7 @@
 
 
             <!-- Table -->
-            <div class="table-container" style="overflow-x:auto; max-height:600px;">
+            <div class="table-container" style="overflow-x:auto; max-height:80vh;">
                 <label for="status-filter">Filter by Status:</label>
                 <select id="status-filter" style="margin-bottom: 0.5rem;">
                     <option value="">All</option>
@@ -209,6 +209,7 @@
                     <option value="Ongoing">Ongoing</option>
                     <option value="Finished">Finished</option>
                 </select>
+
                 <table id="booking-table" class="display nowrap" style="width:100%">
                     <thead>
                         <tr>
@@ -276,15 +277,14 @@
     <script>
         $(document).ready(function() {
             var table = $('#booking-table').DataTable({
-                paging: true, // keep pagination
+                paging: true, // pagination enabled
                 searching: true,
                 ordering: true,
                 info: true,
                 lengthChange: true,
                 autoWidth: false,
                 responsive: true,
-                scrollX: true,
-                scrollY:true, // horizontal scroll only
+                scrollX: true, // horizontal scroll for wide tables
                 scrollCollapse: true,
                 pageLength: 25,
                 lengthMenu: [
