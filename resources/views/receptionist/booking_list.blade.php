@@ -298,6 +298,7 @@
             });
 
 
+
             // Client-side status filter
             $('#status-filter').on('change', function() {
                 var val = $(this).val();
