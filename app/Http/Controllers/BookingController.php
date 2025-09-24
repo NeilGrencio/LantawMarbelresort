@@ -36,7 +36,7 @@ class BookingController extends Controller
                 'booking.*',
                 DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
             )
-            ->paginate(10);
+           ->get();
 
         $bookingpending = BookingTable::where('booking.status', 'Pending')
             ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
