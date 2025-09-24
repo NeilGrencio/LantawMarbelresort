@@ -274,40 +274,41 @@
     </script>
 
     <script>
-        var table = $('#booking-table').DataTable({
-            paging: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            lengthChange: true,
-            autoWidth: false,
-            responsive: true,
-            scrollY: "500px", // vertical scroll
-            scrollX: true, // horizontal scroll
-            scrollCollapse: true, // collapse if fewer rows
-            pageLength: 25,
-            lengthMenu: [
-                [10, 25, 50, 100, -1],
-                [10, 25, 50, 100, "All"]
-            ],
-            columnDefs: [{
-                orderable: false,
-                targets: -1 // Actions column
-            }],
-            dom: '<"top"f>rt<"bottom"lip><"clear">'
+        $(document).ready(function() {
+            var table = $('#booking-table').DataTable({
+                paging: true, // keep pagination
+                searching: true,
+                ordering: true,
+                info: true,
+                lengthChange: true,
+                autoWidth: false,
+                responsive: true,
+                scrollX: true, // horizontal scroll only
+                scrollCollapse: true,
+                pageLength: 25,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                columnDefs: [{
+                    orderable: false,
+                    targets: -1 // Actions column
+                }],
+                dom: '<"top"f>rt<"bottom"lip><"clear">'
+            });
+
+
+            // Client-side status filter
+            $('#status-filter').on('change', function() {
+                var val = $(this).val();
+                if (val) {
+                    // Filter exact match in the "Status" column (index 10)
+                    table.column(10).search('^' + val + '$', true, false).draw();
+                } else {
+                    table.column(10).search('').draw();
+                }
+            });
         });
-
-
-        // Client-side status filter
-        $('#status-filter').on('change', function() {
-        var val = $(this).val();
-        if (val) {
-            table.column(10).search('^' + val + '$', true, false).draw();
-        } else {
-            table.column(10).search('').draw();
-        }
-        });
-
     </script>
 </body>
 
