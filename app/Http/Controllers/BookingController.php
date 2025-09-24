@@ -27,20 +27,42 @@ class BookingController extends Controller
 {
     public function bookingList()
     {
-        // Get all bookings with guest full name
-        $bookings = BookingTable::leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+
+        $bookingtoday = BookingTable::where('status', 'Booked')
+            ->orwhereDate('bookingstart', DB::raw('CURDATE()'))
+            ->orWhereDate('bookingend', DB::raw('CURDATE()'))
+            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
             ->select(
                 'booking.*',
-                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as guestname")
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
+            )
+            ->paginate(10);
+
+        $bookingpending = BookingTable::where('booking.status', 'Pending')
+            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->select(
+                'booking.*',
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
             )
             ->get();
 
-        // Optional: get rooms, cottages, amenities if needed
+        $bookingconfirmed = BookingTable::where('status', 'Booked')
+            ->where('booking.bookingstart', '>=', \Carbon\Carbon::today())  // Add this condition to filter bookings by today's date or future dates
+            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->select(
+                'booking.*',
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
+            )
+            ->get();
+
+        //$statuses = DB::table('cottages')->pluck('status');
+        //dd($statuses);
+
         $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
         $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
         $amenities = AmenityTable::whereIn('amenityname', ['Kiddy Pool'])->get();
 
-        return view('receptionist.booking', compact('bookings', 'rooms', 'cottages', 'amenities'));
+        return view('receptionist/booking', compact('bookingtoday', 'bookingpending', 'bookingconfirmed', 'rooms', 'cottages', 'amenities'));
     }
     public function events()
     {
@@ -119,9 +141,12 @@ class BookingController extends Controller
         }
         return response()->json($events);
     }
-    public function bookingListView()
+    public function bookingListView(Request $request)
     {
-        $bookings = BookingTable::with([
+        // Get optional status filter from query string
+        $status = $request->input('status');
+
+        $query = BookingTable::with([
             'guest',
             'amenity',
             'roomBookings.room',
@@ -134,11 +159,18 @@ class BookingController extends Controller
                 DB::raw('COALESCE(amenities.amenityname, "N/A") as amenityname'),
                 DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname")
             )
-            ->orderBy('bookingID', 'desc')
-            ->paginate(10);
+            ->orderBy('bookingID', 'desc');
 
-        return view('receptionist.booking_list', compact('bookings'));
+        // Apply status filter if provided
+        if ($status) {
+            $query->where('booking.status', $status);
+        }
+
+        $bookings = $query->get(); // fetch all results without pagination
+
+        return view('receptionist.booking_list', compact('bookings', 'status'));
     }
+
     public function createBooking()
     {
         $rooms = RoomTable::where('status', 'Available')->get();
