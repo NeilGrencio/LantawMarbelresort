@@ -283,7 +283,8 @@
                 lengthChange: true,
                 autoWidth: false,
                 responsive: true,
-                scrollX: true, // horizontal scroll only
+                scrollX: true,
+                scrollY:true, // horizontal scroll only
                 scrollCollapse: true,
                 pageLength: 25,
                 lengthMenu: [
