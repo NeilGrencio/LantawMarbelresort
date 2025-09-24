@@ -160,6 +160,33 @@
             display: none !important;
         }
 
+        .dataTables_wrapper {
+            width: 100%;
+        }
+
+        /* Float search box above table and full width */
+        .dataTables_filter {
+            float: left !important;
+            /* move to left above table */
+            text-align: left !important;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+
+        .dataTables_filter label {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .dataTables_filter input {
+            margin-left: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            width: 300px;
+            /* adjust width as needed */
+            border-radius: 0.4rem;
+            border: 1px solid #F78A21;
+        }
+
         .pagination .page-status {
             background: transparent;
             border: none;
@@ -175,11 +202,11 @@
     </style>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 </head>
 
 <body>
@@ -256,13 +283,11 @@
                     </tbody>
                 </table>
             </div>
-            <div id="page-container">
+            {{-- <div id="page-container">
                 {{ $bookings->links() }}
-            </div>
+            </div> --}}
 </body>
 <script>
-   
-
     document.addEventListener("DOMContentLoaded", function() {
         const calendar_view = document.getElementById('add-action-btn')
         if (calendar_view) {
@@ -274,16 +299,20 @@
     });
 </script>
 <script>
-$(document).ready(function() {
-    $('#booking-table').DataTable({
-        paging: true,        // enable pagination
-        searching: true,     // enable search box
-        ordering: true,      // enable column sorting
-        pageLength: 10,      // rows per page
-        lengthMenu: [5, 10, 25, 50], // options for rows per page
-        columnDefs: [
-            { orderable: false, targets: -1 } // disable sorting on "Actions" column
-        ]
+    $(document).ready(function() {
+        $('#booking-table').DataTable({
+            paging: false, // remove pagination
+            searching: true, // keep search box
+            ordering: true, // enable column sorting
+            info: false, // remove "Showing X of Y entries"
+            lengthChange: false, // hide rows-per-page dropdown
+            autoWidth: false, // disable auto column width
+            columnDefs: [{
+                    orderable: false,
+                    targets: -1
+                } // disable sorting on "Actions"
+            ],
+            dom: '<"top"f>rt<"bottom"i><"clear">', // float search box at top
+        });
     });
-});
 </script>
