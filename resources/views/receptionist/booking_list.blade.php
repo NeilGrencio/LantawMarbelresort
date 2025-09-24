@@ -190,11 +190,7 @@
             <div id="layout-header">
                 <h1>Booking List</h1>
                 <div id="add-container">
-                    <div class="add-action">
-                        <i id="add-action" class="fa-solid fa-list-ol fa-2x"
-                            data-url="{{ url('receptionist/booking_list') }}" style="cursor:pointer;"></i>
-                        <small>Booking List</small>
-                    </div>
+                    
                     <div class="add-action">
                         <i id="add-action" class="fas fa-hotel fa-2x" data-url="{{ url('receptionist/walk-booking') }}"
                             style="cursor:pointer;"></i>
