@@ -11,195 +11,137 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        #booking {
-            color: orange;
-        }
+    /* Highlight active menu item */
+    #booking {
+        color: orange;
+    }
 
-        #layout {
-            display: flex;
-            flex-direction: row;
-            height: 100vh;
-        }
+    /* Layout */
+    #layout {
+        display: flex;
+        flex-direction: row;
+        height: 100vh;
+    }
 
-        #main-layout {
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            width: 100%;
-            transition: width 0.3s ease-in-out;
-            margin-left: 12rem;
-        }
+    #main-layout {
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+        width: 100%;
+        margin-left: 12rem; /* sidebar width */
+        height: 100vh;
+    }
 
-        #layout-header {
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            height: 4rem;
-            padding: 1rem;
-            background: white;
-            border-radius: .7rem;
-            border: black 1px solid;
-            box-shadow: .1rem .1rem 0 black;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            font-size: .9rem;
-        }
+    /* Header */
+    #layout-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        height: 4rem;
+        background: white;
+        border-radius: 0.7rem;
+        border: 1px solid black;
+        box-shadow: 0.1rem 0.1rem 0 black;
+        font-size: 0.9rem;
+        gap: 1rem;
+    }
 
-        #add-container {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 1rem;
-        }
+    #add-container {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
 
-        .add-action {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-evenly;
-            cursor: pointer;
-        }
+    .add-action {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
 
-        .table-container {
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            height: auto;
-            padding: .5rem;
-            border-radius: .7rem;
-            margin-top: 1rem;
-            align-items: center;
-            align-content: center;
-            background: white;
-            box-shadow: .1rem .1rem 0 black;
-            overflow-x: auto;
-        }
+    /* Table container */
+    .table-container {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1; /* fill remaining height */
+        padding: 0.5rem;
+        margin-top: 1rem;
+        background: white;
+        border-radius: 0.7rem;
+        box-shadow: 0.1rem 0.1rem 0 black;
+        overflow: hidden;
+    }
 
-        table {
-            width: 100%;
-            font-size: .7rem;
-            border-collapse: collapse;
-            transition: all 0.3s ease-in;
-        }
+    /* Table */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+    }
 
-        th,
-        td {
-            padding: 10px;
-            text-align: center;
-        }
+    th, td {
+        padding: 10px;
+        text-align: center;
+        min-width: 80px;
+    }
 
-        thead {
-            background: orange;
-            color: white;
-            justify-content: center;
-            align-items: center;
-        }
+    thead {
+        background: orange;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
 
-        tbody {
-            justify-content: center;
-            align-items: center;
-        }
+    tbody {
+        display: block;
+        overflow-y: auto;
+    }
 
-        #page-container {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-        }
+    /* DataTables wrapper */
+    .dataTables_wrapper {
+        width: 100%;
+    }
 
-        .pagination {
-            display: flex;
-            gap: 0.5rem;
-            list-style: none;
-            padding: 0;
-            background: transparent;
-            align-items: center;
-        }
+    /* Search box styling */
+    .dataTables_filter {
+        display: flex !important;
+        justify-content: flex-start;
+        margin-bottom: 1rem;
+        width: 100%;
+    }
 
-        .page-item {
-            display: flex;
-            align-items: center;
-        }
+    .dataTables_filter label {
+        font-weight: bold;
+        font-size: 0.9rem;
+        width: 100%;
+    }
 
-        .page-link,
-        .pagination span {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 2.5rem;
-            min-height: 2.5rem;
-            padding: 0.5rem 0.75rem;
-            background: #fff;
-            color: #F78A21;
-            text-decoration: none;
-            border: 1.5px solid #F78A21;
-            border-radius: 50%;
-            font-size: 1.1rem;
-            font-weight: 500;
-            transition: background 0.2s, color 0.2s, border 0.2s;
-            margin: 0 0.15rem;
-        }
+    .dataTables_filter input {
+        margin-left: 0.5rem;
+        padding: 0.4rem 0.6rem;
+        width: 300px;
+        max-width: 100%;
+        border-radius: 0.4rem;
+        border: 1px solid #F78A21;
+    }
 
-        .page-item.active .page-link,
-        .page-link:hover {
-            background: #F78A21;
-            color: #fff;
-            border-color: #F78A21;
-        }
+    /* Buttons inside table */
+    .btn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+        border-radius: 0.4rem;
+        cursor: pointer;
+    }
 
-        .page-item.disabled .page-link,
-        .page-item.disabled span {
-            color: #ccc;
-            pointer-events: none;
-            background: #f8f9fa;
-            border-color: #eee;
-        }
+    .btn-primary { background: #007bff; color: #fff; border: none; }
+    .btn-info    { background: #17a2b8; color: #fff; border: none; }
+    .btn-success { background: #28a745; color: #fff; border: none; }
+    .btn-danger  { background: #dc3545; color: #fff; border: none; }
+</style>
 
-        .page-item.disabled {
-            display: none !important;
-        }
-
-        .dataTables_wrapper {
-            width: 100%;
-        }
-
-        /* Float search box above table and full width */
-        .dataTables_filter {
-            float: left !important;
-            /* move to left above table */
-            text-align: left !important;
-            margin-bottom: 1rem;
-            width: 100%;
-        }
-
-        .dataTables_filter label {
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        .dataTables_filter input {
-            margin-left: 0.5rem;
-            padding: 0.4rem 0.6rem;
-            width: 300px;
-            /* adjust width as needed */
-            border-radius: 0.4rem;
-            border: 1px solid #F78A21;
-        }
-
-        .pagination .page-status {
-            background: transparent;
-            border: none;
-            color: #333;
-            font-size: 1rem;
-            font-weight: 400;
-            border-radius: 0;
-            min-width: unset;
-            min-height: unset;
-            margin: 0 0.5rem;
-            padding: 0;
-        }
-    </style>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
     <!-- jQuery -->
@@ -299,20 +241,20 @@
     });
 </script>
 <script>
-    $(document).ready(function() {
-        $('#booking-table').DataTable({
-            paging: true, // remove pagination
-            searching: true, // keep search box
-            ordering: true, // enable column sorting
-            info: false, // remove "Showing X of Y entries"
-            lengthChange: false, // hide rows-per-page dropdown
-            autoWidth: false, // disable auto column width
-            columnDefs: [{
-                    orderable: false,
-                    targets: -1
-                } // disable sorting on "Actions"
-            ],
-            dom: '<"top"f>rt<"bottom"i><"clear">', // float search box at top
-        });
+   $(document).ready(function() {
+    $('#booking-table').DataTable({
+        paging: true,         // remove pagination
+        searching: true,       // keep search box
+        ordering: true,        // enable sorting
+        info: false,           // remove "Showing X of Y"
+        lengthChange: false,   // hide rows-per-page dropdown
+        autoWidth: false,
+        columnDefs: [
+            { orderable: false, targets: -1 } // disable sorting on Actions
+        ],
+        scrollY: 'calc(100vh - 200px)', // table body scroll height
+        scrollCollapse: true,
+        dom: '<"top"f>rt<"clear">'
     });
+});
 </script>
