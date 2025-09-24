@@ -189,62 +189,67 @@
             </div>
 
             <!-- Filter Dropdown -->
-            <form method="GET" action="{{ url('receptionist/booking_list') }}" style="margin-bottom: 1rem;">
-                <label for="status">Filter by Status:</label>
-                <select name="status" id="status" onchange="this.form.submit()">
-                    <option value="">All</option>
-                    <option value="Pending" {{ ($status ?? '') == 'Pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="Booked" {{ ($status ?? '') == 'Booked' ? 'selected' : '' }}>Booked</option>
-                    <option value="Ongoing" {{ ($status ?? '') == 'Ongoing' ? 'selected' : '' }}>Ongoing</option>
-                    <option value="Finished" {{ ($status ?? '') == 'Finished' ? 'selected' : '' }}>Finished</option>
-                </select>
-            </form>
 
-            <table id="booking-table">
-                <thead>
-                    <tr>
-                        <th>Booking #</th>
-                        <th>Guest Name</th>
-                        <th>Guest Count</th>
-                        <th>Room Count</th>
-                        <th>Cottage Count</th>
-                        <th>Amenity</th>
-                        <th>Check In</th>
-                        <th>Check Out</th>
-                        <th>Total Amount</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php $count = 0; @endphp
-                    @foreach ($bookings as $booking)
-                        @php $count++; @endphp
+
+            <!-- Table -->
+            <div class="table-container">
+                <label for="status-filter">Filter by Status:</label>
+                <select id="status-filter">
+                    <option value="">All</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Booked">Booked</option>
+                    <option value="Ongoing">Ongoing</option>
+                    <option value="Finished">Finished</option>
+                </select>
+                <table id="booking-table">
+                    <thead>
                         <tr>
-                            <td>{{ $count }}</td>
-                            <td>{{ $booking->guestname }}</td>
-                            <td>{{ $booking->guestamount }}</td>
-                            <td>{{ $booking->roomBookings->count() }}</td>
-                            <td>{{ $booking->cottageBookings->count() }}</td>
-                            <td>{{ $booking->amenityname }}</td>
-                            <td>{{ $booking->bookingstart }}</td>
-                            <td>{{ $booking->bookingend }}</td>
-                            <td>{{ $booking->totalprice }}</td>
-                            <td>{{ $booking->type }}</td>
-                            <td>{{ $booking->status }}</td>
-                            <td>
-                                <button class="btn btn-primary"
-                                    onclick="window.location='{{ route('receptionist.view_booking', ['bookingID' => $booking->bookingID]) }}'">View</button>
-                                <button class="btn btn-info"
-                                    onclick="window.location='{{ route('booking.edit', ['bookingID' => $booking->bookingID]) }}'">Edit</button>
-                            </td>
+                            <th>Booking #</th>
+                            <th>Guest Name</th>
+                            <th>Guest Count</th>
+                            <th>Room Count</th>
+                            <th>Cottage Count</th>
+                            <th>Amenity</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Total Amount</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @php $count = 0; @endphp
+                        @foreach ($bookings as $booking)
+                            @php $count++; @endphp
+                            <tr>
+                                <td>{{ $count }}</td>
+                                <td>{{ $booking->guestname }}</td>
+                                <td>{{ $booking->guestamount }}</td>
+                                <td>{{ $booking->roomcount }}</td>
+                                <td>{{ $booking->cottagecount }}</td>
+                                <td>{{ $booking->amenityname }}</td>
+                                <td>{{ $booking->bookingstart }}</td>
+                                <td>{{ $booking->bookingend }}</td>
+                                <td>{{ $booking->totalprice }}</td>
+                                <td>{{ $booking->type }}</td>
+                                <td>{{ $booking->status }}</td>
+                                <td>
+                                    <button class="btn btn-primary"
+                                        onclick="window.location='{{ route('receptionist.view_booking', ['bookingID' => $booking->bookingID]) }}'">
+                                        View
+                                    </button>
+                                    <button class="btn btn-info"
+                                        onclick="window.location='{{ route('booking.edit', ['bookingID' => $booking->bookingID]) }}'">
+                                        Edit
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
     </div>
 
     <script>
@@ -282,19 +287,15 @@
                 dom: '<"top"f>rt<"bottom"lip><"clear">'
             });
 
-            // Filter by status
+            // Client-side status filter
             $('#status-filter').on('change', function() {
                 var val = $(this).val();
                 if (val) {
+                    // Filter exact match in the "Status" column (index 10)
                     table.column(10).search('^' + val + '$', true, false).draw();
                 } else {
                     table.column(10).search('').draw();
                 }
-            });
-
-            // Calendar view button
-            $('#add-action-btn').on('click', function() {
-                window.location.href = $(this).data('url');
             });
         });
     </script>

@@ -141,36 +141,26 @@ class BookingController extends Controller
         }
         return response()->json($events);
     }
-   public function bookingListView(Request $request)
-{
-    // Get optional status filter from query string
-    $status = $request->input('status');
+    public function bookingListView()
+    {
+        $bookings = BookingTable::with([
+            'guest',
+            'amenity',
+            'roomBookings.room',
+            'cottageBookings.cottage',
+        ])
+            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
+            ->select(
+                'booking.*',
+                DB::raw('COALESCE(amenities.amenityname, "N/A") as amenityname'),
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname")
+            )
+            ->orderBy('bookingID', 'desc')
+            ->get();
 
-    $query = BookingTable::with([
-        'guest',
-        'amenity',
-        'roomBookings.room',
-        'cottageBookings.cottage',
-    ])
-        ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
-        ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
-        ->select(
-            'booking.*',
-            DB::raw('COALESCE(amenities.amenityname, "N/A") as amenityname'),
-            DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname")
-        )
-        ->orderBy('bookingID', 'desc');
-
-    // Apply status filter if provided
-    if ($status) {
-        $query->where('booking.status', $status);
+        return view('receptionist.booking_list', compact('bookings'));
     }
-
-    $bookings = $query->get(); // fetch all results without pagination
-
-    return view('receptionist.booking_list', compact('bookings', 'status'));
-}
-
 
     public function createBooking()
     {

@@ -361,7 +361,7 @@ Route::post('receptionist/order', [OrderController::class, 'submitOrder'])->name
 Route::get('kitchen/dashboard', [DashboardController::class, 'kitchenDashboard'])->name('kitchen.dashboard');
 Route::post('/orders/{order}/prepare', [OrderController::class, 'prepareOrder'])->name('orders.prepare');
 Route::get('receptionist/edit_booking/{bookingID}', [BookingController::class, 'edit'])->name('booking.edit');
-Route::get('receptionist/booking_list', [BookingController::class, 'bookingListView'])->name('receptionist.booking_list');
+
 // Update booking
 Route::post('receptionist/update_booking/{bookingID}', [BookingController::class, 'update'])->name('booking.update');
 
