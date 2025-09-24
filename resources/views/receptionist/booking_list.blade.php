@@ -190,7 +190,7 @@
             <div id="layout-header">
                 <h1>Booking List</h1>
                 <div id="add-container">
-                    
+
                     <div class="add-action">
                         <i id="add-action" class="fas fa-hotel fa-2x" data-url="{{ url('receptionist/walk-booking') }}"
                             style="cursor:pointer;"></i>
@@ -318,6 +318,12 @@
                 } else {
                     table.column(10).search('').draw();
                 }
+            });
+        });
+        const addBtns = document.querySelectorAll('#add-action');
+        addBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                window.location.href = this.dataset.url;
             });
         });
     </script>
