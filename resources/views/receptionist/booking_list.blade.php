@@ -173,6 +173,13 @@
             padding: 0;
         }
     </style>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 </head>
 
 <body>
@@ -192,7 +199,7 @@
 
             <!----------TABLE VIEW STARTS HERE--------->
             <div class="table-container">
-                <table>
+                <table id="booking-table">
                     <thead>
                         <tr>
                             <th>Booking #</th>
@@ -231,17 +238,17 @@
                                         onclick="window.location='{{ route('receptionist.view_booking', ['bookingID' => $booking->bookingID]) }}'">
                                         View Details
                                     </button>
-                                    <!-- Approve Booking -->
+                                    {{-- <!-- Approve Booking -->
                                     <button class="btn btn-success"
                                         onclick="approveBooking({{ $booking->bookingID }})">Approve</button>
                                     <button class="btn btn-danger"
-                                        onclick="declineBooking({{ $booking->bookingID }})">Decline</button>
+                                        onclick="declineBooking({{ $booking->bookingID }})">Decline</button> --}}
                                     <button class="btn btn-info"
                                         onclick="window.location='{{ route('booking.edit', ['bookingID' => $booking->bookingID]) }}'">
                                         Edit
                                     </button>
-                                    <button class="btn btn-danger"
-                                        onclick="cancelBooking({{ $booking->bookingID }})">Cancel</button>
+                                    {{-- <button class="btn btn-danger"
+                                        onclick="cancelBooking({{ $booking->bookingID }})">Cancel</button> --}}
 
                                 </td>
                             </tr>
@@ -254,56 +261,7 @@
             </div>
 </body>
 <script>
-    function approveBooking(id) {
-        if (!confirm("Are you sure you want to APPROVE this booking?")) return;
-
-        fetch("{{ url('receptionist/approve_booking') }}/" + id, {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                location.reload(); // refresh to show updated status
-            });
-    }
-
-    function declineBooking(id) {
-        if (!confirm("Are you sure you want to DECLINE this booking?")) return;
-
-        fetch("{{ url('receptionist/decline_booking') }}/" + id, {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                location.reload();
-            });
-    }
-
-    function cancelBooking(id) {
-        if (!confirm("Are you sure you want to CANCEL this booking?")) return;
-
-        fetch("{{ url('receptionist/cancel_booking') }}/" + id, {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                location.reload();
-            });
-    }
+   
 
     document.addEventListener("DOMContentLoaded", function() {
         const calendar_view = document.getElementById('add-action-btn')
@@ -314,4 +272,18 @@
             });
         };
     });
+</script>
+<script>
+$(document).ready(function() {
+    $('#booking-table').DataTable({
+        paging: true,        // enable pagination
+        searching: true,     // enable search box
+        ordering: true,      // enable column sorting
+        pageLength: 10,      // rows per page
+        lengthMenu: [5, 10, 25, 50], // options for rows per page
+        columnDefs: [
+            { orderable: false, targets: -1 } // disable sorting on "Actions" column
+        ]
+    });
+});
 </script>
