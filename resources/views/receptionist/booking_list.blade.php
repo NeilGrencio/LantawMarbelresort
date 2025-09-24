@@ -200,7 +200,7 @@
 
 
             <!-- Table -->
-            <div class="table-container" style="overflow-x:auto; max-height:80vh;">
+            <div class="table-container" style="overflow-x:auto;">
                 <label for="status-filter">Filter by Status:</label>
                 <select id="status-filter" style="margin-bottom: 0.5rem;">
                     <option value="">All</option>
@@ -276,41 +276,37 @@
 
     <script>
         $(document).ready(function() {
-            var table = $('#booking-table').DataTable({
-                paging: true, // pagination enabled
-                searching: true,
-                ordering: true,
-                info: true,
-                lengthChange: true,
-                autoWidth: false,
-                responsive: true,
-                scrollX: true, // horizontal scroll for wide tables
-                scrollCollapse: true,
-                pageLength: 25,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                columnDefs: [{
-                    orderable: false,
-                    targets: -1 // Actions column
-                }],
-                dom: '<"top"f>rt<"bottom"lip><"clear">'
-            });
+    var table = $('#booking-table').DataTable({
+        paging: true,           // pagination enabled
+        searching: true,
+        ordering: true,
+        info: true,
+        lengthChange: true,
+        autoWidth: false,
+        responsive: true,
+        scrollX: true,          // horizontal scroll only
+        pageLength: 25,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, "All"]
+        ],
+        columnDefs: [{
+            orderable: false,
+            targets: -1 // Actions column
+        }],
+        dom: '<"top"f>rt<"bottom"lip><"clear">'
+    });
 
-
-
-            // Client-side status filter
-            $('#status-filter').on('change', function() {
-                var val = $(this).val();
-                if (val) {
-                    // Filter exact match in the "Status" column (index 10)
-                    table.column(10).search('^' + val + '$', true, false).draw();
-                } else {
-                    table.column(10).search('').draw();
-                }
-            });
-        });
+    // Client-side status filter
+    $('#status-filter').on('change', function() {
+        var val = $(this).val();
+        if (val) {
+            table.column(10).search('^' + val + '$', true, false).draw();
+        } else {
+            table.column(10).search('').draw();
+        }
+    });
+});
     </script>
 </body>
 
