@@ -36,7 +36,8 @@
             display: flex;
             flex-direction: column;
             padding: 1rem;
-            margin-left: 12rem; /* sidebar width */
+            margin-left: 12rem;
+            /* sidebar width */
             height: 100vh;
             overflow: hidden;
         }
@@ -89,7 +90,8 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.75rem;
-            table-layout: fixed; /* make columns responsive */
+            table-layout: fixed;
+            /* make columns responsive */
         }
 
         th,
@@ -241,30 +243,36 @@
 
     <script>
         // Calendar button
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
             const calendar_view = document.getElementById('add-action-btn');
             if (calendar_view) {
                 const url = calendar_view.dataset.url;
-                calendar_view.addEventListener('click', function () {
+                calendar_view.addEventListener('click', function() {
                     window.location.href = url;
                 });
             }
         });
 
-        // Initialize DataTables
-        $(document).ready(function () {
+        $(document).ready(function() {
             $('#booking-table').DataTable({
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: true,
-                lengthChange: false,
+                paging: true, // enable pagination
+                searching: true, // search box
+                ordering: true, // enable sorting
+                info: true, // show "Showing X of Y"
+                lengthChange: true, // allow user to change rows per page
                 autoWidth: false,
                 responsive: true,
-                columnDefs: [
-                    { orderable: false, targets: -1 } // Actions column not sortable
+                pageLength: 25, // default 25 rows per page
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ], // options for rows per page
+                columnDefs: [{
+                        orderable: false,
+                        targets: -1
+                    } // disable sorting on Actions column
                 ],
-                dom: '<"top"f>rt<"bottom"ip><"clear">'
+                dom: '<"top"f>rt<"bottom"lip><"clear">' // search box on top, pagination info at bottom
             });
         });
     </script>
