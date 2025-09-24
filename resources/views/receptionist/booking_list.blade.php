@@ -173,109 +173,121 @@
 </head>
 
 <body>
-    <div id="layout">
-        @include('components.receptionist_sidebar')
-
-        <div id="main-layout">
-            <div id="layout-header">
-                <h1>Booking List</h1>
-                <div id="add-container">
-                    <div class="add-action">
-                        <i id="add-action-btn" class="fa-solid fa-calendar-days fa-2x"
-                            data-url="{{ url('receptionist/booking') }}"></i>
-                        <small>Calendar View</small>
-                    </div>
+    <div id="main-layout">
+        <div id="layout-header">
+            <h1>Booking List</h1>
+            <div id="add-container">
+                <div class="add-action">
+                    <i id="add-action-btn" class="fa-solid fa-calendar-days fa-2x"
+                        data-url="{{ url('receptionist/booking') }}"></i>
+                    <small>Calendar View</small>
                 </div>
             </div>
+        </div>
 
-            <!-- Table -->
-            <div class="table-container">
-                <table id="booking-table">
-                    <thead>
+        <!-- Filter Dropdown -->
+        <div class="filter-container" style="margin-bottom: 1rem;">
+            <label for="status-filter"><strong>Filter by Status:</strong></label>
+            <select id="status-filter">
+                <option value="">All</option>
+                <option value="Pending">Pending</option>
+                <option value="Booked">Booked</option>
+                <option value="Ongoing">Ongoing</option>
+                <option value="Finished">Finished</option>
+            </select>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table id="booking-table">
+                <thead>
+                    <tr>
+                        <th>Booking #</th>
+                        <th>Guest Name</th>
+                        <th>Guest Count</th>
+                        <th>Room Count</th>
+                        <th>Cottage Count</th>
+                        <th>Amenity</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Total Amount</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php $count = 0; @endphp
+                    @foreach ($bookings as $booking)
+                        @php $count++; @endphp
                         <tr>
-                            <th>Booking #</th>
-                            <th>Guest Name</th>
-                            <th>Guest Count</th>
-                            <th>Room Count</th>
-                            <th>Cottage Count</th>
-                            <th>Amenity</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                            <th>Total Amount</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <td>{{ $count }}</td>
+                            <td>{{ $booking->guestname }}</td>
+                            <td>{{ $booking->guestamount }}</td>
+                            <td>{{ $booking->roomcount }}</td>
+                            <td>{{ $booking->cottagecount }}</td>
+                            <td>{{ $booking->amenityname }}</td>
+                            <td>{{ $booking->bookingstart }}</td>
+                            <td>{{ $booking->bookingend }}</td>
+                            <td>{{ $booking->totalprice }}</td>
+                            <td>{{ $booking->type }}</td>
+                            <td>{{ $booking->status }}</td>
+                            <td>
+                                <button class="btn btn-primary"
+                                    onclick="window.location='{{ route('receptionist.view_booking', ['bookingID' => $booking->bookingID]) }}'">
+                                    View
+                                </button>
+                                <button class="btn btn-info"
+                                    onclick="window.location='{{ route('booking.edit', ['bookingID' => $booking->bookingID]) }}'">
+                                    Edit
+                                </button>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @php $count = 0; @endphp
-                        @foreach ($bookings as $booking)
-                            @php $count++; @endphp
-                            <tr>
-                                <td>{{ $count }}</td>
-                                <td>{{ $booking->guestname }}</td>
-                                <td>{{ $booking->guestamount }}</td>
-                                <td>{{ $booking->roomcount }}</td>
-                                <td>{{ $booking->cottagecount }}</td>
-                                <td>{{ $booking->amenityname }}</td>
-                                <td>{{ $booking->bookingstart }}</td>
-                                <td>{{ $booking->bookingend }}</td>
-                                <td>{{ $booking->totalprice }}</td>
-                                <td>{{ $booking->type }}</td>
-                                <td>{{ $booking->status }}</td>
-                                <td>
-                                    <button class="btn btn-primary"
-                                        onclick="window.location='{{ route('receptionist.view_booking', ['bookingID' => $booking->bookingID]) }}'">
-                                        View
-                                    </button>
-                                    <button class="btn btn-info"
-                                        onclick="window.location='{{ route('booking.edit', ['bookingID' => $booking->bookingID]) }}'">
-                                        Edit
-                                    </button>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        // Calendar button
-        document.addEventListener("DOMContentLoaded", function() {
-            const calendar_view = document.getElementById('add-action-btn');
-            if (calendar_view) {
-                const url = calendar_view.dataset.url;
-                calendar_view.addEventListener('click', function() {
-                    window.location.href = url;
-                });
-            }
-        });
-
         $(document).ready(function() {
-            $('#booking-table').DataTable({
-                paging: true, // enable pagination
-                searching: true, // search box
-                ordering: true, // enable sorting
-                info: true, // show "Showing X of Y"
-                lengthChange: true, // allow user to change rows per page
+            var table = $('#booking-table').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                lengthChange: true,
                 autoWidth: false,
                 responsive: true,
-                pageLength: 25, // default 25 rows per page
+                pageLength: 25,
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
-                ], // options for rows per page
-                columnDefs: [{
-                        orderable: false,
-                        targets: -1
-                    } // disable sorting on Actions column
                 ],
-                dom: '<"top"f>rt<"bottom"lip><"clear">' // search box on top, pagination info at bottom
+                columnDefs: [{
+                    orderable: false,
+                    targets: -1 // Actions column
+                }],
+                dom: '<"top"f>rt<"bottom"lip><"clear">'
+            });
+
+            // Filter by status
+            $('#status-filter').on('change', function() {
+                var val = $(this).val();
+                if (val) {
+                    table.column(10).search('^' + val + '$', true, false).draw();
+                } else {
+                    table.column(10).search('').draw();
+                }
+            });
+
+            // Calendar view button
+            $('#add-action-btn').on('click', function() {
+                window.location.href = $(this).data('url');
             });
         });
     </script>
+
 </body>
 
 </html>

@@ -27,42 +27,20 @@ class BookingController extends Controller
 {
     public function bookingList()
     {
-
-        $bookingtoday = BookingTable::where('status', 'Booked')
-            ->orwhereDate('bookingstart', DB::raw('CURDATE()'))
-            ->orWhereDate('bookingend', DB::raw('CURDATE()'))
-            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+        // Get all bookings with guest full name
+        $bookings = BookingTable::leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
             ->select(
                 'booking.*',
-                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
-            )
-           ->get();
-
-        $bookingpending = BookingTable::where('booking.status', 'Pending')
-            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
-            ->select(
-                'booking.*',
-                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as guestname")
             )
             ->get();
 
-        $bookingconfirmed = BookingTable::where('status', 'Booked')
-            ->where('booking.bookingstart', '>=', \Carbon\Carbon::today())  // Add this condition to filter bookings by today's date or future dates
-            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
-            ->select(
-                'booking.*',
-                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
-            )
-            ->get();
-
-        //$statuses = DB::table('cottages')->pluck('status');
-        //dd($statuses);
-
+        // Optional: get rooms, cottages, amenities if needed
         $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
         $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
         $amenities = AmenityTable::whereIn('amenityname', ['Kiddy Pool'])->get();
 
-        return view('receptionist/booking', compact('bookingtoday', 'bookingpending', 'bookingconfirmed', 'rooms', 'cottages', 'amenities'));
+        return view('receptionist.booking', compact('bookings', 'rooms', 'cottages', 'amenities'));
     }
     public function events()
     {
@@ -1106,98 +1084,98 @@ class BookingController extends Controller
     }
 
     public function edit($bookingID)
-{
-    // Load booking with nested relationships
-    $booking = BookingTable::with([
-        'Guest',
-        'roomBookings.Room',
-        'cottageBookings.Cottage',
-        'Amenity',
-        'menuBookings.Menu',
-        'billing.Payments'
-    ])->findOrFail($bookingID);
+    {
+        // Load booking with nested relationships
+        $booking = BookingTable::with([
+            'Guest',
+            'roomBookings.Room',
+            'cottageBookings.Cottage',
+            'Amenity',
+            'menuBookings.Menu',
+            'billing.Payments'
+        ])->findOrFail($bookingID);
 
-    // Fetch all rooms, cottages, amenities for selection
-    $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
-    $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
-    $amenities = AmenityTable::all();
+        // Fetch all rooms, cottages, amenities for selection
+        $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
+        $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
+        $amenities = AmenityTable::all();
 
-    // Prepare data for form pre-filling
-    $bookingData = (object) [
-        'bookingID' => $booking->bookingID,
-        'firstname' => $booking->Guest->firstname ?? '',
-        'lastname' => $booking->Guest->lastname ?? '',
-        'guestamount' => $booking->guestamount,
-        'adultguest' => $booking->adultguest,
-        'childguest' => $booking->childguest,
-        'checkin' => $booking->bookingstart,
-        'checkout' => $booking->bookingend,
-        'rooms' => $booking->roomBookings->pluck('roomID')->toArray(),
-        'cottages' => $booking->cottageBookings->pluck('cottageID')->toArray(),
-        'amenities' => $booking->Amenity ? [$booking->Amenity->amenityID] : [],
-    ];
+        // Prepare data for form pre-filling
+        $bookingData = (object) [
+            'bookingID' => $booking->bookingID,
+            'firstname' => $booking->Guest->firstname ?? '',
+            'lastname' => $booking->Guest->lastname ?? '',
+            'guestamount' => $booking->guestamount,
+            'adultguest' => $booking->adultguest,
+            'childguest' => $booking->childguest,
+            'checkin' => $booking->bookingstart,
+            'checkout' => $booking->bookingend,
+            'rooms' => $booking->roomBookings->pluck('roomID')->toArray(),
+            'cottages' => $booking->cottageBookings->pluck('cottageID')->toArray(),
+            'amenities' => $booking->Amenity ? [$booking->Amenity->amenityID] : [],
+        ];
 
-    return view('receptionist.edit_booking', compact('rooms', 'cottages', 'amenities', 'bookingData'));
-}
+        return view('receptionist.edit_booking', compact('rooms', 'cottages', 'amenities', 'bookingData'));
+    }
 
-   public function update(Request $request, $bookingID)
-{
-    $booking = BookingTable::with(['Guest'])->findOrFail($bookingID);
+    public function update(Request $request, $bookingID)
+    {
+        $booking = BookingTable::with(['Guest'])->findOrFail($bookingID);
 
-    $request->validate([
-        'firstname' => 'required|string|max:255',
-        'lastname' => 'required|string|max:255',
-        'guestamount' => 'required|integer|min:1',
-        'adultguest' => 'required|integer|min:0',
-        'childguest' => 'required|integer|min:0',
-        'checkin' => 'required|date',
-        'checkout' => 'required|date|after_or_equal:checkin',
-        'room' => 'nullable|array',
-        'room.*' => 'integer|exists:rooms,roomID',
-        'cottage' => 'nullable|array',
-        'cottage.*' => 'integer|exists:cottages,cottageID',
-        'amenity' => 'nullable|integer|exists:amenities,amenityID',
-    ]);
-
-    DB::transaction(function() use ($request, $booking) {
-        // Update guest info
-        if ($booking->Guest) {
-            $booking->Guest->update([
-                'firstname' => $request->firstname,
-                'lastname' => $request->lastname,
-            ]);
-        }
-
-        // Update booking info
-        $booking->update([
-            'guestamount' => $request->guestamount,
-            'adultguest' => $request->adultguest,
-            'childguest' => $request->childguest,
-            'bookingstart' => $request->checkin,
-            'bookingend' => $request->checkout,
-            'amenityID' => $request->amenity ?? null,
+        $request->validate([
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'guestamount' => 'required|integer|min:1',
+            'adultguest' => 'required|integer|min:0',
+            'childguest' => 'required|integer|min:0',
+            'checkin' => 'required|date',
+            'checkout' => 'required|date|after_or_equal:checkin',
+            'room' => 'nullable|array',
+            'room.*' => 'integer|exists:rooms,roomID',
+            'cottage' => 'nullable|array',
+            'cottage.*' => 'integer|exists:cottages,cottageID',
+            'amenity' => 'nullable|integer|exists:amenities,amenityID',
         ]);
 
-        // Sync room bookings
-        $booking->roomBookings()->delete(); // remove old
-        if ($request->room) {
-            foreach ($request->room as $roomID) {
-                $booking->roomBookings()->create(['roomID' => $roomID]);
+        DB::transaction(function () use ($request, $booking) {
+            // Update guest info
+            if ($booking->Guest) {
+                $booking->Guest->update([
+                    'firstname' => $request->firstname,
+                    'lastname' => $request->lastname,
+                ]);
             }
-        }
 
-        // Sync cottage bookings
-        $booking->cottageBookings()->delete(); // remove old
-        if ($request->cottage) {
-            foreach ($request->cottage as $cottageID) {
-                $booking->cottageBookings()->create(['cottageID' => $cottageID]);
+            // Update booking info
+            $booking->update([
+                'guestamount' => $request->guestamount,
+                'adultguest' => $request->adultguest,
+                'childguest' => $request->childguest,
+                'bookingstart' => $request->checkin,
+                'bookingend' => $request->checkout,
+                'amenityID' => $request->amenity ?? null,
+            ]);
+
+            // Sync room bookings
+            $booking->roomBookings()->delete(); // remove old
+            if ($request->room) {
+                foreach ($request->room as $roomID) {
+                    $booking->roomBookings()->create(['roomID' => $roomID]);
+                }
             }
-        }
-    });
 
-    return redirect()->route('receptionist.booking.edit', $bookingID)
-        ->with('success', 'Booking updated successfully.');
-}
+            // Sync cottage bookings
+            $booking->cottageBookings()->delete(); // remove old
+            if ($request->cottage) {
+                foreach ($request->cottage as $cottageID) {
+                    $booking->cottageBookings()->create(['cottageID' => $cottageID]);
+                }
+            }
+        });
+
+        return redirect()->route('receptionist.booking.edit', $bookingID)
+            ->with('success', 'Booking updated successfully.');
+    }
 
 
     public function checkEvents()
