@@ -157,6 +157,21 @@
             }
         }
 
+        #add-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .add-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-evenly;
+            cursor: pointer;
+        }
+
         #status-filter {
             padding: 0.4rem 0.6rem;
             border-radius: 0.4rem;
