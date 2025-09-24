@@ -71,12 +71,19 @@ class BookingController extends Controller
         $childguest = $source['childGuest'] ?? 0;
         $adultguest = $source['adultGuest'] ?? 0;
         $guestamount = $childguest + $adultguest;
-
-        $roomIDs = collect($source['roomBookings'] ?? [])->pluck('roomID')->toArray();
-        $cottageIDs = collect($source['cottageBookings'] ?? [])->pluck('cottageID')->toArray();
-        $menuIDs = collect($source['menuBookings'] ?? [])->pluck('menuID')->toArray();
+        $roomBookings    = $source['roomBookings'] ?? [];
+        $cottageBookings = $source['cottageBookings'] ?? [];
+        $menuBookings    = $source['menuBookings'] ?? [];
         $menuQuantities = collect($source['menuBookings'] ?? [])->pluck('quantity')->toArray();
+        $roomIDs       = collect($roomBookings)->pluck('roomID')->toArray();
+        $roomDates     = collect($roomBookings)->pluck('bookingDate')->toArray();
 
+        $cottageIDs    = collect($cottageBookings)->pluck('cottageID')->toArray();
+        $cottageDates  = collect($cottageBookings)->pluck('bookingDate')->toArray();
+
+        $menuIDs       = collect($menuBookings)->pluck('menuID')->toArray();
+        $menuQuantities = collect($menuBookings)->pluck('quantity')->toArray();
+        $menuDates     = collect($menuBookings)->pluck('bookingDate')->toArray();
         $amenityID = $source['amenity']['amenityID'] ?? null;
 
         $bookingstart = isset($source['bookingStart']) ? $this->parseDate($source['bookingStart']) : null;
@@ -101,6 +108,9 @@ class BookingController extends Controller
             'status'       => $source['status'] ?? 'Pending',
             'guestID'      => $source['guestID'] ?? null,
             'amenityID'    => $amenityID,
+            'roomDates'    => $roomDates,
+            'cottageDates' => $cottageDates,
+            'menuDates'    => $menuDates,
         ];
 
         Log::info("🧹 Normalized data", $normalized);
@@ -145,11 +155,11 @@ class BookingController extends Controller
 
             // Rooms
             $roomIDs = [];
-            foreach ($data['roomIDs'] as $roomID) {
+            foreach ($data['roomIDs'] as $index => $roomID) {
                 $rb = RoomBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'roomID'      => $roomID,
-                    'bookingDate' => now()->format('Y-m-d'),
+                    'bookingDate' => $this->parseDate($data['roomDates'][$index] ?? now()),
                 ]);
                 $roomIDs[] = $roomID;
                 Log::info("📌 Room booked", ['bookingID' => $booking->bookingID, 'roomID' => $roomID, 'record' => $rb->toArray()]);
@@ -157,11 +167,11 @@ class BookingController extends Controller
 
             // Cottages
             $cottageIDs = [];
-            foreach ($data['cottageIDs'] as $cottageID) {
+            foreach ($data['cottageIDs'] as $index => $cottageID) {
                 $cb = CottageBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'cottageID'   => $cottageID,
-                    'bookingDate' => now()->format('Y-m-d'),
+                    'bookingDate' => $this->parseDate($data['cottageDates'][$index] ?? now()),
                 ]);
                 $cottageIDs[] = $cottageID;
                 Log::info("📌 Cottage booked", ['bookingID' => $booking->bookingID, 'cottageID' => $cottageID, 'record' => $cb->toArray()]);
@@ -175,7 +185,7 @@ class BookingController extends Controller
                     'menu_id'     => $menuID,
                     'quantity'    => $data['menuQuantities'][$index] ?? 1,
                     'status'      => 'Pending',
-                    'bookingDate' => now()->format('Y-m-d'),
+                    'bookingDate' => $this->parseDate($data['menuDates'][$index] ?? now()),
                 ]);
                 $menuIDs[] = $menuID;
                 Log::info("📌 Menu booked", ['bookingID' => $booking->bookingID, 'menuID' => $menuID, 'record' => $mb->toArray()]);
@@ -276,39 +286,30 @@ class BookingController extends Controller
             ]);
 
             // Recreate bookings (rooms, cottages, menus, billing, payments)
-            $roomIDs = [];
-            foreach ($data['roomIDs'] as $roomID) {
-                $rb = RoomBookTable::create([
+            foreach ($data['roomIDs'] as $index => $roomID) {
+                RoomBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'roomID'      => $roomID,
-                    'bookingDate' => now()->format('Y-m-d'),
+                    'bookingDate' => $this->parseDate($data['roomDates'][$index] ?? now()),
                 ]);
-                $roomIDs[] = $roomID;
-                Log::info("📌 Room booked", ['bookingID' => $booking->bookingID, 'roomID' => $roomID, 'record' => $rb->toArray()]);
             }
 
-            $cottageIDs = [];
-            foreach ($data['cottageIDs'] as $cottageID) {
-                $cb = CottageBookTable::create([
+            foreach ($data['cottageIDs'] as $index => $cottageID) {
+                CottageBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'cottageID'   => $cottageID,
-                    'bookingDate' => now()->format('Y-m-d'),
+                    'bookingDate' => $this->parseDate($data['cottageDates'][$index] ?? now()),
                 ]);
-                $cottageIDs[] = $cottageID;
-                Log::info("📌 Cottage booked", ['bookingID' => $booking->bookingID, 'cottageID' => $cottageID, 'record' => $cb->toArray()]);
             }
 
-            $menuIDs = [];
             foreach ($data['menuIDs'] as $index => $menuID) {
-                $mb = MenuBookingTable::create([
+                MenuBookingTable::create([
                     'booking_id'  => $booking->bookingID,
                     'menu_id'     => $menuID,
                     'quantity'    => $data['menuQuantities'][$index] ?? 1,
                     'status'      => 'Pending',
-                    'bookingDate' => now()->format('Y-m-d'),
+                    'bookingDate' => $this->parseDate($data['menuDates'][$index] ?? now()),
                 ]);
-                $menuIDs[] = $menuID;
-                Log::info("📌 Menu booked", ['bookingID' => $booking->bookingID, 'menuID' => $menuID, 'record' => $mb->toArray()]);
             }
 
             $billingID = null;
@@ -342,9 +343,7 @@ class BookingController extends Controller
 
             Log::info("✅ Booking updated successfully", [
                 'bookingID'   => $booking->bookingID,
-                'roomIDs'     => $roomIDs,
-                'cottageIDs'  => $cottageIDs,
-                'menuIDs'     => $menuIDs,
+                
                 'billingID'   => $billingID,
                 'paymentIDs'  => $paymentIDs,
             ]);
