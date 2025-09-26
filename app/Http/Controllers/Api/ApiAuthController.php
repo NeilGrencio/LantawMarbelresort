@@ -76,8 +76,8 @@ class ApiAuthController extends Controller
                 'birthday'  => $validatedData['birthday'] ?? null,
                 'validID'   => $idPath,
                 'avatar'    => $avatarPath,
-                'role'      => 'guest',
-                'userID'    => $user->id,
+                'role'      => 'Guest',
+                'userID'    => $user->userID,
             ]);
 
             DB::commit();
