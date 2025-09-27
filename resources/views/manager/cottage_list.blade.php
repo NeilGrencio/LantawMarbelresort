@@ -15,7 +15,7 @@
                 <h1 id="h2">Kiddy Pool Cottages</h1>
                 <div class="button-group">
                         <div id="add-container" data-url="{{ url('manager/add_cottages') }}">
-                            <h2 id="add-text">Add Cottages</h2>
+                            <h3>Add Cottage</h3>
                             <i id="add-user" class="fas fa-plus-circle fa-3x"  style="cursor:pointer;"></i>
                         </div>
                     <div class="search-container">
@@ -155,7 +155,7 @@
         display: flex;
         justify-content: center;
         align-content: center;
-        margin: 15px 0;
+        margin-top: 1rem;
     }
 
     .search-container form {
@@ -287,7 +287,7 @@
     }
 </style>
 <script>
-    const addCottage = document.getElementById('add-cottages');
+    const addCottage = document.getElementById('add-container');
     const updateButtons = document.querySelectorAll('.update-btn');
     const statusButtons = document.querySelectorAll('.status-btn');
     const maintenanceButtons = document.querySelectorAll('.maintenance-btn');
