@@ -14,7 +14,7 @@ class ManageMenuController extends Controller
     // List menus (for web)
     public function menuList()
     {
-        $menu = MenuTable::all();
+        $menu = MenuTable::where('itemtype', '!=', 'Services')->get();
         $uniqueMenuTypes = $menu->pluck('itemtype')->unique();
 
         // Prepare image URLs using a secure route
@@ -25,6 +25,48 @@ class ManageMenuController extends Controller
         }
 
         return view('manager/menu_list', compact('menu', 'uniqueMenuTypes'));
+    }
+
+    public function serviceList(){
+        $service = MenuTable::where('itemtype', 'Services')->get();
+
+        return view('manager.service_list', compact('service'));
+    }
+
+    public function addService(Request $request){
+        if ($request->isMethod('get')){
+            return view('manager.add_service');
+        }
+
+        $validatedData = $request->validate([
+            'menuname' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'status' => 'required|string',
+            'image' => 'required|image|mimes:webp,png,jpg,jpeg|max:20248',
+        ]);
+        DB::beginTransaction();
+        try {
+            $menu = new MenuTable();
+            $menu->menuname = $validatedData['menuname'];
+            $menu->itemtype = 'Services';
+            $menu->price = $validatedData['price'];
+            $menu->status = $validatedData['status'];
+
+            // Save image securely
+            if ($request->hasFile('image')) {
+                $menu->image = $request->file('image')->store('menu_images', 'public');
+                Log::info('Menu image uploaded', ['image' => $menu->image]);
+            }
+
+            $menu->save();
+            DB::commit();
+
+            return redirect('manager/service_list')->with('success', 'The menu has been successfully added');
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            Log::error('Failed to add menu', ['error' => $ex->getMessage()]);
+            return redirect('manager/add_service')->withInput()->with('error', 'Failed! The menu failed to be added');
+        }
     }
 
     // Show add menu form
