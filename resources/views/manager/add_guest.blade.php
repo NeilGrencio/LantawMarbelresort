@@ -58,6 +58,7 @@
                                 <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Select Gender</option>
                                 <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
                                 <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
+                                <optiion value="Prefer not to Say" {{ old ('gender') == 'Prefer not to Say' ? 'selected'  : '' }}>Prefer not to Say</optiion>
                             </select>
                         </div>
                         <div>
