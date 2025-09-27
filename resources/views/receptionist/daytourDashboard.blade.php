@@ -279,7 +279,7 @@
             <div class="qr-label"><h2>Today</h2></div>
             @foreach($recent as $rec)
                 <div class="qr-card">
-                    <img src="{{$rec->qrcode }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
+                    <img src="{{ route('qr.code', ['filename' => basename($rec->qrcode)]) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
                     <p><strong>Guest:</strong>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{ $rec->guest->firstname }} {{ $rec->guest->lastname }}</p>
                     <p><strong>Amenity:</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       {{ $rec->amenity->amenityname }}</p>
                     <p><strong>Access Date:</strong> &nbsp;&nbsp;&nbsp;&nbsp;{{ $rec->accessdate }}</p>
@@ -289,7 +289,7 @@
             <div class="qr-label"><h2>All QRCODES</h2></div>
             @foreach($qrcode as $qr)    
                 <div class="qr-card">
-                    <img src="{{ asset('storage/' . $qr->qrcode) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
+                    <img src="{{ route('qr.code', ['filename' => basename($qr->qrcode)]) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
                     <p><strong>Guest:</strong>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{ $qr->guest->firstname }} {{ $qr->guest->lastname }}</p>
                     <p><strong>Amenity:</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       {{ $qr->amenity->amenityname }}</p>
                     <p><strong>Access Date:</strong> &nbsp;&nbsp;&nbsp;&nbsp;{{ $qr->accessdate }}</p>
