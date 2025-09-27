@@ -241,13 +241,16 @@ Route::match(['get', 'post'], 'manager/activate_menu/{menuID}', [ManageMenuContr
 // Deactivate menu
 Route::match(['get', 'post'], 'manager/deactivate_menu/{menuID}', [ManageMenuController::class, 'deactivateMenu'])->name('manager/deactivate_menu');
 
+Route::get('manager/service_list', [ManageMenuController::class, 'serviceList'])->name('manager.service_list');
+Route::match(['get', 'post'], 'manager/add_service', [ManageMenuController::class, 'addService'])->name('manager.add_service');
+
 Route::get('manager/feedback', [FeedbackController::class, 'viewFeedback'])->name('manager.feedback');
 
 // View Chats
 Route::get('manager/chat', [ChatController::class, 'viewChats'])->name('manager.chat_logs');
 
 // Send Reply
-Route::post('manager/chat/{chatID}', [ChatController::class, 'sendChat'])->name('manager.send_reply');
+Route::post('manager/chat', [ChatController::class, 'sendChat'])->name('manager.send_reply');
 
 // View Discounts
 Route::get('manager/discount', [DiscountController::class, 'viewDiscounts'])->name('manager.view_discounts');
