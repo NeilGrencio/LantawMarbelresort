@@ -114,6 +114,19 @@ Route::get('/guestid-image/{filename}', function ($filename) {
     ]);
 })->name('guestid.image');
 
+Route::get('/qr-code/{filename}', function ($filename) {
+    $path = storage_path('app/public/qrcodes/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType
+    ]);
+})->name('qr.code');
+
 
 Route::get('auth/check_login', [LoginController::class, 'showLogin'])->name('checkLogin');
 Route::match(['get', 'post'], 'auth/login', [LoginController::class, 'login'])->name('login');
