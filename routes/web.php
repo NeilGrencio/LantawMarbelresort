@@ -269,11 +269,8 @@ Route::get('manager/feedback', [FeedbackController::class, 'viewFeedback'])->nam
 Route::get( 'manager/chat', [ChatController::class, 'viewChats'])->name('manager.chat_logs');
 
 // Send Reply
-<<<<<<< HEAD
 Route::post( 'manager/chat', [ChatController::class, 'sendChat'])->name('manager.send_reply');
-=======
 Route::post('manager/chat', [ChatController::class, 'sendChat'])->name('manager.send_reply');
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
 
 // View Discounts
 Route::get('manager/discount', [DiscountController::class, 'viewDiscounts'])->name('manager.view_discounts');
