@@ -347,13 +347,13 @@
         // Update header
         const chatHeader = document.querySelector('.chat-header');
         chatHeader.innerHTML = `
-        <img id="profile-picture" src="/storage/${guestAvatar}">
-        <h2>${guestName}</h2>
-        <div id="view-container" data-url="{{ url('manager/view_guest') }}/${guestID}">
-            <p id="view-text">View Profile</p>
-            <i class="fa-solid fa-chevron-right fa-2x"></i>
-        </div>
-    `;
+            <img id="profile-picture" src="/storage/${guestAvatar}">
+            <h2>${guestName}</h2>
+            <div id="view-container" data-url="{{ url('manager/view_guest') }}/${guestID}">
+                <p id="view-text">View Profile</p>
+                <i class="fa-solid fa-chevron-right fa-2x"></i>
+            </div>
+        `;
 
         // Update chat thread
         const chatThread = document.getElementById('chat-thread');
@@ -361,13 +361,16 @@
         messages.forEach(msg => {
             let alignClass = msg.reply === "guest" ? "guest-msg" : "staff-msg";
             chatThread.innerHTML += `
-            <div class="${alignClass}">
-                <p><strong>${msg.reply === "guest" ? msg.g_fullname : msg.s_fullname}</strong></p>
-                <p>${msg.chat}</p>
-                <small>${msg.formatted_datesent}</small>
-            </div>
-        `;
+                <div class="${alignClass}">
+                    <p><strong>${msg.reply === "guest" ? msg.g_fullname : msg.s_fullname}</strong></p>
+                    <p>${msg.chat}</p>
+                    <small>${msg.formatted_datesent}</small>
+                </div>
+            `;
         });
+
+        // Scroll to bottom so latest message is visible
+        chatThread.scrollTop = chatThread.scrollHeight;
 
         // Update hidden input for reply form
         document.getElementById('guestID-hidden').value = guestID;
@@ -378,131 +381,4 @@
         });
         element.classList.add('active');
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const firstCard = document.querySelector('.chat-list-card');
-        if (firstCard) selectMessage(firstCard);
-    });
-    // function selectMessage(element) {
-    //     const gID = element.getAttribute('data-guest');
-    //     const gavatar = element.getAttribute('data-gavatar');
-    //     const name = element.getAttribute('data-gname');
-    //     const chat = element.getAttribute('data-chat');
-    //     const date = element.getAttribute('data-chatdate');
-    //     const gimagePath = `/storage/${gavatar}`;
-
-    //     const baseUrl = `{{ url('manager/view_guest') }}`;
-    //     const urlViewProfile = `${baseUrl}/${gID}`;
-
-    //     const sAvatar = element.getAttribute('data-savatar');
-    //     const sName = element.getAttribute('data-sname');
-    //     const sReply = element.getAttribute('data-reply');
-    //     const sDate = element.getAttribute('data-replydate');
-    //     const simagePath = `/storage/${sAvatar}`;
-
-    //     const chatCard = document.getElementById('chat-card');
-    //     const chatHeader = document.querySelector('.chat-header');
-    //     const replyCard = document.getElementById('reply-card');
-
-    //     const chatID = element.getAttribute('data-chatid');
-    //     const form = document.getElementById('reply-form');
-    //     const replynInput = document.getElementById('reply');
-
-    //     const message = document.querySelector('.alert-message');
-
-    //     // Auto-hide success/error message
-    //     if (message) {
-    //         setTimeout(() => {
-    //             message.style.display = 'none';
-    //         }, 3500);
-    //     }
-
-    //     const baseAction = `{{ url('manager/chat') }}`;
-    //     if (form) {
-    //         form.setAttribute('action', `${baseAction}/${chatID}`);
-    //         document.getElementById('chatID-hidden').value = chatID;
-    //     }
-
-
-
-    //     if (chatHeader) {
-    //         chatHeader.innerHTML = `
-    //             <img id="profile-picture" src="${gimagePath}">
-    //             <h2>${name}</h2>
-    //             <div id="view-container" data-url="${urlViewProfile}">
-    //                 <p id="view-text">View Profile</p>
-    //                 <i class="fa-solid fa-chevron-right fa-2x"></i>
-    //             </div>
-    //         `;
-
-    //         const viewProfile = chatHeader.querySelector('#view-container');
-    //         if (viewProfile) {
-    //             viewProfile.addEventListener('click', function() {
-    //                 window.location.href = this.dataset.url;
-    //             });
-    //         }
-    //     }
-
-    //     if (chatCard) {
-    //         chatCard.innerHTML = `
-    //             <img id="profile-picture" src="${gimagePath}">
-    //             <div>
-    //                 <div id="sender-name">
-    //                     <h3>${name}</h3>
-    //                 </div>
-    //                 <div id="chat-details">
-    //                     <p>${chat}</p>
-    //                     <p>${date}</p>
-    //                 </div>
-    //             </div>
-    //         `;
-    //     }
-
-    //     if (replyCard) {
-    //         replyCard.innerHTML = `
-    //         <div>
-    //             <div id="reply-name">
-    //                 <h3>${sName}</h3>
-    //             </div>
-    //             <div id="reply-details">
-    //                 <p>${sReply}</p>
-    //                 <p>${sDate}</p>
-    //             </div>
-    //         </div>
-    //         <img id="profile-picture" src="${simagePath}"/>
-    //     `;
-
-
-
-    //         replyCard.style.display = "flex";
-    //         replynInput.readOnly = true;
-    //         replynInput.placeholder = 'Already replied!';
-    //         replynInput.style.background = 'rgb(199, 199, 199)';
-    //         if (sReply && sReply.trim() !== "") {
-    //             replyCard.style.display = "flex";
-    //             replynInput.readOnly = true;
-    //             replynInput.placeholder = 'Already replied!';
-    //             replynInput.style.background = 'rgb(199, 199, 199)';
-    //         } else {
-    //             replyCard.style.display = "none";
-    //             replynInput.readOnly = false;
-    //             replynInput.placeholder = 'Reply..';
-    //             replynInput.style.background = 'white';
-    //         }
-
-    //     }
-
-    //     // Highlight selected card
-    //     document.querySelectorAll('.chat-list-card').forEach(card => {
-    //         card.classList.remove('active');
-    //     });
-    //     element.classList.add('active');
-    // }
-
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     const firstCard = document.querySelector('.chat-list-card');
-    //     if (firstCard) {
-    //         selectMessage(firstCard);
-    //     }
-    // });
 </script>

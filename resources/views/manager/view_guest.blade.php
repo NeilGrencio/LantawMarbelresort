@@ -53,15 +53,6 @@
                                 <option value="" disabled>Select Gender</option>
                                     <option value="Male" {{ $guest->gender == 'Male' ? 'selected' : '' }}>Male</option>
                                     <option value="Female" {{ $guest->gender == 'Female' ? 'selected' : '' }}>Female</option>
-                                    <option value="Non_Binary" {{ $guest->gender == 'Non_Binary' ? 'selected' : '' }}>Non-Binary</option>
-                                    <option value="Trans_Female" {{ $guest->gender == 'Trans_Female' ? 'selected' : '' }}>Transgender Female</option>
-                                    <option value="Trans_Male" {{ $guest->gender == 'Trans_Male' ? 'selected' : '' }}>Transgender Male</option>
-                                    <option value="Genderqueer" {{ $guest->gender == 'Genderqueer' ? 'selected' : '' }}>Genderqueer</option>
-                                    <option value="Agender" {{ $guest->gender == 'Agender' ? 'selected' : '' }}>Agender</option>
-                                    <option value="Bigender" {{ $guest->gender == 'Bigender' ? 'selected' : '' }}>Bigender</option>
-                                    <option value="Genderfluid" {{ $guest->gender == 'Genderfluid' ? 'selected' : '' }}>Genderfluid</option>
-                                    <option value="Two_Spirit" {{ $guest->gender == 'Two_Spirit' ? 'selected' : '' }}>Two-Spirit</option>
-                                    <option value="Other" {{ $guest->gender == 'Other' ? 'selected' : '' }}>Other</option>
                                     <option value="Prefer_not_to_say" {{ $guest->gender == 'Prefer_not_to_say' ? 'selected' : '' }}>Prefer not to say</option>
                             </select>
                         </div>
@@ -358,75 +349,6 @@
         const pfpInput = document.getElementById('txtavatar');
         const pfpPreview = document.getElementById('pfp-preview');
         const userInformation = document.querySelectorAll('.user-information')
-
-        function createPopup() {
-            const existing = document.getElementById('custom-popup');
-            if (existing) existing.remove();
-
-            const popup = document.createElement('div');
-            popup.id = 'custom-popup';
-            popup.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background: rgba(0,0,0,0.4);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 2000;
-            `;
-
-            //Get otp
-            const testOtp = window.Laravel.testOtp ?? 'N/A';
-
-            popup.innerHTML = `
-                <div style="
-                    background: white;
-                    padding: 2rem 2.5rem;
-                    border-radius: 1rem;
-                    box-shadow: 0 0 1rem rgba(0,0,0,0.3);
-                    text-align: center;
-                    min-width: 300px;
-                ">
-                    <h2>Enter your OTP Code</h2>
-                    <div>
-                        <label for="otpcode">OTP ${testOtp}</label>
-                        <input id="otpcode" name="otpCode" type="text" placeholder="OTP Code" pattern="\\d{6}" minlength="6" maxlength="6" required>
-                    </div>
-                    <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
-                        <button id="popup-cancel" style="padding: .5rem 2rem; background: #ccc; color: #333; border: none; border-radius: .5rem;">Cancel</button>
-                        <button id="popup-confirm" style="padding: .5rem 2rem; background: #F78A21; color: white; border: none; border-radius: .5rem;">Send</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(popup);
-
-            const otpInput = document.getElementById('otpcode');
-            otpInput.addEventListener('input', function () {
-                this.value = this.value.replace(/\D/g, '').slice(0, 6);
-            });
-
-            document.getElementById('popup-cancel').onclick = () => popup.remove();
-
-            document.getElementById('popup-confirm').onclick = () => {
-                const hiddenOtpInput = document.createElement('input');
-                hiddenOtpInput.type = 'hidden';
-                hiddenOtpInput.name = 'otpCode';
-                hiddenOtpInput.value = otpInput.value;
-                form.appendChild(hiddenOtpInput);
-                popup.remove();
-                form.submit();
-            };
-        }
-
-        if (btnSubmit && form) {
-            btnSubmit.addEventListener('click', function (e) {
-                e.preventDefault();
-                createPopup();
-            });
-        }
 
         if (message) {
             setTimeout(() => message.style.display = 'none', 3000);

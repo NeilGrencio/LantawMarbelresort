@@ -1,186 +1,96 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
-    <title>Lantaw-Marbel Resort</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <title>Lantaw-Marbel Guest Report PDF</title>
+    <style>
+        @page { margin: 20mm; }
+        html, body {
+            font-family: "DejaVu Sans", sans-serif;
+            color: #222;
+            font-size: 12px;
+        }
+        .report-header { text-align: center; margin-bottom: 12px; }
+        .report-title { font-size: 18px; font-weight: 700; }
+        .report-subtitle { font-size: 13px; font-weight: 600; }
+        .report-daterange { margin-top: 6px; font-size: 13px; font-weight: 600; }
+
+        .totals-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 13px;
+        }
+        .totals-table th, .totals-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .totals-table td {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .section-title { font-size: 14px; font-weight: 700; margin-top: 20px; margin-bottom: 8px; }
+        .report-table { width: 100%; border-collapse: collapse; }
+        .report-table th, .report-table td { border: 1px solid #ddd; padding: 8px; font-size: 12px; }
+        .report-table th { background: #d38d34; color: #fff; }
+    </style>
 </head>
 <body>
-    <div id="layout">
-        <div id="main-layout">
-            <div id="layout-header">
-                <h1>Booking Report</h1>
-            </div>
-            <div class="report-container">
-                <div class="totals">
-                    <div class="total-card">
-                        <p>Total Guest</p>
-                        <p>{{ $totals['total_all']}}</p>
-                    </div>
-                    <div class="total-card">
-                        <p>Total Hotel Guest</p>
-                        <p>{{ $totals['total_Hguest']}}</p>
-                    </div>
-                    <div class="total-card">
-                        <p>Total Day-Tour Guest</p>
-                        <p>{{ $totals['total_Dguest']}}</p>
-                    </div>
-                </div>
-                <table>
-                    <thead>
-                        <th>#</th>
-                        <th>Guest Name</th>
-                        <th>Role</th>
-                    </thead>
-                    <tbody>
-                        @foreach($guest as $g)
-                        <tr>
-                            <td>{{$g->guestID}}</td>
-                            <td>{{$g->guestname}}</td>
-                            <td>{{$g->role}}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+@php
+    use Carbon\Carbon;
+    $fromLabel = $from ? Carbon::parse($from)->format('m/d/Y') : null;
+    $toLabel   = $to ? Carbon::parse($to)->format('m/d/Y') : null;
+    $dateRangeText = $fromLabel && $toLabel
+        ? ($fromLabel === $toLabel ? "Date: {$fromLabel}" : "Date: {$fromLabel} - {$toLabel}")
+        : 'Date: All';
+@endphp
+
+<div class="report-header">
+    <div class="report-title">LANTAW MARBEL HOTEL AND RESORT</div>
+    <div class="report-subtitle">Guest Report</div>
+    <div class="report-daterange">{{ $dateRangeText }}</div>
+</div>
+
+<!-- Totals -->
+<table class="totals-table">
+    <tr>
+        <th>Total Guest</th>
+        <th>Total Hotel Guest</th>
+        <th>Total Day-Tour Guest</th>
+    </tr>
+    <tr>
+        <td>{{ $totals['total_all'] ?? 0 }}</td>
+        <td>{{ $totals['total_Hguest'] ?? 0 }}</td>
+        <td>{{ $totals['total_Dguest'] ?? 0 }}</td>
+    </tr>
+</table>
+
+<!-- Guest List -->
+<div class="section-title">Guest List</div>
+<table class="report-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Guest Name</th>
+            <th>Role</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($guest as $g)
+        <tr>
+            <td>{{ $g->guestID }}</td>
+            <td>{{ $g->guestname }}</td>
+            <td>{{ $g->role }}</td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="3">No guests found for this date range.</td>
+        </tr>
+        @endforelse
+    </tbody>
+</table>
 </body>
-<style>
-    #report { color: #F78A21;}
-    body {
-        font-family: sans-serif;
-        font-size: 11px;
-        margin: 0;
-        padding: 1rem;
-        overflow: visible; /* allow full content rendering in PDF */
-    }
-
-    #layout {
-        display: block;
-        width: 100%;
-    }
-
-    #main-layout {
-        width: 100%;
-        padding: 0.5rem;
-    }
-
-    #layout-header {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        padding: 0.5rem 1rem;
-        background: white;
-        border-radius: 1rem;
-        font-size: 0.8rem;
-        gap: 0.5rem;
-    }
-
-    #print-container,
-    #pdf-container {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        gap: 0.5rem;
-        margin-left: auto;
-    }
-
-    #add-text {
-        opacity: 0;
-        visibility: hidden;
-        width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        transition: all 0.3s ease;
-        padding: 0.2rem 0.5rem;
-        margin-left: 0.3rem;
-        border-radius: 4px;
-    }
-
-    #pdf-container:hover #add-text,
-    #print-container:hover #add-text {
-        opacity: 1;
-        visibility: visible;
-        width: auto;
-    }
-
-    .report-filter {
-        margin-top: 0.5rem;
-        width: 100%;
-        height: auto;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        justify-content: flex-end;
-    }
-
-    .filter-card {
-        background: rgb(238, 238, 238);
-        box-shadow: 0.1rem 0.1rem 0 rgba(0, 0, 0, 0.2);
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        font-size: 0.85rem;
-    }
-
-    .filter-card:hover {
-        background: black;
-        color: white;
-    }
-
-    .filter-card.active-filter {
-        background-color: orange;
-        color: white;
-        font-weight: bold;
-    }
-
-    .report-container {
-        margin-top: 0.5rem;
-        background: white;
-        border-radius: 0.5rem;
-        box-shadow: 0.1rem 0.2rem 0 rgba(0, 0, 0, 0.2);
-        padding: 1rem;
-        gap: 0.5rem;
-    }
-
-    .totals {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .total-card {
-        width: 20%;
-        min-width: 100px;
-        text-align: center;
-        padding: 0.5rem;
-        border: 1px solid #ccc;
-        border-radius: 0.5rem;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-    }
-
-    table th,
-    table td {
-        border: 1px solid #444;
-        padding: 4px 6px;
-        text-align: center;
-        font-size: 0.85rem;
-    }
-
-    table th {
-        background: #f0f0f0;
-    }
-
-</style>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const filterButtons = document.querySelectorAll('.filter-card');

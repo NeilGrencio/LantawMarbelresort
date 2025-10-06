@@ -42,9 +42,21 @@
                     </div>  
                 </div>
 
+                <div id="todo-task">
+                    <h2>TO-DO LIST</h2>
+                    <div class="task-row" data-url="{{url('receptionist/check-in-out')}}">
+                        <span class="task-label">Total Bookings:</span>
+                        <span class="task-value">{{$dueBooking}}</span>
+                    </div>
+                    <div class="task-row" data-url="{{url('receptionist/chat')}}">
+                        <span class="task-label">Chat Messages:</span>
+                        <span class="task-value">{{$chats}}</span>
+                    </div>
+                </div>
+
                 <div id="chart-container">
                     <div class="kpi-container">
-                        <h2>Key Performance Indicators</h2>
+                        <h2 style="text-align:center;">Key Performance Indicators</h2>
                     </div>
                     <div id="chart-wrapper">
                         <div>
@@ -61,20 +73,6 @@
                 </div>
 
             </div>
-            <div class="calendar-wrapper">
-                <div id="calendar"></div>
-                <div id="todo-task">
-                    <h2>TO-DO LIST</h2>
-                    <div class="task-row" data-url="{{url('receptionist/check-in-out')}}">
-                        <span class="task-label">Booking Amount:</span>
-                        <span class="task-value">{{$dueBooking}}</span>
-                    </div>
-                    <div class="task-row" data-url="{{url('receptionist/chat')}}">
-                        <span class="task-label">Chat Messages:</span>
-                        <span class="task-value">{{$chats}}</span>
-                    </div>
-                </div>
-            </div>
         </div>
         @if (session('success'))
             <div class="alert-message">
@@ -85,6 +83,7 @@
 </body>
 
 <style>
+    #dashbaord{color:orange;}
     #layout{
         display: flex;
         flex-direction: row;
@@ -101,7 +100,7 @@
     .dashboard-wrapper{
         position:relative;
         height:100%;
-        width:63%;
+        width:100%;
         padding:.5rem;
         background:white;
         border-radius:.7rem;

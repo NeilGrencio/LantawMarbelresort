@@ -15,6 +15,10 @@
                 <h1>Session Logs</h1>
 
                 <div class="button-group">
+                    <div id="pdf-container" data-url="{{ url('manager/session_logs/export_pdf') }}">
+                        <h2 id="add-text">Download</h2>
+                        <i id="add-menu" class="fa-solid fa-file-lines fa-3x" style="cursor:pointer;"></i>
+                    </div>
                     <div class="search-container">
                         <form action="{{ route('manager.search_logs') }}" method="GET">
                             <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
@@ -25,28 +29,31 @@
                                 <a href="{{ route('manager.search_logs') }}" class="reset-btn">Clear Search</a>
                             @endif
                         </form>
-                    </div>
+                    </div>    
                 </div>
+            </div>
+            <div class="filter-buttons">
+                <a href="#" data-filter="year" class="filter-btn {{ request('filter') == 'year' ? 'active' : '' }}">This Year</a>
+                <a href="#" data-filter="month" class="filter-btn {{ request('filter') == 'month' ? 'active' : '' }}">This Month</a>
+                <a href="#" data-filter="week" class="filter-btn {{ request('filter') == 'week' ? 'active' : '' }}">This Week</a>
+                <a href="#" data-filter="today" class="filter-btn {{ request('filter') == 'today' ? 'active' : '' }}">Today</a>
+                <a href="#" data-filter="all" class="filter-btn {{ !request('filter') ? 'active' : '' }}">All</a>
             </div>
             <div class="table-container">
                 <table id="logs-table">
                     <thead>
                         <th>#</th>
                         <th>username</th>
-                        <th>useragent</th>
-                        <th>login status</th>
-                        <th>login time</th>
-                        <th>login expire</th>
+                        <th>Activity</th>
+                        <th>Activty Date</th>
                     </thead>
                     <tbody>
                         @foreach($session as $s)
                         <tr class="{{ $loop->even ? 'even-row' : 'odd-row' }}">
-                            <td>{{ $s->sessionID }}</td>
+                            <td>{{ $loop->iteration + ($session->firstItem() - 1) }}</td>
                             <td>{{ $s->username }}</td>
-                            <td>{{ $s->useragent }}</td>
-                            <td>{{ $s->loginstatus }}</td>
-                            <td>{{ $s->sessioncreated }}</td>
-                            <td>{{ $s->sessionexpired }}</td>
+                            <td>{{ $s->activity }}</td>
+                            <td>{{ $s->date }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -99,6 +106,30 @@
         border: 1px solid black;
         box-shadow: .1rem .1rem 0 black;
         gap: 1rem;
+    }
+    #pdf-container {
+        display: flex;
+        align-items: center;
+        position: relative;
+        cursor: pointer;
+        gap:.5rem;
+        margin-left:auto;
+        right:.5rem;
+        cursor: pointer;
+        transition:all .2s ease;
+    }
+    #pdf-container:hover{
+        transform:scale(1.05);
+        color:orange;
+    }
+
+    #add-text {
+        overflow: hidden;
+        white-space: nowrap;
+        transition: all 0.3s ease;
+        padding: 0.3rem 0.6rem;
+        margin-left: 0.5rem;
+        border-radius: 5px;
     }
     .search-container .reset-btn {
         padding: 10px 15px;
@@ -165,6 +196,39 @@
         margin-top: 1rem;
         box-shadow: .1rem .1rem 0 black;
         padding: .5rem;
+    }
+    .filter-buttons {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 10px 20px;
+        background-color: #ffffff;
+        box-shadow: .1rem .1rem 0 black;
+        border: 2px solid #000000;
+        border-radius:.7rem;
+        color: #000000;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+        background-color: #F78A21;
+        color: #fff;
+        border:1px solid #603308;
+        box-shadow: .1rem .1rem 0 #603308;
+        transform: scale(1.1);
+    }
+
+    .filter-btn.active {
+        background-color: #F78A21;
+        color: #fff;
+        border:1px solid #603308;
+        box-shadow: .1rem .1rem 0 #603308;
     }
 
     #logs-table {
@@ -312,3 +376,35 @@
     }
    
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const filter = this.dataset.filter;
+
+            let url = "{{ route('manager.view_sessions') }}";
+            if (filter && filter !== 'all') {
+                url += '?filter=' + filter;
+            }
+
+            window.location.href = url;
+        });
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentFilter = urlParams.get('filter') || 'all';
+    filterButtons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === currentFilter) {
+            btn.classList.add('active');
+        }
+    });
+});
+
+</script>
+
+

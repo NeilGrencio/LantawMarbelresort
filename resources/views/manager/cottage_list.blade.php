@@ -97,6 +97,7 @@
         width:100%;
         transition: width 0.3s ease-in-out;
         margin-left:12rem;
+    }
     #layout-header {
         display: flex;
         flex-direction: row;

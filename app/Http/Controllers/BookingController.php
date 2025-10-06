@@ -13,10 +13,12 @@ use App\Models\RoomTable;
 use App\Models\CottageTable;
 use App\Models\AmenityTable;
 use App\Models\GuestTable;
+use App\Models\UserTable;
 use App\Models\DiscountTable;
 use App\Models\BillingTable;
 use App\Models\PaymentTable;
 use App\Models\CheckTable;
+use App\Services\OCRService; 
 
 use App\Models\RoomBookTable;
 use App\Models\CottageBookTable;
@@ -47,7 +49,7 @@ class BookingController extends Controller
             ->get();
 
         $bookingconfirmed = BookingTable::where('status', 'Booked')
-            ->where('booking.bookingstart', '>=', \Carbon\Carbon::today())  // Add this condition to filter bookings by today's date or future dates
+            ->where('booking.bookingstart', '>=', \Carbon\Carbon::today()) 
             ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
             ->select(
                 'booking.*',
@@ -141,6 +143,7 @@ class BookingController extends Controller
         }
         return response()->json($events);
     }
+    
     public function bookingListView()
     {
         $bookings = BookingTable::with([
@@ -167,11 +170,24 @@ class BookingController extends Controller
         $rooms = RoomTable::where('status', 'Available')->get();
         $cottages = CottageTable::where('status', 'Available')->get();
         $amenities = AmenityTable::where('amenityname', 'Kiddy Pool')->get();
-
-        return view('receptionist.create_booking', compact('rooms', 'cottages', 'amenities'));
+    
+        // Get all bookings with their dates
+        $roomBookings = RoomBookTable::select('roomID', 'bookingDate')->get();
+        $cottageBookings = CottageBookTable::select('cottageID', 'bookingDate')->get();
+        $amenityBookings = BookingTable::whereNotNull('amenityID')
+            ->select('amenityID', 'bookingstart', 'bookingend')
+            ->get();
+    
+        $bookedItems = [
+            'rooms'     => $roomBookings,
+            'cottages'  => $cottageBookings,
+            'amenities' => $amenityBookings,
+        ];
+    
+        return view('receptionist.create_booking', compact('rooms', 'cottages', 'amenities', 'bookedItems'));
     }
 
-    public function submitBooking(Request $request)
+    public function submitBooking(Request $request, OCRService $ocrService)
     {
         $validated = $request->validate([
             'room' => 'nullable|array',
@@ -183,29 +199,71 @@ class BookingController extends Controller
             'guestamount' => 'required|integer|min:1',
             'amenity_adult_guest' => 'required|integer|min:0',
             'amenity_child_guest' => 'required|integer|min:0',
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
+            'firstname' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
+            'lastname'  => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
+            'contactnum'=> 'nullable|string|max:20',
+            'email'     => 'nullable|email|max:255',
+            'gender'    => 'nullable|string',
+            'birthday'  => ['nullable', 'date', 'before_or_equal:' . now()->subYears(18)->toDateString()],
+            'validID'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'username' => 'nullable|min:5|max:20|unique:users,username',
+            'password' => [
+                'nullable', 'min:8', 'max:20',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/'
+            ],
+            'password_confirmation' => 'nullable|string|same:password',
             'checkin' => 'required|date',
             'checkout' => 'required|date|after_or_equal:checkin',
         ]);
 
-        // Validate at least one item is selected
         if (empty($validated['room']) && empty($validated['cottage']) && empty($validated['amenity'])) {
             return redirect()->back()
-                ->with('error', 'Please select at least a room, a cottage, or an amenity.')
+                ->withErrors(['selection' => 'Please select at least a room, a cottage, or an amenity.'])
                 ->withInput();
         }
 
-        // Check availability for all selected items
         $availabilityError = $this->checkAvailability($validated);
         if ($availabilityError) {
-            return redirect()->back()->with('error', $availabilityError)->withInput();
+            return redirect()->back()
+                ->withErrors(['availability' => $availabilityError])
+                ->withInput();
         }
 
-        // Calculate prices
+        $path = null; // initialize variable
+
+        if ($request->hasFile('validID')) {
+            $file = $request->file('validID');
+
+            // Store the file
+            $path = $file->storeAs(
+                'temp_valid_ids',
+                uniqid() . '.' . $file->getClientOriginalExtension(),
+                'public'
+            );
+
+            $absolutePath = storage_path('app/public/' . $path);
+
+            // Call OCR service
+            $result = $ocrService->verify($absolutePath);
+
+            if (!$result['isValid']) {
+                return back()
+                    ->withErrors(['validID' => 'The uploaded ID is not a valid Philippine National ID.'])
+                    ->with('ocrtext', $result['ocrText']);
+            }
+            $validated['validID'] = $path;
+
+            // Dump the OCR result
+            //dd([
+            //    'isValid' => $result['isValid'],
+            //    'ocrText' => $result['ocrText'],
+            //    'filePath' => $absolutePath,
+            // ]);
+        }  else {
+            $validated['validID'] = null;
+        }
         $prices = $this->calculatePrices($validated);
 
-        // Store booking data in session with proper UUID
         $bookingSessionID = (string) Str::uuid();
         session([
             'booking_data_' . $bookingSessionID => $validated,
@@ -214,6 +272,8 @@ class BookingController extends Controller
 
         return redirect()->route('receptionist.booking_receipt', ['sessionID' => $bookingSessionID]);
     }
+
+
 
     public function receiptBooking($sessionID)
     {
@@ -271,6 +331,19 @@ class BookingController extends Controller
                 ->with('error', 'Booking session has expired. Please start again.');
         }
 
+        $birthday = null;
+        if (!empty($data['birthday'])) {
+            try {
+                $birthday = Carbon::createFromFormat('m/d/Y', $data['birthday'])->format('Y-m-d');
+            } catch (\Exception $e) {
+                try {
+                    $birthday = Carbon::createFromFormat('Y-m-d', $data['birthday'])->format('Y-m-d');
+                } catch (\Exception $e) {
+                    $birthday = null;
+                }
+            }
+        }
+
         $validated = $request->validate([
             'cashamount'   => 'required_if:payment,cash|nullable|numeric|min:0',
             'discount'     => 'nullable',
@@ -279,7 +352,41 @@ class BookingController extends Controller
         ]);
 
         try {
-            $guest = $this->findOrCreateGuest($data['firstname'], $data['lastname']);
+            $validIDPath = $data['validID'] ?? null;
+            $defaultAvatar = 'images/profile.jpg';
+
+            $userID = null;
+
+            if (!empty($data['username']) && !empty($data['password'])) {
+                $user = UserTable::firstOrCreate(
+                    ['username' => $data['username']],
+                    ['password' => bcrypt($data['password'])]
+                );
+                $userID = $user->userID;
+            }
+            $avatarPath = !empty($data['avatar']) ? $data['avatar'] : $defaultAvatar;
+
+            $guest = GuestTable::firstOrCreate(
+                [
+                    'firstname' => $data['firstname'],
+                    'lastname'  => $data['lastname'],
+                ],
+                [
+                    'mobilenum' => $data['contactnum'] ?? null,
+                    'email'     => $data['email'] ?? null,
+                    'gender'    => $data['gender'] ?? null,
+                    'birthday'  => $birthday ?? null,
+                    'validID'   => $validIDPath,
+                    'role'      => 'guest',
+                    'avatar'    => $avatarPath,
+                    'userID'    => $userID,
+                ]
+            );
+
+            if ($guest && $userID && $guest->userID === null) {
+                $guest->update(['userID' => $userID]);
+            }
+
             if (!$guest) {
                 return redirect()->back()->with('error', 'Unable to process guest information.');
             }
@@ -287,10 +394,18 @@ class BookingController extends Controller
             return redirect()->back()->with('error', 'Error processing guest information: ' . $e->getMessage());
         }
 
-        $originalAmount    = (float) str_replace(',', '', $prices['totalprice']);
-        $discountAmount    = $this->calculateDiscountAmount($validated['discount'], $originalAmount);
-        $discountedAmount  = $originalAmount - $discountAmount;
-        $requiredAmount    = $validated['payment_type'] === 'downpayment'
+        $originalAmount = (float) str_replace(',', '', $prices['totalprice']);
+        $discountAmount = 0;
+
+        if (!empty($validated['discount'])) {
+            $discount = DB::table('discount')->where('discountID', $validated['discount'])->first();
+            if ($discount && isset($discount->amount)) {
+                $discountAmount = $originalAmount * (float) $discount->amount;
+            }
+        }
+
+        $discountedAmount = $originalAmount - $discountAmount;
+        $requiredAmount   = $validated['payment_type'] === 'downpayment'
             ? $discountedAmount * 0.5
             : $discountedAmount;
 
@@ -350,6 +465,7 @@ class BookingController extends Controller
                     RoomBookTable::create([
                         'bookingID' => $booking->bookingID,
                         'roomID'    => (int) $roomID,
+                        'bookingDate' => Carbon::now(),
                     ]);
                 }
             }
@@ -359,6 +475,7 @@ class BookingController extends Controller
                     CottageBookTable::create([
                         'bookingID'  => $booking->bookingID,
                         'cottageID'  => (int) $cottageID,
+                        'bookingDate' => Carbon::now(),
                     ]);
                 }
             }
@@ -396,7 +513,6 @@ class BookingController extends Controller
             return redirect()->back()->with('error', 'Booking failed: ' . $e->getMessage());
         }
     }
-
 
     // Helper methods to make code more readable and maintainable
 
@@ -729,6 +845,32 @@ class BookingController extends Controller
             ->pluck('cottageID')
             ->toArray();
     }
+        public function check(Request $request)
+    {
+        $checkin = $request->query('checkin');
+        $checkout = $request->query('checkout');
+    
+        // Rooms with overlapping bookings
+        $bookedRoomIDs = RoomBookTable::where(function($q) use ($checkin, $checkout) {
+                $q->where('checkin', '<=', $checkout)
+                  ->where('checkout', '>=', $checkin);
+            })
+            ->pluck('roomID')
+            ->toArray();
+    
+        // Cottages with overlapping bookings
+        $bookedCottageIDs = CottageBookTable::where(function($q) use ($checkin, $checkout) {
+                $q->where('checkin', '<=', $checkout)
+                  ->where('checkout', '>=', $checkin);
+            })
+            ->pluck('cottageID')
+            ->toArray();
+    
+        return response()->json([
+            'bookedRooms' => $bookedRoomIDs,
+            'bookedCottages' => $bookedCottageIDs,
+        ]);
+    }
 
     public function updateBooking(Request $request, $bookingID)
     {
@@ -971,12 +1113,12 @@ class BookingController extends Controller
 
                 // Update room status
                 foreach ($booking->roomBookings as $roomBook) {
-                    RoomTable::where('roomID', $roomBook->roomID)->update(['status' => 'Booked']);
+                    RoomTable::where('roomID', $roomBook->roomID, $roomBook->bookingDate)->update(['status' => 'Booked']);
                 }
 
                 // Update cottage status
                 foreach ($booking->cottageBookings as $cottageBook) {
-                    CottageTable::where('cottageID', $cottageBook->cottageID)->update(['status' => 'Booked']);
+                    CottageTable::where('cottageID', $cottageBook->cottageID, $cottageBook->bookingDate)->update(['status' => 'Booked']);
                 }
 
                 if ($booking->amenityID) {
@@ -1086,12 +1228,12 @@ class BookingController extends Controller
 
                 // Update room status
                 foreach ($booking->roomBookings as $roomBook) {
-                    RoomTable::where('roomID', $roomBook->roomID)->update(['status' => 'Available']);
+                    RoomTable::where('roomID', $roomBook->roomID, $roomBook->bookingDate)->update(['status' => 'Available']);
                 }
 
                 // Update cottage status
                 foreach ($booking->cottageBookings as $cottageBook) {
-                    CottageTable::where('cottageID', $cottageBook->cottageID)->update(['status' => 'Available']);
+                    CottageTable::where('cottageID', $cottageBook->cottageI, $cottageBook->bookingDate)->update(['status' => 'Available']);
                 }
 
                 if ($booking->amenityID) {
@@ -1253,49 +1395,106 @@ class BookingController extends Controller
         return response()->json($events);
     }
 
-    public function walkinBooking(Request $request)
+    public function walkinBooking(Request $request, OCRService $ocrService)
     {
-        $rooms = RoomTable::where('status', 'Available')
-            ->orWhere('status', 'Booked')
+        // Fetch available items
+        $rooms = RoomTable::where('status', 'Available')->get();
+        $cottages = CottageTable::where('status', 'Available')->get();
+        $amenities = AmenityTable::where('amenityname', 'Kiddy Pool')->get();
+
+        // Get all bookings with their dates
+        $roomBookings = RoomBookTable::select('roomID', 'bookingDate')->get();
+        $cottageBookings = CottageBookTable::select('cottageID', 'bookingDate')->get();
+        $amenityBookings = BookingTable::whereNotNull('amenityID')
+            ->select('amenityID', 'bookingstart', 'bookingend')
             ->get();
 
-        $cottages = CottageTable::where('status', 'Available')
-            ->orWhere('status', 'Booked')
-            ->get();
+        $bookedItems = [
+            'rooms'     => $roomBookings,
+            'cottages'  => $cottageBookings,
+            'amenities' => $amenityBookings,
+        ];
 
-        $amenities = AmenityTable::where('amenityname', 'Kiddy Pool')
-            ->orWhere('status', 'Booked')
-            ->get();
-
+        // GET request → Show booking form
         if ($request->isMethod('get')) {
-            return view('receptionist/walk-booking', compact('rooms', 'cottages', 'amenities'));
+            return view('receptionist.walk-booking', compact('rooms', 'cottages', 'amenities', 'bookedItems'));
         }
 
+        // POST request → Process booking
         if ($request->isMethod('post')) {
             $validated = $request->validate([
                 'room' => 'nullable|array',
                 'room.*' => 'integer|exists:rooms,roomID',
+                
                 'cottage' => 'nullable|array',
                 'cottage.*' => 'integer|exists:cottages,cottageID',
+                
                 'amenity' => 'nullable|array',
                 'amenity.*' => 'integer|exists:amenities,amenityID',
+                
                 'guestamount' => 'required|integer|min:1',
                 'amenity_adult_guest' => 'required|integer|min:0',
                 'amenity_child_guest' => 'required|integer|min:0',
-                'firstname' => 'required|string|max:255',
-                'lastname' => 'required|string|max:255',
+                
+                'firstname' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
+                'lastname'  => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
+                'contactnum'=> 'nullable|string|max:20',
+                'email'     => 'nullable|email|max:255',
+                'gender'    => 'nullable|string|in:Male,Female,Other',
+                'birthday'  => 'nullable|date',
+                'validID'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+                
+                'username' => 'nullable|string|min:5|max:20|unique:users,username',
+                'password' => [
+                    'nullable', 'string', 'min:8', 'max:20',
+                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/'
+                ],
+                'password_confirmation' => 'nullable|string|same:password',
+                
                 'checkin' => 'required|date',
                 'checkout' => 'required|date|after_or_equal:checkin',
             ]);
 
-            // Validate at least one item is selected
+            // -------------------------------
+            // Handle Valid ID + OCR checking
+            // -------------------------------
+            $path = null; // initialize
+            if ($request->hasFile('validID')) {
+                $file = $request->file('validID');
+
+                // Store temporarily
+                $path = $file->storeAs(
+                    'temp_valid_ids',
+                    uniqid() . '.' . $file->getClientOriginalExtension(),
+                    'public'
+                );
+
+                $absolutePath = storage_path('app/public/' . $path);
+
+                // Run OCR service
+                $result = $ocrService->verify($absolutePath);
+
+                // If OCR fails validation → reject booking
+                if (!$result['isValid']) {
+                    return back()
+                        ->withErrors(['validID' => 'The uploaded ID is not a valid Philippine National ID.'])
+                        ->with('ocrtext', $result['ocrText']);
+                }
+
+                // Passed OCR validation
+                $validated['validID'] = $path;
+            } else {
+                $validated['validID'] = null;
+            }
+
+            // Require at least 1 booking item
             if (empty($validated['room']) && empty($validated['cottage']) && empty($validated['amenity'])) {
                 return redirect()->back()
                     ->with('error', 'Please select at least a room, a cottage, or an amenity.')
                     ->withInput();
             }
 
-            // Check availability for all selected items
+            // Check availability
             $availabilityError = $this->checkAvailability($validated);
             if ($availabilityError) {
                 return redirect()->back()->with('error', $availabilityError)->withInput();
@@ -1304,14 +1503,43 @@ class BookingController extends Controller
             // Calculate prices
             $prices = $this->calculatePrices($validated);
 
-            // Store booking data in session with proper UUID
+            // Add extra fields
+            $validated['password'] = bcrypt($validated['password']);
+            $validated['booking_type'] = 'Walk-In';
+
+            // Generate unique session ID
             $bookingSessionID = (string) Str::uuid();
+
+            // Store in session
             session([
                 'booking_data_' . $bookingSessionID => $validated,
                 'booking_prices_' . $bookingSessionID => $prices,
             ]);
 
+            // Redirect to receipt page
             return redirect()->route('receptionist.booking_receipt', ['sessionID' => $bookingSessionID]);
         }
+    }
+
+
+    public function walkInList(){
+        $bookings = BookingTable::with([
+            'guest',
+            'amenity',
+            'roomBookings.room',
+            'cottageBookings.cottage',
+        ])
+            ->where('booking.status', 'Ongoing')
+            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
+            ->select(
+                'booking.*',
+                DB::raw('COALESCE(amenities.amenityname, "N/A") as amenityname'),
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname")
+            )
+            ->orderBy('bookingID', 'desc')
+            ->paginate(10);
+
+        return view('receptionist.walkin_guest_list', compact('bookings'));
     }
 }

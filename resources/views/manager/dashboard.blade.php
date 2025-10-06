@@ -81,6 +81,23 @@
 
             <div id="kpi-charts-container">
                 <h3>Key Performance Indicators</h3>
+                <div class="filter-wrapper">
+                    <label for="filterType">Filter By: </label>
+                    <select id="filterType" name="filterType" onchange="updateFilter(this.value)">
+                        <option value="year" {{ $filterType === 'year' ? 'selected' : '' }}>Year</option>
+                        <option value="month" {{ $filterType === 'month' ? 'selected' : '' }}>Month</option>
+                        <option value="week" {{ $filterType === 'week' ? 'selected' : '' }}>Week</option>
+                    </select>
+
+                    @if($filterType === 'year')
+                        <label for="yearSelect">Year: </label>
+                        <select id="yearSelect" name="yearSelect" onchange="updateYear(this.value)">
+                            @for ($y = now()->year; $y >= 2020; $y--)
+                                <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                            @endfor
+                        </select>
+                    @endif
+                </div>
                 <div class="chart-wrapper">
                     <div class="row 1 column 1">
                         <h2>Booking This Month</h2>
@@ -180,6 +197,9 @@
         text-align: center;
         font-size:.7rem;
     }
+    #roomBookedPerMonth, #amenityTourPerMonth, #revenuPerMonth{
+        width:100%;
+    }
 
 
     .column-full{
@@ -234,189 +254,164 @@
 </style>
 
 <script>
-    document.getElementById('dashboard').style = "color:#F78A21;"
+document.getElementById('dashboard').style.color = "#F78A21";
 
-    document.addEventListener("DOMContentLoaded", function () {
-        const ctx1 = document.getElementById("bookingPerMonth").getContext("2d");
+document.addEventListener("DOMContentLoaded", function () {
+    // Booking per Month Chart
+    const ctxBooking = document.getElementById("bookingPerMonth").getContext("2d");
+    new Chart(ctxBooking, {
+        type: 'line',
+        data: {
+            labels: @json($bookingLabels),
+            datasets: [{
+                label: 'Bookings',
+                data: @json($bookingData),
+                borderColor: 'blue',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        callback: function(value) { return Number.isInteger(value) ? value : null; }
+                    }
+                }
+            }
+        }
+    });
 
-        new Chart(ctx1, {
-            type: 'bar',
-            data: {
-                labels: @json($bookinglabels),
-                datasets: [{
-                    label: 'Bookings per Month',
+    // Hotel Guest vs Day Tour Chart
+    const ctxGuestVsDayTour = document.getElementById("bookingsVsRevenue").getContext("2d");
+    new Chart(ctxGuestVsDayTour, {
+        type: 'line',
+        data: {
+            labels: @json($daytourLabels),
+            datasets: [
+                {
+                    label: 'Hotel Guest',
                     data: @json($bookingData),
-                    borderWidth: 1,
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                    borderColor: 'rgba(54, 162, 235, 1)'
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { 
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            callback: function(value) {
-                                return Number.isInteger(value) ? value : null;
-                            }
-                        }
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: false
+                },
+                {
+                    label: 'Day Tour Guest',
+                    data: @json($daytourData),
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { position: 'top' } },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        callback: function(value) { return Number.isInteger(value) ? value : null; }
                     }
                 }
             }
-        });
+        }
+    });
 
-        const ctx2 = document.getElementById("bookingsVsRevenue").getContext("2d");
-
-        new Chart(ctx2, {
-            type: 'line',
-            data: {
-                labels: @json($labels),
-                datasets: [
-                    {
-                        label: 'Hotel Guest',
-                        data: @json($weekbookingData),  
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: false
-                    },
-                    {
-                        label: 'Day Tour Guest',
-                        data: @json($daytourData ?? []),
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: true
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                interaction: {
-                    mode: 'index',
-                    intersect: false
-                },
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: { 
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            callback: function(value) {
-                                return Number.isInteger(value) ? value : null;
-                            }
-                        }
-                    }
+    // Rooms Booked Chart
+    const ctxRoom = document.getElementById("roomBookedPerMonth").getContext("2d");
+    new Chart(ctxRoom, {
+        type: 'bar',
+        data: {
+            labels: @json($roomlabels),
+            datasets: [{
+                label: 'Total Bookings per Room',
+                data: @json($roombookData),
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.4)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true, position: 'top' }, tooltip: { enabled: true } },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, callback: function(value) { return Number.isInteger(value) ? value : null; } }
                 }
             }
+        }
+    });
+
+    // Amenities Chart
+    const ctxAmenity = document.getElementById("amenityTourPerMonth").getContext("2d");
+    new Chart(ctxAmenity, {
+        type: 'bar',
+        data: {
+            labels: @json($amenityLabels),
+            datasets: [{
+                label: 'Amenities Accessed',
+                data: @json($amenityData),
+                borderColor: 'rgba(153, 102, 255, 1)',
+                backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true, position: 'top' }, tooltip: { enabled: true } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { ticks: { autoSkip: false } } }
+        }
+    });
+
+    // Revenue Chart
+    const ctxRevenue = document.getElementById("revenuPerMonth").getContext("2d");
+    new Chart(ctxRevenue, {
+        type: 'line',
+        data: {
+            labels: @json($revenueLabels),
+            datasets: [{
+                label: 'Revenue',
+                data: @json($revenueValues),
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.4)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true, position: 'top' }, tooltip: { enabled: true } },
+            scales: { y: { beginAtZero: true }, x: { ticks: { autoSkip: false } } }
+        }
+    });
+
+    // Card click navigation
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            if (url) window.location.href = url;
         });
+    });
 
-        const ctx3 = document.getElementById("roomBookedPerMonth").getContext("2d");
+    // Filter functions
+    window.updateFilter = function(filterType) {
+        let year = document.getElementById("yearSelect") ? document.getElementById("yearSelect").value : "{{ $year }}";
+        window.location.href = `{{ url('manager/dashboard') }}?filterType=${filterType}&year=${year}`;
+    }
 
-        new Chart(ctx3, {
-            type: 'bar',
-            data: {
-                labels: @json($roomlabels),
-                datasets: [
-                    {
-                        label: 'Total Bookings per Room',
-                        data: @json($roombookData),
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.4)',
-                        borderWidth: 2
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true, position: 'top' },
-                    tooltip: { enabled: true }
-                },
-                scales: {
-                    y: { 
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            callback: function(value) {
-                                return Number.isInteger(value) ? value : null;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        const ctxAmenity = document.getElementById("amenityTourPerMonth").getContext("2d");
-
-        new Chart(ctxAmenity, {
-            type: 'bar',
-            data: {
-                labels: @json($amenityLabels),
-                datasets: [{
-                    label: 'Amenities Accessed per Month',
-                    data: @json($amenityData),
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    backgroundColor: 'rgba(153, 102, 255, 0.5)',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true, position: 'top' },
-                    tooltip: { enabled: true }
-                },
-                scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                    x: { ticks: { autoSkip: false } }
-                }
-            }
-        });
-
-        const ctxRevenue = document.getElementById("revenuPerMonth").getContext("2d");
-        
-        new Chart(ctxRevenue, {
-            type: 'line',
-            data: {
-                labels: @json($revenueLabels),
-                datasets: [{
-                    label: 'Revenue per Month',
-                    data: @json($revenueValues),
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.4)',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true, position: 'top' },
-                    tooltip: { enabled: true }
-                },
-                scales: {
-                    y: { beginAtZero: true },
-                    x: { ticks: { autoSkip: false } }
-                }
-            }
-        });
-            document.querySelectorAll('.card').forEach(function(card) {
-            card.addEventListener('click', function() {
-                const url = this.getAttribute('data-url');
-                if (url) {
-                    window.location.href = url;
-                }
-            });
-        });
-
-
-    }); 
+    window.updateYear = function(year) {
+        let filterType = document.getElementById("filterType").value;
+        window.location.href = `{{ url('manager/dashboard') }}?filterType=${filterType}&year=${year}`;
+    }
+});
 </script>

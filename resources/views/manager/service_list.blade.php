@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
-    <title>Lantaw-Marbel Resort</title>
+    <title>Lantaw-Marbel Resort Service List</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 </head>
 <body>
@@ -12,14 +12,14 @@
         @include('components.sidebar')
         <div id="main-layout">
             <div id="layout-header">
-                <h1 id="h2">Menu Items</h1>
+                <h1 id="h2">Service Items</h1>
                 <div class="button-group">
-                        <div id="add-container" data-url="{{ url('manager/add_menu') }}">
-                            <h2 id="add-text">Add Menu</h2>
+                        <div id="add-container" data-url="{{ url('manager/add_service') }}">
+                            <h2 id="add-text">Add Service</h2>
                             <i id="add-user" class="fas fa-plus-circle fa-3x"  style="cursor:pointer;"></i>
                         </div>
-                    <div class="search-container">
-                        <form action="{{ route('manager.search_menu') }}" method="GET">
+                    {{--<div class="search-container">
+                        <form action="{{ route('manager.search_service') }}" method="GET">
                             <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
                             <button type="submit">
                                 <i class="fa fa-search"></i>
@@ -28,20 +28,12 @@
                                 <a href="{{ route('manager.search_menu') }}" class="reset-btn">Clear Search</a>
                             @endif
                         </form>
-                    </div>
+                    </div>--}}
                     
-                    </div>
-            </div>
-            <div class="navbar">
-                <div class="navbar-item" data-filter="All"><h3>All</h3></div>
-                @foreach($uniqueMenuTypes as $menutypes)
-                    <div class="navbar-item" data-filter="{{ $menutypes}}">
-                        <h3>{{$menutypes}}</h3>
-                    </div>
-                @endforeach
+                </div>
             </div>
             <div class='menu-contianer'>
-                @foreach($menu as $menuitem)
+                @foreach($service as $menuitem)
                     <div class="menu-card {{ $menuitem->status !== 'Available' ? 'unavailable' : '' }}" 
                         data-type="{{ $menuitem->itemtype }}">
                         <div id="img-container">
@@ -96,7 +88,7 @@
     </div>
 </body>
 <style>
-    #menu{color:#F78A21;}   
+    #service{color:#F78A21;}   
     #layout{
         display: flex;
         flex-direction: row;
@@ -276,7 +268,8 @@
         border-radius:.5rem;
         padding: .5rem;
         font-size:.7rem;
-        box-shadow: .1rem .3rem 0 rgba(0,0,0,0.2);
+        border:1px solid black;
+        box-shadow: .1rem .1rem 0 rgba(0,0,0);
     }
     .menu-card img{
         height:10rem;
@@ -370,6 +363,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const filterButtons = Array.from(document.querySelectorAll('.navbar-item'));
     const menuCards = Array.from(document.querySelectorAll('.menu-card'));
+    const addMenu = document.getElementById("add-container");
     const message = document.querySelector('.alert-message');
 
     if (message) {
@@ -377,6 +371,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 message.style.display = 'none';
             }, 2500);
         }
+
+    if (addMenu) {
+        addMenu.addEventListener("click", function () {
+            const url = this.dataset.url;
+            if (url) {
+                window.location.href = url;
+            } else {
+                console.error("No data-url found on #add-container");
+            }
+        });
+    }
 
     function normalize(s) {
         return (s || '').toString().trim().toLowerCase();

@@ -16,24 +16,38 @@
             </div>
             <div class="report-selection">
                 <div class="report-card" id="booking-report" data-url="{{url('manager/booking_report')}}"> 
-                    <i class="fa-solid fa-clipboard-list fa-3x"></i>
-                    <h2>Booking Report</h2>
-                    <button>View</button>
-                </div>
-                <div class="report-card" id="check-report" data-url="{{url('manager/check_report')}}">
-                    <i class="fa-solid fa-clock fa-3x"></i>
-                    <h2>Check-in/Check-out Report</h2>
-                    <button>View</button>
+                    <div>
+                        <i id="icon" class="fa-solid fa-clipboard-list fa-3x"></i>
+                    </div>
+                    <div>
+                        <h2 id="report_title">Booking Report</h2>
+                        <span>Auto Generated Report for Guest Booking</span><br/>
+                        <small>Genereated on: {{$today}}</small> <br/><br/>
+                        <button>View</button>
+                    </div>
                 </div>
                 <div class="report-card" id="revenue-report" data-url="{{url('manager/revenue_report')}}">
-                    <i class="fa-solid fa-money-bill fa-3x"></i>
-                    <h2>Revenue Report</h2>
-                    <button>View</button>
+                    <div>
+                        <i id="icon" class="fa-solid fa-chart-simple fa-3x"></i>
+                    </div>
+                    <div>
+                        <h2 id="report_title">Revenue Report</h2>
+                        <span>Auto Generated Report of Resort Revenue</span><br/>
+                        <small>Genereated on: {{$today}}</small> <br/><br/>
+                        <button>View</button>
+                    </div>
                 </div>
+
                 <div class="report-card" id="guest-report" data-url="{{url('manager/guest_report')}}">
-                    <i class="fa-solid fa-person fa-3x"></i>
-                    <h2>Guest Report</h2>
-                    <button>View</button>
+                    <div>
+                        <i id="icon" class="fa-solid fa-person fa-3x"></i>
+                    </div>
+                    <div>
+                        <h2 id="report_title">Guest Report</h2>
+                        <span>Auto Generated Report of Guest Total</span><br/>
+                        <small>Genereated on: {{$today}}</small> <br/><br/>
+                        <button>View</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -48,20 +62,27 @@
         height:100vh;
     }
     #main-layout{
+        display:flex;
+        flex-direction: column;
         width:100%;
         height: auto;
         padding:1rem;
-        margin-left:15rem;
+        margin-left:12rem;
+        gap:1rem;
     }
     #title-header{
         display: flex;
         flex-direction: row;
-        width: 100%;
-        max-height:5rem;
-        padding:1rem;
-        border-radius: 2rem;
-        align-content: center;
         align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        height: 8%;
+        padding: 1rem 3rem 1rem 2rem;
+        background: white;
+        border-radius: .7rem;
+        font-size: .6rem;
+        border: 1px solid black;
+        box-shadow: .1rem .1rem 0 black;
         gap: 1rem;
     }
     #title-header h1 {
@@ -70,34 +91,43 @@
     }
     .report-selection{
         width:100%;
-        height: 90%;
-        display:flex;
-        flex-direction:row;
-        flex-wrap:wrap;
-        gap:2rem;
+        display:grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap:1rem;
         justify-content:center; 
     }
     .report-card{
         display:flex;
-        flex-direction:column;
-        height:17rem;
-        width:20rem;
-        padding:1rem;
-        align-items:center;
-        justify-content: center;
-        text-align: center;
-        box-shadow:.1rem .1rem 0 rgba(0,0,0,0.2);
+        flex-direction:row;
+        height:10rem;
+        width:100%;
+        padding:.5rem;
+        text-align: start;
+        box-shadow:.1rem .1rem 0 rgba(0,0,0);
+        font-size:.8rem;
+        border:solid 1px black;
         background:white;
         border-radius:.7rem;
         gap:1rem;
     }
-    button{
-        height:4rem;
+    #icon{
         padding:.5rem;
-        width:7rem;
-        background:rgb(255, 146, 3);
-        border:none;
-        box-shadow:.2rem .2rem 0 rgba(0,0,0,0.2);
+        font-size:8rem;
+        border-right:solid 2px black;
+    }
+    #report_title{
+        font-size:1.5rem;
+        display:flex;
+        align-content: flex-start;
+        justify-content: flex-start;
+    }
+    button{
+        height:2rem;
+        padding:.5rem;
+        width:5rem;
+        background:#ccc;
+        border:1px black solid;
+        box-shadow:.1rem .1rem 0 rgba(0,0,0);
         border-radius:.7rem;
         margin-top:auto;
         bottom:1rem;
@@ -106,7 +136,8 @@
     }
     button:hover{
         color:white;
-        background:grey;
+        background:rgb(249, 160, 72);
+        transform:scale(1.1);
     }
 </style>
 <script>

@@ -9,7 +9,7 @@
 </head>
 <body>
     <div id="layout">
-        @include('components.sidebar')
+        @include('components.sidebar_nologout')
         <div id="main-layout">
             <h1>Create User</h1>
 
@@ -53,15 +53,6 @@
                                 <option value="" disabled selected>Select Gender</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
-                                <option value="Non_Binary">Non-Binary</option>
-                                <option value="Trans_Female">Transgender Female</option>
-                                <option value="Trans_Male">Transgender Male</option>
-                                <option value="Genderqueer">Genderqueer</option>
-                                <option value="Agender">Agender</option>
-                                <option value="Bigender">Bigender</option>
-                                <option value="Genderfluid">Genderfluid</option>
-                                <option value="Two_Spirit">Two-Spirit</option>
-                                <option value="Other">Other</option>
                                 <option value="Prefer_not_to_say">Prefer not to say</option>
                             </select>
                         </div>

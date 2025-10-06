@@ -12,7 +12,7 @@ class SessionLogTable extends Model
     protected $keyType = 'int';
     public $timestamps = false;
     protected $fillable = [
-        'useragent', 'loginstatus', 'sessioncreated', 'sessionexpired', 'userID'
+        'activity', 'date', 'userID'
     ];
 
     public function user()

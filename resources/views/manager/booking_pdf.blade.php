@@ -4,201 +4,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
-    <title>Lantaw-Marbel Resort</title>
+    <title>Lantaw-Marbel Report Booking PDF</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-</head>
-<body>
-    <div id="layout">
-        <div id="main-layout">
-            <div id="layout-header">
-                <h1>Booking Report</h1>
-            </div>
-            <div class="report-container">
-                <div class="totals">
-                    <div class="total-card">
-                        <p>Total Overall Bookings</p>
-                        <p>{{ $totals['total_all'] }}</p>
-                    </div>
-                    <div class="total-card">
-                        <p>Total Hotel Bookings</p>
-                        <p>{{ $totals['total_hotel'] }}</p>
-                    </div>
-                    <div class="total-card">
-                        <p>Total Cottage Bookings</p>
-                        <p>{{ $totals['total_cottage'] }}</p>
-                    </div>
-                    <div class="total-card">
-                        <p>Total Amenity Bookings</p>
-                        <p>{{ $totals['total_amenity'] }}</p>
-                    </div>
-                </div>
-                <table>
-                    <thead>
-                        <th>#</th>
-                        <th>Guest Amount</th>
-                        <th>Guest</th>
-                        <th>Total Price</th>
-                        <th>Room</th>
-                        <th>Amenity</th>
-                        <th>Cottage</th>
-                    </thead>
-                    <tbody>
-                        @foreach($bookings as $b)
-                        <tr>
-                            <td>{{$b->bookingID}}</td>
-                            <td>{{$b->guestamount}}</td>
-                            <td>{{$b->guestname}}</td>
-                            <td>{{$b->totalprice}}</td>
-                            <td>{{$b->room}}</td>
-                            <td>{{$b->amenityname}}</td>
-                            <td>{{$b->cottagename}}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</body>
 <style>
-    #report { color: #F78A21;}
-    body {
-        font-family: sans-serif;
-        font-size: 11px;
-        margin: 0;
-        padding: 1rem;
-        overflow: visible; /* allow full content rendering in PDF */
+    @page { margin: 20mm; }
+    html, body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #222;
+      font-size: 12px;
+      -webkit-print-color-adjust: exact; 
     }
 
-    #layout {
-        display: block;
-        width: 100%;
+    .report-header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .report-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      margin: 0 0 6px;
+    }
+    .report-subtitle {
+      font-size: 13px;
+      margin: 0;
+      font-weight: 600;
+    }
+    .report-daterange {
+      margin-top: 6px;
+      font-size: 13px;
+      font-weight: 600;
     }
 
-    #main-layout {
-        width: 100%;
-        padding: 0.5rem;
-    }
-
-    #layout-header {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        padding: 0.5rem 1rem;
-        background: white;
-        border-radius: 1rem;
-        font-size: 0.8rem;
-        gap: 0.5rem;
-    }
-
-    #print-container,
-    #pdf-container {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        gap: 0.5rem;
-        margin-left: auto;
-    }
-
-    #add-text {
-        opacity: 0;
-        visibility: hidden;
-        width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        transition: all 0.3s ease;
-        padding: 0.2rem 0.5rem;
-        margin-left: 0.3rem;
-        border-radius: 4px;
-    }
-
-    #pdf-container:hover #add-text,
-    #print-container:hover #add-text {
-        opacity: 1;
-        visibility: visible;
-        width: auto;
-    }
-
-    .report-filter {
-        margin-top: 0.5rem;
-        width: 100%;
-        height: auto;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        justify-content: flex-end;
-    }
-
-    .filter-card {
-        background: rgb(238, 238, 238);
-        box-shadow: 0.1rem 0.1rem 0 rgba(0, 0, 0, 0.2);
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        font-size: 0.85rem;
-    }
-
-    .filter-card:hover {
-        background: black;
-        color: white;
-    }
-
-    .filter-card.active-filter {
-        background-color: orange;
-        color: white;
-        font-weight: bold;
-    }
-
-    .report-container {
-        margin-top: 0.5rem;
-        background: white;
-        border-radius: 0.5rem;
-        box-shadow: 0.1rem 0.2rem 0 rgba(0, 0, 0, 0.2);
-        padding: 1rem;
-        gap: 0.5rem;
-    }
-
-    .totals {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .total-card {
-        width: 20%;
-        min-width: 100px;
-        text-align: center;
-        padding: 0.5rem;
-        border: 1px solid #ccc;
-        border-radius: 0.5rem;
-    }
-
-    table {
+     .totals-table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 1rem;
-    }
-
-    table th,
-    table td {
-        border: 1px solid #444;
-        padding: 4px 6px;
+        margin: 20px 0;
         text-align: center;
-        font-size: 0.85rem;
+        font-size: 13px;
+    }
+    .totals-table th {
+        padding: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+    .totals-table td {
+        padding: 10px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #000;
+    }
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+      box-shadow: none;
     }
 
-    table th {
-        background: #f0f0f0;
+    .report-table thead th {
+      background: #d38d34; 
+      color: #fff;
+      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 12px 14px;
+      border: 1px solid rgba(0,0,0,0.08);
     }
 
-</style>
+    .report-table tbody td {
+      padding: 12px 14px;
+      border: 1px solid rgba(0,0,0,0.06);
+      font-size: 12px;
+      vertical-align: middle;
+      color: #222;
+    }
+
+    .report-table tbody tr:nth-child(even) td {
+      background: #fbfbfb;
+    }
+
+    .report-table tbody tr:hover td {
+      background: #f5f5f5;
+    }
+
+    .col-id { width: 6%; text-align: center; }
+    .col-count { width: 10%; text-align: center; }
+    .col-guest { width: 28%; text-align: left; padding-left: 18px; }
+    .col-price { width: 12%; text-align: right; padding-right: 18px; }
+    .col-room { width: 10%; text-align: center; }
+    .col-amenity { width: 16%; text-align: left; padding-left: 12px; }
+    .col-cottage { width: 12%; text-align: left; padding-left: 12px; }
+
+    tr, td, th { page-break-inside: avoid; page-break-after: auto; }
+
+    @media (max-width: 720px) {
+      .totals-grid { grid-template-columns: repeat(2,1fr); }
+      .report-title { font-size: 16px; }
+      .report-daterange { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  @php
+    use Carbon\Carbon;
+    $fromLabel = isset($from) && $from ? Carbon::parse($from)->format('m/d/Y') : null;
+    $toLabel   = isset($to) && $to   ? Carbon::parse($to)->format('m/d/Y') : null;
+    if ($fromLabel && $toLabel) {
+        $dateRangeText = $fromLabel === $toLabel ? "Date: {$fromLabel}" : "Date: {$fromLabel} - {$toLabel}";
+    } else {
+        $dateRangeText = 'Date: All';
+    }
+    $bookingsList = $bookings ?? collect();
+    $tot = $totals ?? ['total_all'=>0,'total_hotel'=>0,'total_cottage'=>0,'total_amenity'=>0];
+  @endphp
+
+  <div class="report-header">
+    <div class="report-title">LANTAW MARBEL HOTEL AND RESORT</div>
+    <div class="report-subtitle">Booking Report</div>
+    <div class="report-daterange">{{ $dateRangeText }}</div>
+  </div>
+
+  <div class="totals-row">
+    <table class="totals-table">
+      <tr>
+        <th>Total Overall Bookings</th>
+        <th>Total Hotel Bookings</th>
+        <th>Total Cottage Bookings</th>
+        <th>Total Amenity Bookings</th>
+      </tr>
+      <tr>
+        <td>{{ $tot['total_all'] }}</td>
+        <td>{{ $tot['total_hotel'] }}</td>
+        <td>{{ $tot['total_cottage'] }}</td>
+        <td>{{ $tot['total_amenity'] }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <table class="report-table">
+    <thead>
+      <tr>
+        <th class="col-count">Guest Count</th>
+        <th class="col-guest">Guest</th>
+        <th class="col-price">Total Price</th>
+        <th class="col-room">Room</th>
+        <th class="col-amenity">Amenity</th>
+        <th class="col-cottage">Cottage</th>
+      </tr>
+    </thead>
+    <tbody>
+      @forelse($bookingsList as $b)
+        <tr>
+          <td class="col-count">{{ $b->guestamount ?? ($b->guest_count ?? '-') }}</td>
+          <td class="col-guest">{{ $b->guestname ?? $b->guestID ?? '-' }}</td>
+          <td class="col-price">{{ number_format($b->totalprice ?? 0, 2) }}</td>
+          <td class="col-room">{{ $b->room ?? ($b->roomnum ?? '-') }}</td>
+          <td class="col-amenity">{{ $b->amenityname ?? '-' }}</td>
+          <td class="col-cottage">{{ $b->cottagename ?? '-' }}</td>
+        </tr>
+      @empty
+        <tr>
+          <td colspan="7" style="padding:20px; text-align:center;">No bookings found for the selected range.</td>
+        </tr>
+      @endforelse
+    </tbody>
+  </table>
+</body>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const filterButtons = document.querySelectorAll('.filter-card');
         const dateHeading = document.getElementById('selected-daterange');
-
         const urlParams = new URLSearchParams(window.location.search);
+
         const from = urlParams.get('from');
         const to = urlParams.get('to');
         const currentFilter = urlParams.get('filter');
@@ -222,60 +198,15 @@
         }
 
         if (from && to && dateHeading) {
-            dateHeading.textContent = from === to
-                ? `Date: ${formatDate(from)}`
-                : `Date: ${formatDate(from)} - ${formatDate(to)}`;
-        }
+            const formattedFrom = formatDate(from);
+            const formattedTo = formatDate(to);
 
-        if (currentFilter) {
-            document.querySelectorAll('.filter-card').forEach(btn => {
-                if (btn.dataset.filter === currentFilter) {
-                    btn.classList.add('active-filter');
-                }
-            });
-        }
-
-        filterButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const filter = this.dataset.filter;
-                let fromDate, toDate;
-
-                if (filter === 'today') {
-                    fromDate = toDate = format(today);
-                } else if (filter === 'week') {
-                    const lastWeek = new Date(today);
-                    lastWeek.setDate(today.getDate() - 7);
-                    fromDate = format(lastWeek);
-                    toDate = format(today);
-                } else if (filter === 'year') {
-                    fromDate = `${today.getFullYear()}-01-01`;
-                    toDate = format(today);
-                }
-
-                const url = new URL(window.location.href);
-                url.searchParams.set('from', fromDate);
-                url.searchParams.set('to', toDate);
-                url.searchParams.set('filter', filter);
-                window.location.href = url.toString();
-            });
-        });
-
-        const pdfExportBtn = document.getElementById('pdf-container');
-        if (pdfExportBtn) {
-            pdfExportBtn.addEventListener('click', function () {
-                const exportUrl = this.dataset.url;
-
-                const from = urlParams.get('from');
-                const to = urlParams.get('to');
-
-                if (!from || !to) {
-                    alert('Please select a date range before exporting.');
-                    return;
-                }
-
-                const pdfUrl = `${exportUrl}?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
-                window.open(pdfUrl, '_blank');
-            });
+            if (from === to) {
+                dateHeading.textContent = `Date: ${formattedFrom}`;
+            } else {
+                dateHeading.textContent = `Date Range: ${formattedFrom} - ${formattedTo}`;
+            }
         }
     });
 </script>
+</html>

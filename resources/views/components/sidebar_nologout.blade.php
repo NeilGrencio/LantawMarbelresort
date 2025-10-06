@@ -264,17 +264,6 @@
                 <i class="fas fa-chevron-down fa-lg"></i>
             </div>
         </div>
-        <div class="more-action" style="display:none;">
-                
-                <form id="logout-form" action="{{ route('logout') }}" method="POST">
-                    <div>
-                    @csrf
-                    <button type="submit" style="all:unset; cursor:pointer; font-size:12px; width:100%;">Log Out</button>
-                    </div>
-                </form>
-                
-            </div>
-
     <script>
 
         document.addEventListener('DOMContentLoaded', () => {

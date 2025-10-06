@@ -5,14 +5,142 @@ namespace App\Http\Controllers;
 use App\Models\SessionLogTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\StaffTable;
 use Jenssegers\Agent\Agent;
 use Illuminate\Validation\ValidationException;
+use App\Mail\smtpSender;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cache;
+use Termwind\Components\Raw;
 
 class LoginController extends Controller
 {
+
+    // ------------------- SEND OTP -------------------
+    public function sendOTP(Request $request)
+    {
+        $request->validate(['username' => 'required|string']);
+
+        // Get user and staff
+        $user = User::where('username', $request->username)->first();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Username not found.']);
+        }
+
+        $staff = StaffTable::where('userID', $user->userID)->first();
+        if (!$staff || !$staff->email) {
+            return response()->json(['success' => false, 'message' => 'Email not found.']);
+        }
+
+        // Disallow guests
+        if ($staff->role === 'guest') {
+            return response()->json(['success' => false, 'message' => 'Guests cannot request OTP.']);
+        }
+
+        // Generate OTP
+        $otp = rand(100000, 999999);
+
+        // Store OTP in session for 5 minutes
+        session([
+            'otp_'.$staff->staffID => $otp,
+            'otp_expiration_'.$staff->staffID => now()->addMinutes(5)
+        ]);
+
+        try {
+            Mail::to($staff->email)->send(new smtpSender($staff->username, $otp));
+
+            return response()->json(['success' => true, 'message' => 'OTP sent to your email.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to send OTP: '.$e->getMessage()]);
+        }
+    }
+
+    // ------------------- VERIFY OTP -------------------
+    public function verifyOTP(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'otp' => 'required|numeric'
+        ]);
+
+        $user = User::where('username', $request->username)->first();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Username not found.']);
+
+        $staff = StaffTable::where('userID', $user->userID)->first();
+        if (!$staff) return response()->json(['success' => false, 'message' => 'Staff not found.']);
+
+        $cachedOtp = session('otp_'.$staff->staffID);
+        $expiration = session('otp_expiration_'.$staff->staffID);
+
+        if (!$cachedOtp || !$expiration || now()->greaterThan($expiration)) {
+            return response()->json(['success' => false, 'message' => 'OTP expired.']);
+        }
+
+        if ($cachedOtp != $request->otp) {
+            return response()->json(['success' => false, 'message' => 'Invalid OTP.']);
+        }
+
+        // OTP verified → keep it in session for reset, optionally
+        return response()->json(['success' => true, 'message' => 'OTP verified.']);
+    }
+
+    // ------------------- RESET PASSWORD -------------------
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string',
+            'otp' => 'required|numeric',
+            'password' => 'required|string|min:8|confirmed', // password_confirmation required
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        $user = User::where('username', $request->username)->first();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Username not found.']);
+
+        $staff = StaffTable::where('userID', $user->userID)->first();
+        if (!$staff) return response()->json(['success' => false, 'message' => 'Staff not found.']);
+
+        if ($staff->role === 'guest') {
+            return response()->json(['success' => false, 'message' => 'Guests cannot reset passwords.']);
+        }
+
+        // Verify OTP from session
+        $cachedOtp = session('otp_'.$staff->staffID);
+        $expiration = session('otp_expiration_'.$staff->staffID);
+
+        if (!$cachedOtp || !$expiration || now()->greaterThan($expiration)) {
+            return response()->json(['success' => false, 'message' => 'OTP expired.']);
+        }
+
+        if ($cachedOtp != $request->otp) {
+            return response()->json(['success' => false, 'message' => 'Invalid OTP.']);
+        }
+
+        // Update password
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Remove OTP from session
+        session()->forget(['otp_'.$staff->staffID, 'otp_expiration_'.$staff->staffID]);
+
+        $userlogs = new SessionLogTable();
+        $userlogs->userID = $user->userID;
+        $userlogs->activity = 'Password Reset';
+        $userlogs->date = now();
+        $userlogs->save();
+
+        return response()->json(['success' => true, 'message' => 'Password has been reset successfully.']);
+    }
+
     public function showLogin(Request $request)
     {
         if ($request->session()->get('logged_in')) {
@@ -83,16 +211,12 @@ class LoginController extends Controller
             $request->session()->put('avatar', $staff->avatar);
             $request->session()->regenerate();
 
-            // Log session with user agent info
-            $agent = new \Jenssegers\Agent\Agent();
-            $session = new SessionLogTable();
-            $session->useragent = $agent->browser() . ' ' . $agent->version($agent->browser()) .
-                                  ' on ' . $agent->platform() . ' ' . $agent->version($agent->platform());
-            $session->loginstatus = 'Logged-in';
-            $session->sessioncreated = now();
-            $session->sessionexpired = now()->addDays(30);
-            $session->userID = $user->userID;
-            $session->save();
+            // Log session
+            $userlogs = new SessionLogTable();
+            $userlogs->userID = $user->userID;
+            $userlogs->activity = 'User Logged In';
+            $userlogs->date = now();
+            $userlogs->save();
 
             Auth::login($user);
 
@@ -102,6 +226,9 @@ class LoginController extends Controller
             }
             if ($staff->role === 'Receptionist') {
                 return redirect('receptionist/dashboard')->with('success', 'Welcome, ' . $user->username);
+            }
+            if ($staff->role === 'Kitchen Staff') {
+                return redirect('kitchen/dashbaord')->with('success', 'Welcome, ' . $user->username);
             }
 
             return back()->withErrors([
@@ -114,27 +241,11 @@ class LoginController extends Controller
     {
         $userID = session()->get('user_id');
 
-        $latestSession = SessionLogTable::where('userID', $userID)
-                            ->latest('sessioncreated')
-                            ->first();
-
-        if ($latestSession && now()->greaterThanOrEqualTo($latestSession->sessionexpired)) {
-            $request->session()->flush();
-            return redirect('auth/login')->with('error', 'Session expired. You have been logged out.');
-        }
-
-        $agent = new \Jenssegers\Agent\Agent();
-        $browser = $agent->browser();
-        $browserVersion = $agent->version($browser);
-        $platform = $agent->platform();
-        $platformVersion = $agent->version($platform);
-        
+        // Log session
         SessionLogTable::create([
             'userID' => $userID,
-            'sessioncreated' => now(),
-            'sessionexpired' => now(),
-            'loginstatus' => 'Logged-out',
-            'useragent' => "$browser $browserVersion on $platform $platformVersion",
+            'activity' => 'User Loged Out',
+            'date' => now(),
         ]);
 
         Auth::logout();

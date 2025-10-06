@@ -20,7 +20,7 @@
             display:flex;
             flex-direction: column;
             padding:1rem;
-            width:85%;
+            width:100%;
             transition: width 0.3s ease-in-out;
             margin-left:12rem;
             margin-right:.7rem;

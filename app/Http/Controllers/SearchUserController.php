@@ -331,9 +331,8 @@ class SearchUserController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('usersessionlog.sessionID', 'like', "%{$search}%")
                     ->orWhere('users.username', 'like', "%{$search}%")
-                    ->orWhere('usersessionlog.useragent', 'like', "%{$search}%")
-                    ->orWhere('usersessionlog.sessioncreated', 'like', "%{$search}%")
-                    ->orWhere('usersessionlog.sessionexpired', 'like', "%{$search}%")
+                    ->orWhere('usersessionlog.activity', 'like', "%{$search}%")
+                    ->orWhere('usersessionlog.date', 'like', "%{$search}%")
                     ->orWhere('usersessionlog.userID', 'like', "%{$search}%");
                 });
             })

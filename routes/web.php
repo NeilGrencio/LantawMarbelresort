@@ -115,9 +115,11 @@ Route::get('/guestid-image/{filename}', function ($filename) {
 })->name('guestid.image');
 
 
-Route::get('auth/check_login', [LoginController::class, 'showLogin'])->name('checkLogin');
 Route::match(['get', 'post'], 'auth/login', [LoginController::class, 'login'])->name('login');
 Route::post('auth/logout', [LoginController::class, 'logout'])->name('logout');
+Route::post('auth/send_OTP', [LoginController::class, 'sendOTP']);
+Route::post('auth/forgot_password', [LoginController::class, 'verifyOTP']);
+Route::post('auth/reset_password', [LoginController::class, 'resetPassword']);
 
 Route::get('manager/dashboard', [DashboardController::class, 'managerDashboard'])->name('manager.dashboard');
 
@@ -195,6 +197,10 @@ Route::get('manager/add_amenity', [ManageAmenityController::class, 'addAmenity']
 
 // Add Amenity
 Route::post('manager/add_amenity', [ManageAmenityController::class, 'saveAmenity'])->name('manager.add_amenity.submit');
+Route::match(['get', 'post'], 'manager/activate_amenity/{amenityID}', [ManageAmenityController::class, 'activateAmenity'])->name('manager.activate_amenity');
+Route::match(['get', 'post'], 'manager/deactivate_amenity/{amenityID}', [ManageAmenityController::class, 'deactivateAmenity'])->name('manager.deactivate_amenity');
+Route::match(['get', 'post'], 'manager/maintenance_amenity/{amenityID}', [ManageAmenityController::class, 'maintenanceAmenity'])->name('manager.maintenance_amenity');
+Route::match(['get', 'post'], 'manager/book_amenity/{amenityID}', [ManageAmenityController::class, 'bookAmenity'])->name('manager.book_amenity');
 
 // Edit Amenity
 Route::match(['get', 'post'], 'manager/edit_amenity/{amenityID}', [ManageAmenityController::class, 'editAmenity'])->name('manager.edit_amenity');
@@ -244,10 +250,10 @@ Route::match(['get', 'post'], 'manager/deactivate_menu/{menuID}', [ManageMenuCon
 Route::get('manager/feedback', [FeedbackController::class, 'viewFeedback'])->name('manager.feedback');
 
 // View Chats
-Route::get('manager/chat', [ChatController::class, 'viewChats'])->name('manager.chat_logs');
+Route::get( 'manager/chat', [ChatController::class, 'viewChats'])->name('manager.chat_logs');
 
 // Send Reply
-Route::post('manager/chat/{chatID}', [ChatController::class, 'sendChat'])->name('manager.send_reply');
+Route::post( 'manager/chat', [ChatController::class, 'sendChat'])->name('manager.send_reply');
 
 // View Discounts
 Route::get('manager/discount', [DiscountController::class, 'viewDiscounts'])->name('manager.view_discounts');
@@ -265,7 +271,9 @@ Route::match(['post', 'get'], 'manager/add_discount', [DiscountController::class
 Route::match(['post', 'get'], 'manager/edit_discount/{discountID}', [DiscountController::class, 'updateDiscount'])->name('manager.update_discount');
 
 // View Session Logs
-Route::get('manager/session_logs', [SessionLogController::class, 'viewSessions'])->name('manager.session_logs');
+Route::get('manager/session_logs', [SessionLogController::class, 'viewSessions'])->name('manager.view_sessions');
+// Export PDF
+Route::get('manager/session_logs/export_pdf', [SessionLogController::class, 'exportPDF'])->name('manager.session_logs_pdf');
 
 // View Reports Dashboard
 Route::get('manager/report', [ReportController::class, 'viewReport'])->name('manager.report_dashboard');
@@ -287,6 +295,10 @@ Route::get('manager/export_pdf', [ReportController::class, 'exportPDF'])->name('
 Route::get('manager/export_checkpdf', [ReportController::class, 'exportCheckPDF'])->name('report.exportPDF');
 Route::get('manager/export_guestpdf', [ReportController::class, 'exportGuestPDF'])->name('report.exportPDF');
 Route::get('manager/export_revenuepdf', [ReportController::class, 'exportRevenuePDF'])->name('report.exportPDF');
+
+Route::get('manager/services_list', [ManageMenuController::class, 'serviceList']);
+Route::match(['get', 'post'], 'manager/add_service', [ManageMenuController::class, 'addService']);
+Route::match(['get', 'post'], 'manager/edit_service/{menuID}', [ManageMenuController::class, 'editService'])->name('manager.edit_service');
 
 // Receptionist
 Route::get('receptionist/dashboard', [DashboardController::class, 'receptionistDashboard'])->name('receptionist.dashboard');

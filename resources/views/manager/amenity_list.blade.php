@@ -15,10 +15,10 @@
                 <h1 id="h2">Resort Amenities</h1>
 
                 <div class="button-group">
-                        <div id="add-container" data-url="{{ url('manager/add_amenity') }}">
-                            <h2 id="add-text">Add Amenity</h2>
-                            <i id="add-user" class="fas fa-plus-circle fa-3x"  style="cursor:pointer;"></i>
-                        </div>
+                    <div id="add-container" data-url="{{ url('manager/add_amenity') }}">
+                        <h2 id="add-text">Add Amenity</h2>
+                        <i id="add-user" class="fas fa-plus-circle fa-3x"  style="cursor:pointer;"></i>
+                    </div>
                     <div class="search-container">
                         <form action="{{ route('manager.search_amenity') }}" method="GET">
                             <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
@@ -32,7 +32,8 @@
                     </div>
                 </div>
             </div>
-            {{--Container for the amneities--}}
+
+            {{--Container for the amenities--}}
             <div class="amenity-container">
                 @foreach($amenities as $amenity)
                 @php
@@ -45,20 +46,66 @@
                     }
                 @endphp
                 <div class="{{$amenityCardClass}}" data-url={{ url('manager/edit_amenity/' . $amenity->amenityID) }}>
-                    <div>
-                         <img id="amenity-img" src="{{ route('amenity.image', ['filename' => basename($amenity->image)]) }}" alt={{ $amenity->amenityname }}>
-                        
+                    <div id="amenity-wrapper">
+                        <div id="image-wrapper">
+                            <img id="amenity-img" src="{{ route('amenity.image', ['filename' => basename($amenity->image)]) }}" alt={{ $amenity->amenityname }}>   
+                        </div>
+                        <div id="amenity-info">
+                            <h1>{{$amenity->amenityname}}</h1>
+                            <h4>{{$amenity->description}}</h4>
+                            <h4>₱{{$amenity->adultprice}}.00</h4>
+                            <h4>₱{{$amenity->childprice}}.00</h4>
+                            <h4>This amenity is {{$amenity->status}}</h4>
+                        </div>
                     </div>
-                    <div id="amenity-info">
-                        <h1>{{$amenity->amenityname}}</h1>
-                        <h4>{{$amenity->description}}</h4>
-                        <h4>₱{{$amenity->adultprice}}.00</h4>
-                        <h4>₱{{$amenity->childprice}}.00</h4>
-                        <h4>This amenity is {{$amenity->status}}</h4>
+                    <div id="manage-wrapper" class="manage-dropdown-wrapper">
+                        <div class="manageBtn">
+                            <p>
+                                Manage
+                                <i class="fas fa-chevron-down fa-lg"></i>
+                            </p>
+                        </div>
                     </div>
                 </div> 
-                 @endforeach
+
+                <!-- Dropdown kept outside so card hover does not affect it -->
+                <div class="dropdown-content">
+                    <div data-url="{{ url('manager/edit_amenity/' . $amenity->amenityID) }}">
+                        <h4>Update</h4>
+                        <i class="fas fa-pen fa-lg"></i>
+                    </div>
+                    @if ($amenity->status == 'Available')
+                        <div data-url="{{ url('manager/deactivate_amenity/' . $amenity->amenityID) }}">
+                            <h4>Deactivate</h4>
+                            <i class="fas fa-ban fa-lg" style="color:#d9534f;"></i>
+                        </div>
+                    @elseif ($amenity->status == 'Unavailable' || $amenity->status == 'Maintenance')
+                        <div data-url="{{ url('manager/activate_amenity/' . $amenity->amenityID) }}">
+                            <h4>Activate</h4>
+                            <i class="fas fa-check-circle fa-lg" style="color:#5cb85c;"></i>
+                        </div>
+                    @elseif ($amenity->status == 'Booked')
+                        <div style="background:#dddddd; color:#949494;">
+                            <h4>Booked</h4>
+                            <i class="fas fa-calendar-check fa-lg" style="color:#949494;"></i>
+                        </div>
+                    @endif
+
+                    @if($amenity->status == 'Maintenance')
+                        <div data-url="{{ url('manager/maintenance_amenity/' . $amenity->amenityID) }}" style="display:none;">
+                            <h4>Maintenance Amenity</h4>
+                            <i class="fas fa-wrench fa-lg" style="color:#9d9d9d;"></i>
+                        </div>
+                    @else
+                        <div data-url="{{ url('manager/maintenance_amenity/' . $amenity->amenityID) }}">
+                            <h4>Maintenance Amnenity</h4>
+                            <i class="fas fa-wrench fa-lg" style="color:#9d9d9d;"></i>
+                        </div>
+                    @endif
+                </div>
+                @endforeach
             </div>
+
             @if (session('success'))
                 <div class="alert-message">
                     <h2>{{ session('success') }}</h2>
@@ -67,6 +114,7 @@
         </div>
     </div>
 </body>
+
 <style>
     body{overflow-y:auto;}
     #amenities { color: #F78A21;}
@@ -181,11 +229,19 @@
         gap:1rem;   
         margin-top:1rem;
     }
+    #amenity-wrapper{
+        display:flex;
+        flex-direction: row;
+        gap:1rem;
+        height:100%;
+    }
     .amenity-card{
         display:flex;
         flex-direction: row;
         width:100%;
-        height:11rem;
+        min-height:15rem;
+        max-height:30rem;
+        justify-content: space-between;
         border-radius:.7rem;
         padding:1rem;
         background:white;
@@ -206,16 +262,74 @@
         opacity: .5;
     }
     .amenity-card:hover{
-        background:rgb(255, 197, 144);
-        border:2px solid orange;
-        box-shadow:.1rem .1rem 0 orange;
+        background:rgb(238, 156, 101);
+        color:rgb(255, 255, 255);
+        border:2px solid rgb(0, 0, 0);
+        box-shadow:.1rem .1rem 0 rgb(0, 0, 0);
+        transform:scale(1.01);
     }
-    #amenity-img{
+    #image-wrapper {
+        height: 15rem;
+        width: 15rem;
+        border-radius: .7rem;
+        overflow: hidden;
+        flex-shrink: 0; 
+    }
+    #amenity-img {
+        width: 100%;
+        height: 100%; 
+        object-fit: cover; 
+        display: block;       
+        border-radius: .7rem;
+    }
+    .manageBtn {
         display: flex;
-        height:100%;
-        width:15rem;
-        border-radius:.7rem;
-        object-fit: cover;
+        justify-content: center;
+        height:2.5rem;
+        width: 7rem;
+        align-items: center;
+        padding: 0.5rem;
+        background:black;
+        color:white;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .manageBtn:hover {
+        background:orange;
+        color:black;
+    }
+    .dropdown-content {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        min-width: 10rem;
+        margin-right:1rem;
+        background-color: #8d8d8d;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        gap:.7rem;
+        z-index: 9999;
+    }
+    .dropdown-content div{
+        display:flex;
+        flex-direction: row;
+        width:100%;
+        padding-left:.6rem;
+        padding-right:.6rem;
+        background:white;
+        border-radius:.5rem;
+        align-items: center;
+        justify-content:space-between;
+        cursor:pointer;
+        transition:all .3s ease;
+    }
+    .dropdown-content div:hover{
+        background:orange;
+        color:black;
+    }
+    .dropdown-content.active {
+        display: flex;
     }
     .alert-message{
         display: flex;
@@ -242,20 +356,78 @@
         flex-wrap: wrap;
         word-wrap: break-word;
     }
-
 </style>
+
 <script>
     const addAmenity = document.getElementById('add-container');
     const amenityCards = document.querySelectorAll('.amenity-card');
-    
+    const manageBtns = document.querySelectorAll('.manageBtn');
+    const dropdowns = document.querySelectorAll('.dropdown-content');
+    const messages = document.querySelectorAll('.alert-message');
 
+    // Hide alert messages after 1.5s
+    if (messages.length) {
+        setTimeout(() => {
+            messages.forEach(msg => msg.style.display = 'none');
+        }, 2500);
+    }
+
+    // Navigate on card click
     amenityCards.forEach(card => {
-        card.addEventListener('click', function() {
+        card.addEventListener('click', function (e) {
+            if (e.target.closest('.manageBtn') || e.target.closest('.dropdown-content')) {
+                return;
+            }
             window.location.href = this.dataset.url;
         });
     });
 
-    addAmenity.addEventListener('click', function(){
+    // Add Amenity click
+    addAmenity.addEventListener('click', function () {
         window.location.href = this.dataset.url;
     });
+
+    // Manage button toggle with absolute positioning
+    manageBtns.forEach((btn, index) => {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+
+            // Close others
+            dropdowns.forEach(d => d.classList.remove('active'));
+
+            const dropdown = dropdowns[index];
+            const rect = btn.getBoundingClientRect();
+
+            dropdown.style.top = `${rect.bottom + window.scrollY}px`;
+            dropdown.style.left = `${rect.left + window.scrollX - 45}px`
+
+            dropdown.classList.add("active");
+        });
+    });
+
+    // Close dropdown if clicking outside
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.manageBtn') && !e.target.closest('.dropdown-content')) {
+            dropdowns.forEach(d => d.classList.remove('active'));
+        }
+    });
+
+    // Confirmation for Activate/Deactivate
+    document.querySelectorAll('.dropdown-content div[data-url]').forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            const url = this.dataset.url;
+
+            if (url.includes('deactivate_amenity')) {
+                if (!confirm('Are you sure you want to deactivate this amenity?')) return;
+            }
+            if (url.includes('activate_amenity')) {
+                if (!confirm('Are you sure you want to activate this amenity?')) return;
+            }
+
+            window.location.href = url;
+        });
+    });
 </script>
+</html>

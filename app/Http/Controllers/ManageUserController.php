@@ -8,8 +8,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Models\UserTable;
+use App\Models\User;
 use App\Models\GuestTable;
 use App\Models\StaffTable;
+use App\Models\SessionLogTable;
 
 class ManageUserController extends Controller
 {
@@ -20,7 +22,7 @@ class ManageUserController extends Controller
     }
 
     // List all users with pagination
-    public function userList()
+    public function userList(Request $request)
     {
         $users = UserTable::query()
             ->leftJoin('guest', 'users.userID', '=', 'guest.userID')
@@ -36,7 +38,20 @@ class ManageUserController extends Controller
                 'staff.role as s_role',
                 'staff.avatar as s_avatar'
             )
+            ->orderBy('userID', 'desc')
             ->paginate(10);
+
+            // Get the userID from the session
+            $userID = $request->session()->get('user_id');
+
+            // Log the session activity
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Viewed User List',
+                    'date'     => now(),
+                ]);
+            }
 
         return view('manager.user_list', compact('users'));
     }
@@ -84,6 +99,18 @@ class ManageUserController extends Controller
 
             DB::commit();
 
+            // Get the userID from the session
+            $userID = $request->session()->get('user_id');
+
+            // Log the session activity
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Created a User: ' . $user->username,
+                    'date'     => now(),
+                ]);
+            }
+
             Log::info('Staff user added', ['userID' => $user->userID]);
             return redirect()->route('manager.manage_user')->with('success', 'Staff user added successfully');
 
@@ -92,6 +119,68 @@ class ManageUserController extends Controller
             Log::error('Failed to add staff user', ['error' => $e->getMessage()]);
             return redirect('manager/add_user')->withInput()->with('error', 'Failed to add staff user: ' . $e->getMessage());
         }
+    }
+
+    public function createUser(Request $request)
+    {
+        $request->validate([
+            'firstname'   => 'required|string|max:100',
+            'lastname'    => 'required|string|max:100',
+            'contactnum'  => 'required|digits:10',
+            'email'       => 'required|email|unique:guests,email',
+            'gender'      => 'required|string',
+            'birthday'    => 'nullable|date',
+            'validID'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'username'    => 'required|string|unique:users,username',
+            'password'    => 'required|string|min:8|confirmed',
+            'cpassword'   => 'required|matches:password',
+            'avatar'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'role'        => 'required|string',
+        ]);
+
+        // Save User first
+        $user = new User();
+        $user->username = $request->username;
+        $user->password = bcrypt($request->password);
+        $user->save();
+
+        // Save Guest details
+        $guest = new GuestTable();
+        $guest->firstname  = $request->firstname;
+        $guest->lastname   = $request->lastname;
+        $guest->mobilenum  = $request->contactnum;
+        $guest->email      = $request->email;
+        $guest->gender     = $request->gender;
+        $guest->birthday   = $request->birthday;
+        $guest->role       = $request->role;
+        $guest->user_id    = $user->id;
+
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $guest->avatar = $path;
+        }
+
+        if ($request->hasFile('validID')) {
+            $path = $request->file('validID')->store('valid_ids', 'public');
+            $guest->validID = $path;
+        }
+
+        // Get the userID from the session
+        $userID = $request->session()->get('user_id');
+
+        // Log the session activity
+        if ($userID) {
+            SessionLogTable::create([
+                'userID'   => $userID,
+                'activity' => 'User Created a User: ' . $guest->firstname . ' ' . $user->username,
+                'date'     => now(),
+            ]);
+        }
+
+        $guest->save();
+
+        return redirect()->route('manager.manage_user')->with('success', 'Guest created successfully!');
+
     }
 
     // Edit user
@@ -148,6 +237,18 @@ class ManageUserController extends Controller
                 }
                 $guest->save();
 
+                // Get the userID from the session
+                $userID = $request->session()->get('user_id');
+
+                // Log the session activity
+                if ($userID) {
+                    SessionLogTable::create([
+                        'userID'   => $userID,
+                        'activity' => 'User Edited a User: ' . $user->username,
+                        'date'     => now(),
+                    ]);
+                }
+
                 DB::commit();
                 Log::info('Guest user updated', ['userID' => $userID]);
                 return redirect()->route('manager.manage_user')->with('success', 'Guest user updated successfully');
@@ -189,6 +290,18 @@ class ManageUserController extends Controller
                 }
                 $staff->save();
 
+                // Get the userID from the session
+                $userID = $request->session()->get('user_id');
+
+                // Log the session activity
+                if ($userID) {
+                    SessionLogTable::create([
+                        'userID'   => $userID,
+                        'activity' => 'User Edited a User List: ' . $user->username,
+                        'date'     => now(),
+                    ]);
+                }
+
                 DB::commit();
                 Log::info('Staff user updated', ['userID' => $userID]);
                 return redirect()->route('manager.manage_user')->with('success', 'Staff user updated successfully');
@@ -202,12 +315,25 @@ class ManageUserController extends Controller
     }
 
     // Deactivate user
-    public function deactivateUser($userID)
+    public function deactivateUser($userID, Request $request)
     {
         $user = UserTable::find($userID);
         if ($user) {
             $user->status = 'Deactivated';
             $user->save();
+
+            // Get the userID from the session
+            $userID = $request->session()->get('user_id');
+
+            // Log the session activity
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Deactivated a User: ' . $user->username,
+                    'date'     => now(),
+                ]);
+            }
+
             Log::info('User deactivated', ['userID' => $userID]);
             return redirect()->back()->with('success', 'User deactivated successfully');
         }
@@ -215,12 +341,25 @@ class ManageUserController extends Controller
     }
 
     // Activate user
-    public function activateUser($userID)
+    public function activateUser($userID, Request $request)
     {
         $user = UserTable::find($userID);
         if ($user) {
             $user->status = 'Active';
             $user->save();
+            
+            // Get the userID from the session
+            $userID = $request->session()->get('user_id');
+
+            // Log the session activity
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Activated a User: ' . $user->username,
+                    'date'     => now(),
+                ]);
+            }
+
             Log::info('User activated', ['userID' => $userID]);
             return redirect()->back()->with('success', 'User activated successfully');
         }

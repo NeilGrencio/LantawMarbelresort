@@ -7,15 +7,29 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\SessionLogTable;
 
 use App\Models\AmenityTable;
 
 class ManageAmenityController extends Controller
 {
     // List all amenities
-    public function amenityList()
+    public function amenityList(Request $request)
     {
         $amenities = AmenityTable::all();
+
+        // Get the userID from the session
+        $userID = $request->session()->get('user_id');
+
+        // Log the session activity
+        if ($userID) {
+            SessionLogTable::create([
+                'userID'   => $userID,
+                'activity' => 'User Viewed Amenity List',
+                'date'     => now(),
+            ]);
+        }
+
         return view('manager.amenity_list', compact('amenities'));
     }
 
@@ -48,6 +62,18 @@ class ManageAmenityController extends Controller
             $amenity->adultprice = $validatedData['adultprice'];
             $amenity->status = 'Available';
             $amenity->save();
+
+            // Get the userID from the session
+            $userID = $request->session()->get('user_id');
+
+            // Log the session activity
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Created an Amenity: ' . $amenity->amenityname,
+                    'date'     => now(),
+                ]);
+            }
 
             DB::commit();
             Log::info('Amenity created', ['amenityID' => $amenity->amenityID]);
@@ -110,6 +136,18 @@ class ManageAmenityController extends Controller
 
             $amenity->save();
 
+            // Get the userID from the session
+            $userID = $request->session()->get('user_id');
+
+            // Log the session activity
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Updated an Amenity: ' . $amenity->amenityname,
+                    'date'     => now(),
+                ]);
+            }
+
             DB::commit();
             Log::info('Amenity updated', ['amenityID' => $amenity->amenityID]);
 
@@ -120,5 +158,69 @@ class ManageAmenityController extends Controller
             Log::error('Failed to update amenity', ['amenityID' => $amenityID, 'error' => $e->getMessage()]);
             return redirect()->back()->withInput()->with('error', 'Failed to update amenity: ' . $e->getMessage());
         }
+    }
+
+    public function activateAmenity($amenityID, Request $request){
+        $amenity = AmenityTable::find($amenityID);
+
+        $amenity->status = 'Available';
+
+        // Get the userID from the session
+            $userID = $request->session()->get('user_id');
+
+            // Log the session activity
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Activated an Amenity: ' . $amenity->amenityname,
+                    'date'     => now(),
+                ]);
+            }
+
+        $amenity->save();
+
+        return back()->with('success', 'Amenity status changed!');
+    }
+
+    public function deactivateAmenity($amenityID, Request $request){
+        $amenity = AmenityTable::find($amenityID);
+
+        $amenity->status = 'Unavailable';
+        $amenity->save();
+
+        // Get the userID from the session
+        $userID = $request->session()->get('user_id');
+
+        // Log the session activity
+        if ($userID) {
+            SessionLogTable::create([
+                'userID'   => $userID,
+                'activity' => 'User Deactivated an Amenity: ' . $amenity->amenityname,
+                'date'     => now(),
+            ]);
+        }
+
+        return back()->with('success', 'Amenity status changed!');
+    }
+
+    public function maintenanceAmenity($amenityID, Request $request){
+        $amenity = AmenityTable::find($amenityID);
+
+        $amenity->status = 'Maintenance';
+        $amenity->save();
+
+        // Get the userID from the session
+        $userID = $request->session()->get('user_id');
+
+        // Log the session activity
+        if ($userID) {
+            SessionLogTable::create([
+                'userID'   => $userID,
+                'activity' => 'User set an Amenity to Maintenance: ' . $amenity->amenityname,
+                'date'     => now(),
+            ]);
+        }
+
+        return back()->with('success', 'Amenity status changed!');
     }
 }

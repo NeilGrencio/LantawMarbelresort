@@ -53,15 +53,6 @@
                                     <option value="" disabled>Select Gender</option>
                                     <option value="Male" {{ $genderValue == 'Male' ? 'selected' : '' }}>Male</option>
                                     <option value="Female" {{ $genderValue == 'Female' ? 'selected' : '' }}>Female</option>
-                                    <option value="Non_Binary" {{ $genderValue == 'Non_Binary' ? 'selected' : '' }}>Non-Binary</option>
-                                    <option value="Trans_Female" {{ $genderValue == 'Trans_Female' ? 'selected' : '' }}>Transgender Female</option>
-                                    <option value="Trans_Male" {{ $genderValue == 'Trans_Male' ? 'selected' : '' }}>Transgender Male</option>
-                                    <option value="Genderqueer" {{ $genderValue == 'Genderqueer' ? 'selected' : '' }}>Genderqueer</option>
-                                    <option value="Agender" {{ $genderValue == 'Agender' ? 'selected' : '' }}>Agender</option>
-                                    <option value="Bigender" {{ $genderValue == 'Bigender' ? 'selected' : '' }}>Bigender</option>
-                                    <option value="Genderfluid" {{ $genderValue == 'Genderfluid' ? 'selected' : '' }}>Genderfluid</option>
-                                    <option value="Two_Spirit" {{ $genderValue == 'Two_Spirit' ? 'selected' : '' }}>Two-Spirit</option>
-                                    <option value="Other" {{ $genderValue == 'Other' ? 'selected' : '' }}>Other</option>
                                     <option value="Prefer_not_to_say" {{ $genderValue == 'Prefer_not_to_say' ? 'selected' : '' }}>Prefer not to say</option>
                                 </select>
                             </div>

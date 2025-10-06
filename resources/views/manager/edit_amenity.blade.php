@@ -86,7 +86,7 @@
         width:100%;
         height: auto;
         padding:1rem;
-        margin-left:15rem;
+        margin-left:12rem;
     }
     #title-header{
         display: flex;

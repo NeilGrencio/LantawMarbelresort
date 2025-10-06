@@ -12,7 +12,7 @@
         @include('components.receptionist_sidebar')
         <div id="main-layout">
             <div id="layout-header">
-                <h1>Guest List</h1>
+                <h1>Active Guest List</h1>
 
                 <div class="button-group">
                         <div id="add-container" data-url="{{ url('receptionist/add_guest') }}">
@@ -38,12 +38,8 @@
                 <table id="guest-table">
                     <theader>
                         <th>#</th>
-                        <th>Firstname</th>
-                        <th>Lastname</th>
+                        <th>Full Name</th>
                         <th>Mobilenum</th>
-                        <th>Email</th>
-                        <th>Gender</th>
-                        <th>Birthday</th>
                         <th>Type</th>
                         <th>Avatar</th>
                         <th>Action</th>
@@ -54,14 +50,10 @@
                         @foreach($guest as $guests)
                         <tr class="{{ $loop->iteration % 2 === 0 ? 'even-row' : 'odd-row' }}">
                             <td>{{ ($guest->currentPage() - 1) * $guest->perPage() + $loop->iteration }}</td>
-                            <td>{{($guests->firstname)}}</td>
-                            <td>{{($guests->lastname)}}</td>
+                            <td>{{($guests->firstname)}} {{($guests->lastname)}}</td>
                             <td>{{($guests->mobilenum)}}</td>
-                            <td>{{($guests->email)}}</td>
-                            <td>{{($guests->gender)}}</td>
-                            <td>{{($guests->birthday)}}</td>
-                           @if($guests->role == 'Guest')
-                                <td>Hotel Guest</td>
+                           @if($guests->role == 'Guest' || $guests->role == 'guest')
+                                <td>Booking Guest</td>
                             @else
                                 <td>Day Tour Guest</td>
                             @endif
@@ -236,8 +228,8 @@
     #guest-table img {
         border-radius: 50%;
         object-fit: contain;
-        width: 40px;
-        height: 40px;
+        width: 20px;
+        height: 80%;
         display: block;
         margin: 0 auto;
     }

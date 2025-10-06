@@ -11,7 +11,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <style>
-    <style>
     #booking{color:orange;}
     #layout{
         display: flex;
@@ -236,7 +235,54 @@
         cursor:pointer;
         transform: translateY(10);
     }
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
 
+    .modal-content {
+        background: white;
+        width: 420px;
+        max-width: 90%;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        padding: 1.5rem;
+        animation: fadeIn 0.3s ease-in-out;
+        position: relative;
+    }
+
+    .modal-content h2 {
+        margin-bottom: 1rem;
+        color: #F78A21;
+        text-align: center;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 1.4rem;
+        cursor: pointer;
+        color: #555;
+        transition: 0.2s;
+    }
+
+    .close-btn:hover {
+        color: #F78A21;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 
 <body>
@@ -271,7 +317,6 @@
                     </div>
                 </div>
 
-                <!--Table-->
                 <div class="table-wrapper">
                     <table>
                         <thead>
@@ -293,8 +338,17 @@
                                 <td>{{ $bill->totaltender }}</td>
                                 <td>{{ $bill->totalamount }}</td>
                                 <td>
-                                    <!-- Add any action buttons/links here -->
-                                    <a href="#">View</a>
+                                    <a href="#"
+                                        class="view-billing-btn"
+                                        data-billing-no="{{ $loop->iteration }}"
+                                        data-guest-name="{{ $bill->guestname }}"
+                                        data-tender="{{ $bill->totaltender }}"
+                                        data-total="{{ $bill->totalamount }}"
+                                        data-amenity="{{ $bill->amenity_total }}"
+                                        data-menu="{{ $bill->menu_total }}">
+                                        View
+                                    </a>
+                                    <a href="{{ route('/edit_billing', ['id' => $bill->id]) }}">Edit</a>
                                 </td>
                             </tr>
                             @endforeach
@@ -306,15 +360,62 @@
                 </div>
 
             </div>
+            <div id="billingModal" class="modal-overlay" style="display:none;">
+                <div class="modal-content">
+                    <span class="close-btn">&times;</span>
+                    <h2>Billing Details</h2>
+                    <div id="billingDetails">
+                        <p><strong>Billing #:</strong> <span id="modalBillingNo"></span></p>
+                        <p><strong>Guest Name:</strong> <span id="modalGuestName"></span></p>
+                        <p><strong>Amount Tendered:</strong> ₱<span id="modalTender"></span></p>
+                        <p><strong>Remaining Amount:</strong> ₱<span id="modalTotal"></span></p>
+                        <hr>
+                        <div id="modalBreakdown">
+                            <p><strong>Amenity Total:</strong> ₱<span id="modalAmenity"></span></p>
+                            <p><strong>Menu Total:</strong> ₱<span id="modalMenu"></span></p>
+                            <hr>
+                            <p><strong>Grand Total:</strong> ₱<span id="modalTotal"></span></p>
+                            <p><strong>Amount Tendered:</strong> ₱<span id="modalTender"></span></p>
+                            <p><strong>Balance:</strong> ₱<span id="modalBalance"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 </body>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const message = document.querySelector('.alert-message');
-        if (message) {
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 3500);
-        }
+        const modal = document.getElementById('billingModal');
+        const closeBtn = document.querySelector('.close-btn');
+
+        document.querySelectorAll('.view-billing-btn').forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const billingNo = this.dataset.billingNo;
+                const guestName = this.dataset.guestName;
+                const tender = parseFloat(this.dataset.tender || 0);
+                const total = parseFloat(this.dataset.total || 0);
+                const amenity = parseFloat(this.dataset.amenity || 0);
+                const menu = parseFloat(this.dataset.menu || 0);
+
+                const balance = tender - total;
+
+                document.getElementById('modalBillingNo').textContent = billingNo;
+                document.getElementById('modalGuestName').textContent = guestName;
+                document.getElementById('modalAmenity').textContent = amenity.toFixed(2);
+                document.getElementById('modalMenu').textContent = menu.toFixed(2);
+                document.getElementById('modalTotal').textContent = total.toFixed(2);
+                document.getElementById('modalTender').textContent = tender.toFixed(2);
+                document.getElementById('modalBalance').textContent = balance.toFixed(2);
+
+                modal.style.display = 'flex';
+            });
+        });
+
+        closeBtn.onclick = () => modal.style.display = 'none';
+        window.onclick = (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        };
     });
 </script>

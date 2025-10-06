@@ -9,11 +9,11 @@
 </head>
 <body>
     <div id="layout">
-        @include('components.sidebar')
+        @include('components.receptionist_sidebar')
         <div id="main-layout">
             <h1>Create Guest Information</h1>
 
-             <form method="POST" action="{{ route('receptionist.submit_guest') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('receptionist.add_guest') }}" enctype="multipart/form-data">
                 @csrf
                 <div id="add_user-container">
                     <div id="form-header-1">
@@ -28,8 +28,8 @@
                         </div>
 
                         <div>
-                            <label for="txtlastname">Lastname:</label>
-                            <input id="txtlastname" type="text" placeholder="Lastname.." name="lastname"
+                            <label for="txtalstname">Lastname:</label>
+                            <input id="txtalstname" type="text" placeholder="Lastname.." name="lastname"
                                 value="{{ old('lastname') }}">
                         </div>
                     </div>
@@ -58,7 +58,7 @@
                                 <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Select Gender</option>
                                 <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
                                 <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
-                                <option value="Prefer_not_to_say" {{ old('gender') == 'Prefer_not_to_say' ? 'selected' : '' }}>Prefer not to say</option>
+                                <optiion value="Prefer not to Say" {{ old ('gender') == 'Prefer not to Say' ? 'selected'  : '' }}>Prefer not to Say</optiion>
                             </select>
                         </div>
                         <div>
@@ -100,13 +100,12 @@
                     <div id="row6" class="user-information">
                         <div>
                             <label for="txtpassword">Password:</label>
-                            <input id="txtpassword" type="text" placeholder="Password" name="password"
-                                value="{{ old('password') }}">
+                            <input id="txtpassword" type="password" placeholder="Password" name="password">
+                            <small>The password should contain 8 characters, one special, one capital, and one number* (Password123!) </small>
                         </div>
                         <div>
                             <label for="txtcpassword">Confirm Password:</label>
-                            <input id="txtcpassword" type="text" placeholder="Confirm Password" name="cpassword"
-                                value="{{ old('cpassword') }}">
+                            <input id="txtcpassword" type="password" placeholder="Confirm Password" name="cpassword">
                             <small id="password-match-msg" style="color: red; display: none; margin-top:.5rem;">
                                 <i class="fas fa-info-circle"></i> Password does not match.
                             </small>
@@ -154,11 +153,10 @@
         @if (session('error'))
             <div class="alert-message">
                 <h2>{{ session('error') }}</h2>
-           </div>
+        </div>
         @endif
     </div>
-</body>
-
+    </body>
 <style>
     body {
         overflow-y: auto;
@@ -286,9 +284,30 @@
         border: none;
     }
 
-    .alert-message {
-        font-size: 0.85rem;
-        padding: 0.75rem;
+    .alert-message{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: fixed;
+        right: 50%;
+        transform: translate(50%, 0);
+        bottom: 1rem;
+        height: fit-content;
+        min-height: 10rem;
+        max-height: 30rem;
+        width: fit-content;
+        min-width: 20rem;
+        max-width: 90vw;
+        background: rgb(255, 255, 255);
+        z-index: 1000;
+        border-radius: 1rem;
+        box-shadow: 0 0 1rem rgba(0,0,0,0.5);
+        margin: auto;
+        padding: 1rem;
+        flex-wrap: wrap;
+        word-wrap: break-word;
     }
 
     #popup-resend {

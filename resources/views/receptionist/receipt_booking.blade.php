@@ -177,7 +177,7 @@
         width:85%;
         height:100vh;
         transition: width 0.3s ease-in-out;
-        margin-left:15rem;
+        margin-left:12rem;
         margin-right:.7rem;
         overflow-y: hidden;
         overflow-x: hidden;

@@ -38,5 +38,9 @@ return [
     'semaphore' => [
         'key' => env('SEMAPHORE_API_KEY'),
     ],
+    'ocrspace' => [
+        'key' => env('OCR_SPACE_API_KEY'),
+        'url' => 'https://api.ocr.space/parse/image',
+    ],
 
 ];

@@ -8,11 +8,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Models\RoomTable;
+use App\Models\SessionLogTable;
 
 class ManageRoomController extends Controller
 {
     // Display all rooms (for web)
-    public function roomList()
+    public function roomList(Request $request)
     {
         $rooms = RoomTable::all();
         Log::info('Fetched room list', ['count' => $rooms->count()]);
@@ -22,6 +23,18 @@ class ManageRoomController extends Controller
             $room->image_url = $room->image
                 ? route('room.image', ['filename' => basename($room->image)])
                 : null;
+        }
+
+        // Get the userID from the session
+        $userID = $request->session()->get('user_id');
+
+        // Log the session activity
+        if ($userID) {
+            SessionLogTable::create([
+                'userID'   => $userID,
+                'activity' => 'User Viewed Room List',
+                'date'     => now(),
+            ]);
         }
 
         return view('manager.room_list', compact('rooms'));
@@ -64,6 +77,19 @@ class ManageRoomController extends Controller
             }
 
             $room->save();
+
+            // Get the userID from the session
+            $userID = $request->session()->get('user_id');
+
+            // Log the session activity
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Created a Room: ' . $room->roomnum,
+                    'date'     => now(),
+                ]);
+            }
+
             DB::commit();
 
             Log::info('Room created successfully', ['roomID' => $room->roomID]);
@@ -119,6 +145,18 @@ class ManageRoomController extends Controller
                 'price' => $validatedData['price']
             ]);
 
+            // Get the userID from the session
+            $userID = $request->session()->get('user_id');
+
+            // Log the session activity
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Updated a Room: ' . $room->roomnum,
+                    'date'     => now(),
+                ]);
+            }
+
             DB::commit();
             Log::info('Room updated successfully', ['roomID' => $roomID]);
             return redirect()->route('manager.room_list')->with('success', 'Room updated successfully.');
@@ -130,7 +168,65 @@ class ManageRoomController extends Controller
                              ->with('error', 'Failed to update room: ' . $e->getMessage());
         }
     }
+    
+    public function deactivateRoom($roomID, Request $request){
+        $room = RoomTable::find($roomID);
+        $room->status = 'Unavailable';
+        $room->save();
 
+        // Get the userID from the session
+        $userID = $request->session()->get('user_id');
+
+        // Log the session activity
+        if ($userID) {
+            SessionLogTable::create([
+                'userID'   => $userID,
+                'activity' => 'User Deactivated a Room: ' . $room->roomnum,
+                'date'     => now(),
+            ]);
+        }
+
+        return redirect()->route('manager.room_list')->with('success', 'Room status updated successfully.');
+    }
+    
+    public function activateRoom($roomID, Request $request){
+        $room = RoomTable::find($roomID);
+        $room->status = 'Available';
+        $room->save();
+
+        // Get the userID from the session
+        $userID = $request->session()->get('user_id');
+
+        // Log the session activity
+        if ($userID) {
+            SessionLogTable::create([
+                'userID'   => $userID,
+                'activity' => 'User Activated a Room: ' . $room->roomnum,
+                'date'     => now(),
+            ]);
+        }
+
+        return redirect()->route('manager.room_list')->with('success', 'Room status updated successfully.');
+    }
+    public function maintenanceRoom($roomID, Request $request){
+        $room = RoomTable::find($roomID);
+        $room->status = 'Maintenance';
+        $room->save();
+
+        // Get the userID from the session
+        $userID = $request->session()->get('user_id');
+
+        // Log the session activity
+        if ($userID) {
+            SessionLogTable::create([
+                'userID'   => $userID,
+                'activity' => 'User Set a Room to Maintenance: ' . $room->roomnum,
+                'date'     => now(),
+            ]);
+        }
+
+        return redirect()->route('manager.room_list')->with('success', 'Room status updated successfully.');
+    }
     // Update room status
     public function updateRoomStatus($roomID, $status)
     {

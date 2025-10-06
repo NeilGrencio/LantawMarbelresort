@@ -13,39 +13,36 @@ class smtpSender extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct()
+    public $otp;
+    public $username;
+    public $datetime;
+
+    public function __construct($username, $otp)
     {
-        //
+        $this->username = $username;
+        $this->otp = $otp;
+        $this->datetime = now()->format('F j, Y, g:i A'); // Current date and time
     }
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Smtp Sender',
+            subject: 'Your OTP Code',
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         return new Content(
-            view: 'receptionist.smtpsender',
+            view: 'auth.password_OTP',
+            with: [
+                'username' => $this->username,
+                'otp' => $this->otp,
+                'datetime' => $this->datetime,
+            ]
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];

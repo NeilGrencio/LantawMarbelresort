@@ -131,7 +131,7 @@
                     </div>
                     <div class="label-container" id="guest-label">
                         <h2>Guest Information</h2>
-                        <button type="button" id="alreadyLogin" class="form-button">Click here if guest already has account</button>
+                        <button type="button" id="alreadyLogin" class="hide_info"><i class="fa-solid fa-circle-info"></i> &nbsp;Click here if guest already has account</button>
                     </div>
                     <div class="guest-info-container">
                         <div>
@@ -172,15 +172,6 @@
                                 <option value="" disabled selected>Select Gender</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
-                                <option value="Non_Binary">Non-Binary</option>
-                                <option value="Trans_Female">Transgender Female</option>
-                                <option value="Trans_Male">Transgender Male</option>
-                                <option value="Genderqueer">Genderqueer</option>
-                                <option value="Agender">Agender</option>
-                                <option value="Bigender">Bigender</option>
-                                <option value="Genderfluid">Genderfluid</option>
-                                <option value="Two_Spirit">Two-Spirit</option>
-                                <option value="Other">Other</option>
                                 <option value="Prefer_not_to_say">Prefer not to say</option>
                             </select>
                         </div>
@@ -205,37 +196,41 @@
 
                     <div class="label-container">
                         <h3>Account Information</h3>
+                        <button type="button" class="hide_info" id="toggleAccount" class="form-button" style="margin-left:1rem;">
+                            <i class="fa-solid fa-circle-info"></i> &nbsp;Click here to not make an account
+                        </button>
                     </div>
-
-                    <div id="row5" class="user-information">
-                        <div>
-                            <label for="txtusername">Username:</label> 
-                            <input class="input" id="txtusername" type="text" placeholder="Username" name="username" value="{{ old('username')}}" required>
+                    <div id="account_information">
+                        <div id="row5" class="user-information">
+                            <div>
+                                <label for="txtusername">Username:</label> 
+                                <input class="input" id="txtusername" type="text" placeholder="Username" name="username" value="{{ old('username')}}" required>
+                            </div>
+                            
                         </div>
-                         
-                    </div>
 
-                    <div id="row6" class="user-information">
-                        <div>
-                            <label for="txtpassword">Password:</label> 
-                            <input class="input" id="txtpassword" type="text" placeholder="Password" name="password">
-                        </div> 
-                        <div>
-                            <label for="txtcpassword">Confirm Password:</label> 
-                            <input class="input" id="txtcpassword" type="text" placeholder="Confirm Password" name="password_confirmation">
-                            <small id="password-match-msg" style="color: red; display: none; margin-top:.5rem;"><i class="fas fa-info-circle"></i> Password does not match.</small>
-                        </div> 
-                    </div>
+                        <div id="row6" class="user-information">
+                            <div>
+                                <label for="txtpassword">Password:</label> 
+                                <input class="input" id="txtpassword" type="text" placeholder="Password" name="password">
+                            </div> 
+                            <div>
+                                <label for="txtcpassword">Confirm Password:</label> 
+                                <input class="input" id="txtcpassword" type="text" placeholder="Confirm Password" name="password_confirmation">
+                                <small id="password-match-msg" style="color: red; display: none; margin-top:.5rem;"><i class="fas fa-info-circle"></i> Password does not match.</small>
+                            </div> 
+                        </div>
 
-                    <div id="row7">
-                        <div>
-                            <label for="avatar">Select Avatar:</label>
-                            <img id="pfp-preview" src="{{ asset('images/profile.jpg')}}">
-                            <input id="txtavatar" type="file" accept=".png, .jpg, .jpeg, .webp" name="avatar">
-                            @error('validAvatar')
-                                <div class="error-message" id="avatar-error-message">{{ $message}}</div>
-                            @enderror 
-                        </div> 
+                        <div id="row7" class="user-information">
+                            <div>
+                                <label for="avatar">Select Avatar:</label>
+                                <img id="pfp-preview" src="{{ asset('images/profile.jpg')}}">
+                                <input id="txtavatar" type="file" accept=".png, .jpg, .jpeg, .webp" name="avatar">
+                                @error('validAvatar')
+                                    <div class="error-message" id="avatar-error-message">{{ $message}}</div>
+                                @enderror 
+                            </div> 
+                        </div>
                     </div>
 
                     <div class="label-container">
@@ -243,8 +238,8 @@
                     </div>
 
                         <div>
-                            <label id="label" for="guestamount">Number of Guest:
-                                <input class="input" type="text" id="guestamount" name="guestamount" value="{{ old('guestamount') }}" required>
+                            <label id="label" for="guestamount">Total Guest Count:
+                                <input class="input" type="text" id="guestamount" name="guestamount" value="{{ old('guestamount') }}" readonly>
                             </label>
                             
                             @if($errors->has('guestamount'))
@@ -256,10 +251,10 @@
 
                         <div class="guest-counts" id="guest-counts" style="display:flex;">
                             <label id="label">Adult Guests:
-                                <input type="number" min="0" name="amenity_adult_guest" class="input" placeholder="Enter number of adults" value="{{ old('amenity_adult_guest') }}">
+                                <input type="number" min="0" name="amenity_adult_guest" id="adult" class="input" placeholder="Enter number of adults" value="{{ old('amenity_adult_guest') }}">
                             </label>
                             <label id="label">Child Guests:
-                                <input type="number" min="0" name="amenity_child_guest" class="input" placeholder="Enter number of children" value="{{ old('amenity_child_guest') }}">
+                                <input type="number" min="0" name="amenity_child_guest" id="child" class="input" placeholder="Enter number of children" value="{{ old('amenity_child_guest') }}">
                             </label>
                         </div>
 
@@ -303,7 +298,7 @@
             display:flex;
             flex-direction: column;
             padding:1rem;
-            width:85%;
+            width:100%;
             transition: width 0.3s ease-in-out;
             margin-left:12rem;
             margin-right:.7rem;
@@ -596,7 +591,16 @@
             padding:.5rem;
             font-size: .8rem;
         }
-        #checkin, #checkout {
+        #checkin, #guestamount{
+            width: 100%;
+            padding: .5rem;
+            border: solid 1px rgb(71, 71, 71);
+            background: rgb(198, 198, 198);
+            color:rgb(73, 73, 73);
+            border-radius: .5rem;
+            font-size: .8rem;
+        }
+        #checkout {
             width: 100%;
             padding: .5rem;
             border: solid 1px black;
@@ -636,11 +640,26 @@
             border: 2px solid black;
             border-radius: 1.5rem;
         }
+        #account_information{
+            display: flex;
+            flex-direction: column;
+        }
         .button-container {
             display: flex;
             flex-direction: row;
             margin-top: 1rem;
-            
+        }
+        .hide_info{
+            border:none;
+            background:none;
+            color:white;
+            font-style: italic;
+            cursor:pointer;
+            transition:all .3s ease;
+        }
+        .hide_info:hover{
+            transform:scale(1.05);
+            color:orange;
         }
         .form-button{
             background: rgb(255, 255, 255);
@@ -695,79 +714,63 @@
     </style>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // ===== Alert auto-hide =====
         const message = document.querySelector('.alert-message');
-        if (message) {
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 3500);
-        }
+        if (message) setTimeout(() => message.style.display = 'none', 3500);
+
         // ===== Flatpickr Setup =====
         flatpickr("#txtbirthday", {
             dateFormat: "m/d/Y",
             maxDate: "today",
-            defaultDate: "today",
             allowInput: true,
         });
-        
+
         const today = new Date();
-        today.setDate(today.getDate());
+        flatpickr("#checkin", {
+            dateFormat: "m/d/Y",
+            defaultDate: today,
+            minDate: today,
+            maxDate: today,
+            clickOpens: false
+        });
 
-        const maxCheckin = new Date(today);
-        maxCheckin.setMonth(maxCheckin.getMonth() + 1);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const maxCheckout = new Date(today);
+        maxCheckout.setMonth(today.getMonth() + 1);
 
-        let checkinDate = null;
-
-        const checkinCalendar = flatpickr("#checkin", {
+        flatpickr("#checkout", {
             dateFormat: "m/d/Y",
             allowInput: true,
-            minDate: today,
-            maxDate: maxCheckin,
-            defaultDate: today,
-            onChange: function (selectedDates) {
-                if (selectedDates.length > 0) {
-                    checkinDate = selectedDates[0];
-
-                    const minCheckout = new Date(checkinDate);
-                    minCheckout.setDate(minCheckout.getDate() + 1);
-
-                    const maxCheckout = new Date(checkinDate);
-                    maxCheckout.setMonth(maxCheckout.getMonth() + 1);
-
-                    checkoutCalendar.set("minDate", minCheckout);
-                    checkoutCalendar.set("maxDate", maxCheckout);
-                    checkoutCalendar.clear();
-                }
-            }
+            minDate: tomorrow,
+            maxDate: maxCheckout,
+            defaultDate: tomorrow
         });
 
-        const checkoutCalendar = flatpickr("#checkout", {
-            dateFormat: "m/d/Y",
-            allowInput: true
-        });
-
-        // ===== Toggle collapsible sections =====
+        // ===== Collapsible Sections =====
         document.querySelectorAll('.toggle-header').forEach(header => {
             header.addEventListener('click', () => {
                 const targetId = header.getAttribute('data-target');
                 const content = document.getElementById(targetId);
                 const icon = header.querySelector('.toggle-icon');
-
                 const isOpen = content.classList.toggle('active');
-
                 icon.classList.toggle('fa-chevron-up', isOpen);
                 icon.classList.toggle('fa-chevron-down', !isOpen);
             });
         });
 
+        // Keep rooms open by default
         const roomContent = document.getElementById('room-content');
         const roomIcon = document.querySelector('[data-target="room-content"] .toggle-icon');
-        roomContent.classList.add('active');
-        roomIcon.classList.add('fa-chevron-up');
-        roomIcon.classList.remove('fa-chevron-down');
+        if (roomContent && roomIcon) {
+            roomContent.classList.add('active');
+            roomIcon.classList.add('fa-chevron-up');
+            roomIcon.classList.remove('fa-chevron-down');
+        }
 
-        // ===== Card activation =====
-        function activateCard(cardSelector) {
-            document.querySelectorAll(cardSelector).forEach(card => {
+        // ===== Card Activation =====
+        function activateCard(selector) {
+            document.querySelectorAll(selector).forEach(card => {
                 card.addEventListener('click', function (e) {
                     e.preventDefault();
                     const checkbox = this.closest('label').querySelector('input[type="checkbox"]');
@@ -778,109 +781,166 @@
                 });
             });
         }
-
         activateCard('.room-card');
         activateCard('.cottage-card');
         activateCard('.amenity-card');
 
-        // ===== Scroll buttons =====
+        // ===== Scroll Buttons =====
         const scrollAmount = 300;
-
         function updateScrollButtons(wrapper) {
-            const container = wrapper.querySelector('.scroll-container') || wrapper.querySelector('div[id$="-selection"]');
+            const container = wrapper.querySelector('div[id$="-selection"]');
             const leftBtn = wrapper.querySelector('.left-btn');
             const rightBtn = wrapper.querySelector('.right-btn');
-
             if (!container || !leftBtn || !rightBtn) return;
-
             const isScrollable = container.scrollWidth > container.clientWidth;
-
             leftBtn.style.display = isScrollable ? 'flex' : 'none';
             rightBtn.style.display = isScrollable ? 'flex' : 'none';
-
             leftBtn.onclick = () => container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
             rightBtn.onclick = () => container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         }
-
         function refreshAllScrollButtons() {
             document.querySelectorAll('.room-selection-wrapper').forEach(updateScrollButtons);
         }
-
         refreshAllScrollButtons();
         window.addEventListener('resize', refreshAllScrollButtons);
 
-        // ===== Cancel button functionality =====
+        // ===== Cancel Button =====
         const cancelBTN = document.getElementById('cancel-button');
         if (cancelBTN) {
             cancelBTN.addEventListener('click', function () {
-                const url = this.getAttribute('data-url');
-                window.location.href = url;
+                window.location.href = this.getAttribute('data-url');
             });
         }
 
         // ===== Guest Already Has Account Toggle =====
-    const guestInfoLabel = document.getElementById('guest-label');
-    const accountInfoFields = document.querySelectorAll('.user-information, #row4, #row2, #row3, #row7');
+        const accountInfoFields = document.querySelectorAll('.user-information, #row4, #row2, #row3, #row7, #row8');
+        const toggleBtn = document.getElementById('alreadyLogin');
+        let guestHasAccount = false;
 
-    const toggleBtn = document.getElementById('alreadyLogin');
-    toggleBtn.type = 'button';
-    toggleBtn.textContent = 'Click here if guest already has account';
-    toggleBtn.style.marginLeft = '1rem';
-    toggleBtn.classList.add('form-button');
-    guestInfoLabel.appendChild(toggleBtn);
+        const profileImageInput = document.getElementById('profileImage');
+        const profilePreview = document.getElementById('profilePreview');
+        const defaultImage = "default.png"; // your default guest image
 
-    let guestHasAccount = false;
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function () {
+                guestHasAccount = !guestHasAccount;
 
-    toggleBtn.addEventListener('click', function () {
-        guestHasAccount = !guestHasAccount;
+                accountInfoFields.forEach(field => {
+                    if (field) {
+                        field.style.display = guestHasAccount ? 'none' : '';
+                        field.querySelectorAll('input, select').forEach(input => {
+                            if (input.id !== 'firstname' && input.id !== 'lastname') {
+                                input.required = !guestHasAccount;
+                            }
+                        });
+                    }
+                });
 
-        accountInfoFields.forEach(field => {
-            field.style.display = guestHasAccount ? 'none' : '';
-            field.querySelectorAll('input, select').forEach(input => {
-                if (input.id !== 'firstname' && input.id !== 'lastname') {
-                    input.required = !guestHasAccount;
+                // If guest already has account → reset to default image
+                if (guestHasAccount) {
+                    if (profileImageInput) profileImageInput.value = "";
+                    if (profilePreview) profilePreview.src = defaultImage;
                 }
+
+                toggleBtn.textContent = guestHasAccount
+                    ? 'Click here if guest does NOT have account'
+                    : 'Click here if guest already has account';
             });
+        }
+
+        // ===== Password Match Validation =====
+        const password = document.getElementById('txtpassword');
+        const confirmPassword = document.getElementById('txtcpassword');
+        const passwordMsg = document.getElementById('password-match-msg');
+        function checkPasswordMatch() {
+            if (password.value !== confirmPassword.value) {
+                passwordMsg.style.display = 'block';
+            } else {
+                passwordMsg.style.display = 'none';
+            }
+        }
+        if (password && confirmPassword && passwordMsg) {
+            password.addEventListener('input', checkPasswordMatch);
+            confirmPassword.addEventListener('input', checkPasswordMatch);
+        }
+
+        // ===== Final Form Validation =====
+        document.getElementById('submit-button').addEventListener('click', function (e) {
+            let errors = [];
+            const firstName = document.getElementById('firstname');
+            const lastName = document.getElementById('lastname');
+            const contactNum = document.getElementById('txtcontactnum');
+            const email = document.getElementById('txtemail');
+
+            if (!firstName.value.trim()) errors.push("First name is required.");
+            if (!lastName.value.trim()) errors.push("Last name is required.");
+            if (!guestHasAccount) {
+                if (!contactNum.value.match(/^[0-9]{10}$/)) {
+                    errors.push("Contact number must be 10 digits.");
+                }
+                if (!email.value.includes('@')) {
+                    errors.push("Email must be valid.");
+                }
+                if (password.value !== confirmPassword.value) {
+                    errors.push("Passwords do not match.");
+                }
+            }
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                alert("Please fix the following:\n- " + errors.join("\n- "));
+            }
         });
 
-        toggleBtn.textContent = guestHasAccount
-            ? 'Click here if guest does NOT have account'
-            : 'Click here if guest already has account';
-    });
+        // ===== Toggle Account Creation =====
+        const accountSection = document.getElementById('account_information');
+        const toggleAccountBtn = document.getElementById('toggleAccount');
+        let skipAccountCreation = false;
 
-    // ===== Guest & User Info Validation on Submit =====
-    document.getElementById('submit-button').addEventListener('click', function (e) {
-        let valid = true;
-        let errors = [];
+        function toggleAccountCreation() {
+            skipAccountCreation = !skipAccountCreation;
 
-        const firstName = document.getElementById('firstname');
-        const lastName = document.getElementById('lastname');
-        const contactNum = document.getElementById('txtcontactnum');
-        const email = document.getElementById('txtemail');
-
-        if (!firstName.value.trim()) { valid = false; errors.push('First name is required.'); }
-        if (!lastName.value.trim()) { valid = false; errors.push('Last name is required.'); }
-
-        if (!guestHasAccount) {
-            if (!/^\d{10}$/.test(contactNum.value)) {
-                valid = false; errors.push('Contact number must be 10 digits.');
+            if (accountSection) {
+                accountSection.style.display = skipAccountCreation ? 'none' : '';
+                accountSection.querySelectorAll('input').forEach(input => {
+                    input.required = !skipAccountCreation; // disable required if hiding
+                    if (skipAccountCreation) input.value = ""; // clear values when hidden
+                });
             }
-            if (email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-                valid = false; errors.push('Invalid email format.');
-            }
-            if (password.value && password.value !== confirmPassword.value) {
-                valid = false; errors.push('Passwords do not match.');
+
+            toggleAccountBtn.textContent = skipAccountCreation
+                ? "Click here to not make an account"
+                : "Click here to make an account";
+        }
+
+        if (toggleAccountBtn) {
+            toggleAccountBtn.addEventListener('click', toggleAccountCreation);
+        }
+
+        // ===== Guest Amount Auto-Sum =====
+        const adultInput = document.getElementById('adult');
+        const childInput = document.getElementById('child');
+        const guestAmountInput = document.getElementById('guestamount');
+
+        if (guestAmountInput) {
+            guestAmountInput.readOnly = true; // make guest amount non-editable
+        }
+
+        function updateGuestAmount() {
+            const adults = parseInt(adultInput?.value || 0, 10);
+            const children = parseInt(childInput?.value || 0, 10);
+            if (guestAmountInput) {
+                guestAmountInput.value = adults + children;
             }
         }
 
-        if (!valid) {
-            e.preventDefault();
-            alert(errors.join('\n'));
-        }
-    });
+        if (adultInput) adultInput.addEventListener('input', updateGuestAmount);
+        if (childInput) childInput.addEventListener('input', updateGuestAmount);
 
-
+        // Run once on page load
+        updateGuestAmount();
     });
 </script>
+
 
 

@@ -12,43 +12,30 @@
         @include ('components.sidebar')
         <div id="main-layout">
             <div id="title-header">
-                <h1>Edit Menu Item</h1>
+                <h1>Edit Service Item</h1>
             </div>
-            <form action="{{url('manager/edit_menu/' . $menu->menuID)}}" method="post" enctype="multipart/form-data">
+            <form action="{{url('manager/edit_service/' . $menu->menuID)}}" method="post" enctype="multipart/form-data">
                 @csrf
                 <div id="form-container">
-                    <label for="menuname">Menu Name</label>
+                    <label for="menuname">Service Name</label>
                     <input id="menuname" name="menuname" type="text" placeholder="Sinigang" value="{{ old('menuname', $menu->menuname ?? '') }}" required/>
 
-                    <label for="itemtype">Item Type</label>
-                    <select id="itemtype" name="itemtype">
-                        <option value="">Select Menu Type</option>
-                        <option value="Breakfast" {{ old('itemtype', $menu->itemtype ?? '') == 'Breakfast' ? 'selected' : '' }}>Breakfast</option>
-                        <option value="Meal" {{ old('itemtype', $menu->itemtype ?? '') == 'Meal' ? 'selected' : '' }}>Meal</option>
-                        <option value="Main Course" {{ old('itemtype', $menu->itemtype ?? '') == 'Main Course' ? 'selected' : '' }}>Main Course</option>
-                        <option value="Dinner" {{ old('itemtype', $menu->itemtype ?? '') == 'Dinner' ? 'selected' : '' }}>Dinner</option>
-                        <option value="Drinks" {{ old('itemtype', $menu->itemtype ?? '') == 'Drinks' ? 'selected' : '' }}>Drinks</option>
-                        <option value="Dessert" {{ old('itemtype', $menu->itemtype ?? '') == 'Dessert' ? 'selected' : '' }}>Dessert</option>
-                        <option value="Appetizer" {{ old('itemtype', $menu->itemtype ?? '') == 'Appetizer' ? 'selected' : '' }}>Appetizer</option>
-                        <option value="Services" {{ old('itemtype', $menu->itemtype ?? '') == 'Services' ? 'selected' : '' }}>Services</option>
-                    </select>
-
-                    <label class="image" for="image">Select Menu image
+                    <label class="image" for="image">Select Service image
                     <img class="image" id="image-preview"  src="{{ isset($menu->image) ? asset('storage/' . $menu->image) : asset('images/placeholder.png') }}""/>
                     </label>
                     <input id="image" name="image" type="file" accept="image/webp, image/png, image/jpeg, image/jpg"/>
 
-                    <label for="price">Menu Price</label>
+                    <label for="price">Service Price</label>
                     <input id="price" name="price" placeholder="75.00" type="text" value="{{ old('price', $menu->price ?? '' )}}" required/>
 
-                    <label for="status">Menu Status</label>
+                    <label for="status">Service Status</label>
                     <select id="status" name="status">
                         <option value="Available" {{ old('status', $menu->status ?? '') == 'Available' ? 'selected' : '' }}>Available</option>
                         <option value="Unavailable" {{ old('status', $menu->status ?? '') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
                     </select>
                 </div>
                 <div id="button-container">
-                    <button id="cancel" type="button" data-url={{url('manager/menu_list')}}>Cancel</button>
+                    <button id="cancel" type="button" data-url={{url('manager/services_list')}}>Cancel</button>
                     <button type="submit">Save</button>
                 </div>
             </form>
@@ -98,7 +85,7 @@
         gap:.5rem;
         border:1px solid black;
         box-shadow:.1rem .1rem 0rem rgba(0,0,0);
-        border-radius:1rem;
+        border-radius:.7rem;
     }
     #form-container label{
         font-size:17px;

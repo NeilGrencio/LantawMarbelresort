@@ -1,6 +1,6 @@
 @php
     if (!session()->get('logged_in')) {
-        header('Location: ' . route('checkLogin'));
+        header('Location: ' . route('login'));
         exit;
     }
 @endphp
