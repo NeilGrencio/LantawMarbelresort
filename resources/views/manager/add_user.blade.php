@@ -13,7 +13,7 @@
         <div id="main-layout">
             <h1>Create User</h1>
 
-             <form method="POST" action="{{ route('manager.add_user.submit') }}" enctype="multipart/form-data">
+             <form method="POST" action="{{ route('manager.save_user') }}" enctype="multipart/form-data">
                 @csrf
                 <div id="add_user-container">
                     <div id="form-header-1">

@@ -1,6 +1,10 @@
 @php
     if (!session()->get('logged_in')) {
+<<<<<<< HEAD
         header('Location: ' . route('login'));
+=======
+        header('Location: ' . route('checkLogin'));
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
         exit;
     }
 @endphp
@@ -68,15 +72,23 @@
             text-overflow: ellipsis;
         }
         #sidebar :nth-child(5),
+<<<<<<< HEAD
         #sidebar :nth-child(8),
         #sidebar :nth-child(11),
         #sidebar :nth-child(13) {
+=======
+        #sidebar :nth-child(8) {
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
             border-top: solid 1px #919191;
         }
         #sidebar :nth-child(4),
         #sidebar :nth-child(7),
+<<<<<<< HEAD
         #sidebar :nth-child(10),
         #sidebar :nth-child(12) {
+=======
+        #sidebar :nth-child(11) {
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
             margin-bottom: 0.6rem;
             border-bottom: solid 1px #919191;
         }
@@ -232,14 +244,26 @@
                     <span>Menu</span>
                 </div>
             </div>
+<<<<<<< HEAD
             <div id="service" class="sidebar-item" data-url="{{ url('manager/services_list') }}">
+=======
+
+            <div id="service" class="sidebar-item" data-url="{{ url('manager/service_list') }}">
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
                 <div class="icons">
                     <i class="fas fa-bell-concierge fa-2x"></i>
                 </div>
                 <div class="label">
+<<<<<<< HEAD
                     <span>Service</span>
                 </div>
             </div>
+=======
+                    <span>Services</span>
+                </div>
+            </div>
+
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
             <div id="report" class="sidebar-item" data-url="{{ url('manager/report') }}">
                 <div class="icons">
                     <i class="fas fa-chart-simple fa-2x"></i>
@@ -258,12 +282,27 @@
                 </div>
             </div>
 
+<<<<<<< HEAD
             <div id="profile-container">
                 <img src="{{ asset('storage/' . session('avatar')) }}" alt="Avatar" />
                 <h2>{{ session('username') }}</h2>
                 <i class="fas fa-chevron-down fa-lg"></i>
             </div>
         </div>
+=======
+                <div id="profile-container">
+                    <img src="{{ asset('storage/' . session('avatar')) }}" alt="Avatar" />
+                    <h2>{{ session('username') }}</h2>
+                    <i class="fas fa-chevron-down fa-lg"></i>
+                </div>
+        </div>
+        <div class="more-action" style="display:none;">
+                
+                
+                
+            </div>
+
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
     <script>
 
         document.addEventListener('DOMContentLoaded', () => {

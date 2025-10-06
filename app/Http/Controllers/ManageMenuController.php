@@ -41,6 +41,7 @@ class ManageMenuController extends Controller
         return view('manager/menu_list', compact('menu', 'uniqueMenuTypes'));
     }
 
+<<<<<<< HEAD
     public function serviceList(Request $request){
         $service = MenuTable::where('itemtype', 'Services')->get();
 
@@ -56,6 +57,11 @@ class ManageMenuController extends Controller
             ]);
         }
 
+=======
+    public function serviceList(){
+        $service = MenuTable::where('itemtype', 'Services')->get();
+
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
         return view('manager.service_list', compact('service'));
     }
 
@@ -85,6 +91,7 @@ class ManageMenuController extends Controller
             }
 
             $menu->save();
+<<<<<<< HEAD
 
             // Get the userID from the session
             $userID = $request->session()->get('user_id');
@@ -98,6 +105,8 @@ class ManageMenuController extends Controller
                 ]);
             }
 
+=======
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
             DB::commit();
 
             return redirect('manager/service_list')->with('success', 'The menu has been successfully added');

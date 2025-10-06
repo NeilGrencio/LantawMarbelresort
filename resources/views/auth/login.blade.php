@@ -221,7 +221,11 @@
         <label>
           New Password:
           <div style="position:relative;">
+<<<<<<< HEAD
             <input id="new-password" type="password" name="password" placeholder="New Password" required style="width:100%;" />
+=======
+            <input id="new-password" type="password" placeholder="New Password" required style="width:100%;" />
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
             <i class="fa-solid fa-eye-slash fa-lg" id="toggle-new-password" style="position:absolute; right:1rem; top:0.7rem;"></i>
           </div>
           <div id="password-strength" style="margin-top:0.3rem; font-size:0.9rem;"></div>
@@ -229,7 +233,11 @@
         <label>
           Confirm New Password:
           <div style="position:relative;">
+<<<<<<< HEAD
             <input id="confirm-password" type="password" name="password_confirmation" placeholder="Confirm Password" required style="width:100%;" />
+=======
+            <input id="confirm-password" type="password" placeholder="Confirm Password" required style="width:100%;" />
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
             <i class="fa-solid fa-eye-slash fa-lg" id="toggle-confirm-password" style="position:absolute; right:1rem; top:0.7rem;"></i>
           </div>
         </label>
@@ -330,11 +338,15 @@
       fetch('{{ url("auth/reset_password") }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+<<<<<<< HEAD
         body: JSON.stringify({
           username: resetUsername.value.trim(),
           otp: resetOtp.value.trim(),
           password: password,
           password_confirmation: confirm })
+=======
+        body: JSON.stringify({ username, otp, password })
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
       })
       .then(parseJsonSafe).then(data => {
         hideLoading();
@@ -356,4 +368,8 @@
     });
   </script>
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be

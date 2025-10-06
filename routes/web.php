@@ -114,6 +114,19 @@ Route::get('/guestid-image/{filename}', function ($filename) {
     ]);
 })->name('guestid.image');
 
+Route::get('/qr-code/{filename}', function ($filename) {
+    $path = storage_path('app/public/qrcodes/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType
+    ]);
+})->name('qr.code');
+
 
 Route::match(['get', 'post'], 'auth/login', [LoginController::class, 'login'])->name('login');
 Route::post('auth/logout', [LoginController::class, 'logout'])->name('logout');
@@ -247,13 +260,20 @@ Route::match(['get', 'post'], 'manager/activate_menu/{menuID}', [ManageMenuContr
 // Deactivate menu
 Route::match(['get', 'post'], 'manager/deactivate_menu/{menuID}', [ManageMenuController::class, 'deactivateMenu'])->name('manager/deactivate_menu');
 
+Route::get('manager/service_list', [ManageMenuController::class, 'serviceList'])->name('manager.service_list');
+Route::match(['get', 'post'], 'manager/add_service', [ManageMenuController::class, 'addService'])->name('manager.add_service');
+
 Route::get('manager/feedback', [FeedbackController::class, 'viewFeedback'])->name('manager.feedback');
 
 // View Chats
 Route::get( 'manager/chat', [ChatController::class, 'viewChats'])->name('manager.chat_logs');
 
 // Send Reply
+<<<<<<< HEAD
 Route::post( 'manager/chat', [ChatController::class, 'sendChat'])->name('manager.send_reply');
+=======
+Route::post('manager/chat', [ChatController::class, 'sendChat'])->name('manager.send_reply');
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
 
 // View Discounts
 Route::get('manager/discount', [DiscountController::class, 'viewDiscounts'])->name('manager.view_discounts');

@@ -10,13 +10,19 @@ use Illuminate\Support\Facades\Log;
 use thiagoalessio\TesseractOCR\TesseractOCR;
 use Illuminate\Validation\Rule;            
 use Illuminate\Support\Facades\Storage;  
+<<<<<<< HEAD
 use App\Services\OCRService; 
+=======
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
 
 use App\Models\GuestTable;
 use App\Models\UserTable;
 use App\Models\StaffTable;
 use App\Models\User;
+<<<<<<< HEAD
 use App\Models\SessionLogTable;
+=======
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
 
 class ManageGuestController extends Controller
 {
@@ -24,6 +30,7 @@ class ManageGuestController extends Controller
     public function guestList(Request $request)
     {
         $guest = GuestTable::orderBy('guestID', 'desc')->paginate(10);
+<<<<<<< HEAD
 
         // Get the userID from the session
             $userID = $request->session()->get('user_id');
@@ -37,6 +44,8 @@ class ManageGuestController extends Controller
                 ]);
             }
 
+=======
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
         return view('manager.guest_list', compact('guest'));
     }
 
@@ -75,8 +84,13 @@ class ManageGuestController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
           ];
 
+<<<<<<< HEAD
     // Validate the request
     $validatedData = $request->validate(array_merge($commonRules, $roleRules));
+=======
+        // OCR verification for validID
+/*        if ($request->hasFile('validID')) {
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
 
     $validIDPath = null;
     $avatarPath = null;
@@ -92,11 +106,23 @@ class ManageGuestController extends Controller
             'public'
         );
 
+<<<<<<< HEAD
         $absolutePath = storage_path('app/public/' . $validIDPath);
+=======
+            if (!$headerFound || !$pcnFound) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['validID' => 'The uploaded ID is not a valid Philippine National ID.'])
+                    ->with('ocrtext', $ocrText);
+            }
+        }
+*/
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
 
         // OCR verification
         $ocrResult = $ocrService->verify($absolutePath);
 
+<<<<<<< HEAD
         if (!$ocrResult['isValid']) {
             return back()
                 ->withErrors(['validID' => 'The uploaded ID is not a valid Philippine National ID.'])
@@ -160,6 +186,47 @@ class ManageGuestController extends Controller
     }
 }
 
+=======
+        DB::beginTransaction();
+        try {
+            $userID = null;
+
+            // Create user account only for Guest role
+            if ($request->input('role') === 'Guest') {
+                $user = new UserTable();
+                $user->username = $validatedData['username'];
+                $user->password = Hash::make($validatedData['password']);
+                $user->status = 'Active';
+                $user->save();
+
+                $userID = $user->userID;
+            }
+
+            // Create Guest record
+            $guest = new GuestTable();
+            $guest->userID = $userID;
+            $guest->firstname = $validatedData['firstname'];
+            $guest->lastname = $validatedData['lastname'];
+            $guest->mobilenum = $validatedData['contactnum'];
+            $guest->email = $validatedData['email'];
+            $guest->gender = $validatedData['gender'];
+            $guest->birthday = $validatedData['birthday'];
+            $guest->avatar = $avatarPath;
+            $guest->validID = $validIDPath;
+            $guest->role = $validatedData['role'];
+            $guest->save();
+
+            DB::commit();
+
+            return redirect()->route('manager.guest_list')->with('success', 'Guest registered successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error', 'Registration failed. Please try again.' . $e->getMessage());
+        }
+    }
+
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
     public function createUser(Request $request)
 {
     $validated = $request->validate([
@@ -339,6 +406,7 @@ class ManageGuestController extends Controller
 
             $guest->save();
 
+<<<<<<< HEAD
             // Get the userID from the session
             $userID = $request->session()->get('user_id');
 
@@ -351,6 +419,8 @@ class ManageGuestController extends Controller
                 ]);
             }
 
+=======
+>>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
             DB::commit();
 
             // redirect to your manage user list (adjust path/name to your routes)
