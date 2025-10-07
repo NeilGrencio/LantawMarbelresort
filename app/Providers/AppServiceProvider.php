@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\Channels\FcmChannel;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -22,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Notification::extend('fcm', function ($app) {
+            return new FcmChannel();
+        });
         View::composer('*', function ($view) {
             $view->with('username', Session::get('username'));
             $view->with('avatar', Session::get('avatar'));
