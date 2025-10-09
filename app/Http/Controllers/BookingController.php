@@ -659,11 +659,11 @@ class BookingController extends Controller
                 // Send FCM + database notification
 
                 $user->notify(new BookingUpdateNotification([
-                    'title' => "Booking #{$booking->id} Updated",
-                    'body'  => "Hello {$user->name}, your booking on {$booking->checkin} has been Approved.",
+                    'title' => "Booking #{$booking->bookingID} Updated",
+                    'body'  => "Hello {$user->username}, your booking on {$booking->bookingcreated} has been Approved.",
                     'extra' => [
-                       
-                        'amount' => $booking->total_amount,
+
+                        'amount' => $booking->totalprice,
                         'status' => $booking->status,
                     ]
                 ]));
