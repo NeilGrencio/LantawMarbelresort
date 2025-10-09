@@ -30,18 +30,18 @@ class ApiAuthController extends Controller
         // Fetch the user based on user_id
         $user = User::find($request->user_id);
         if (!$user) {
-            Log::warning('User not found', ['user_id' => $request->user_id]);
+            Log::warning('User not found', ['userid' => $request->user_id]);
             return response()->json([
                 'message' => 'User not found'
             ], 404);
         }
-        Log::info('User found', ['user_id' => $user->id, 'email' => $user->email ?? null]);
+        Log::info('User found', ['userid' => $user->userid, 'username' => $user->username ?? null]);
 
         // Update the FCM token
         $user->update([
             'fcm_token' => $request->fcm_token
         ]);
-        Log::info('FCM token updated', ['user_id' => $user->id, 'fcm_token' => $request->fcm_token]);
+        Log::info('FCM token updated', ['userid' => $user->userid, 'fcm_token' => $request->fcm_token]);
 
         return response()->json(['message' => 'Token saved successfully']);
     }

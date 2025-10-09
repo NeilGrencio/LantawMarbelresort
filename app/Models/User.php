@@ -14,7 +14,8 @@ class User extends Authenticatable
     protected $fillable = [
         'username',
         'password',
-        'status'
+        'status',
+        'fcm_token'
     ];
 
     // protected $hidden = [
