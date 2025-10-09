@@ -2,16 +2,38 @@
 
 namespace App\Notifications\Channels;
 
-use Illuminate\Notifications\Notification;
+use App\Notifications\OrderUpdateNotification;
+use Illuminate\Support\Facades\Log;
 
 class FcmChannel
 {
-    public function send($notifiable, Notification $notification)
+    public function send($notifiable, OrderUpdateNotification $notification)
     {
-        if (! method_exists($notification, 'toFcm')) {
+        // Check if the notification has toFcm method
+        if (!method_exists($notification, 'toFcm')) {
+            Log::warning('Notification missing toFcm method', [
+                'notification' => get_class($notification),
+            ]);
             return;
         }
 
-        return $notification->toFcm($notifiable);
+        try {
+            $fcmMessage = $notification->toFcm($notifiable);
+
+            // Optional: log the payload
+            Log::info('Sending FCM notification', [
+                'notifiable' => $notifiable->id ?? null,
+                'payload' => $fcmMessage,
+            ]);
+
+            return $fcmMessage;
+
+        } catch (\Exception $e) {
+            Log::error('FCM notification failed', [
+                'exception' => $e->getMessage(),
+                'notification' => get_class($notification),
+                'notifiable' => $notifiable->id ?? null,
+            ]);
+        }
     }
 }

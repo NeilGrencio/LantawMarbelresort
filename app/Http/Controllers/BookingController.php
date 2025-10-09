@@ -18,8 +18,9 @@ use App\Models\DiscountTable;
 use App\Models\BillingTable;
 use App\Models\PaymentTable;
 use App\Models\CheckTable;
-use App\Services\OCRService; 
-
+use App\Services\OCRService;
+use App\Models\User; // Make sure to import your User model
+use App\Notifications\OrderUpdateNotification;
 use App\Models\RoomBookTable;
 use App\Models\CottageBookTable;
 use App\Models\ChargeTable;
@@ -49,7 +50,7 @@ class BookingController extends Controller
             ->get();
 
         $bookingconfirmed = BookingTable::where('status', 'Booked')
-            ->where('booking.bookingstart', '>=', \Carbon\Carbon::today()) 
+            ->where('booking.bookingstart', '>=', \Carbon\Carbon::today())
             ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
             ->select(
                 'booking.*',
@@ -143,7 +144,7 @@ class BookingController extends Controller
         }
         return response()->json($events);
     }
-    
+
     public function bookingListView()
     {
         $bookings = BookingTable::with([
@@ -170,20 +171,20 @@ class BookingController extends Controller
         $rooms = RoomTable::where('status', 'Available')->get();
         $cottages = CottageTable::where('status', 'Available')->get();
         $amenities = AmenityTable::where('amenityname', 'Kiddy Pool')->get();
-    
+
         // Get all bookings with their dates
         $roomBookings = RoomBookTable::select('roomID', 'bookingDate')->get();
         $cottageBookings = CottageBookTable::select('cottageID', 'bookingDate')->get();
         $amenityBookings = BookingTable::whereNotNull('amenityID')
             ->select('amenityID', 'bookingstart', 'bookingend')
             ->get();
-    
+
         $bookedItems = [
             'rooms'     => $roomBookings,
             'cottages'  => $cottageBookings,
             'amenities' => $amenityBookings,
         ];
-    
+
         return view('receptionist.create_booking', compact('rooms', 'cottages', 'amenities', 'bookedItems'));
     }
 
@@ -201,14 +202,16 @@ class BookingController extends Controller
             'amenity_child_guest' => 'required|integer|min:0',
             'firstname' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
             'lastname'  => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
-            'contactnum'=> 'nullable|string|max:20',
+            'contactnum' => 'nullable|string|max:20',
             'email'     => 'nullable|email|max:255',
             'gender'    => 'nullable|string',
             'birthday'  => ['nullable', 'date', 'before_or_equal:' . now()->subYears(18)->toDateString()],
             'validID'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'username' => 'nullable|min:5|max:20|unique:users,username',
             'password' => [
-                'nullable', 'min:8', 'max:20',
+                'nullable',
+                'min:8',
+                'max:20',
                 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/'
             ],
             'password_confirmation' => 'nullable|string|same:password',
@@ -259,7 +262,7 @@ class BookingController extends Controller
             //    'ocrText' => $result['ocrText'],
             //    'filePath' => $absolutePath,
             // ]);
-        }  else {
+        } else {
             $validated['validID'] = null;
         }
         $prices = $this->calculatePrices($validated);
@@ -649,6 +652,16 @@ class BookingController extends Controller
             $booking->status = 'Booked';
             $booking->save();
 
+            // Fetch the user who made the booking
+            $user = User::find($booking->guest->userID); // adjust field if different
+
+            if ($user) {
+                // Send FCM + database notification
+                $user->notify(new OrderUpdateNotification($booking));
+            } else {
+                Log::warning("Booking {$bookingID} has no associated user to notify");
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Booking approved successfully!'
@@ -661,7 +674,6 @@ class BookingController extends Controller
             ], 500);
         }
     }
-
     public function declineBooking($bookingID)
     {
         try {
@@ -845,27 +857,27 @@ class BookingController extends Controller
             ->pluck('cottageID')
             ->toArray();
     }
-        public function check(Request $request)
+    public function check(Request $request)
     {
         $checkin = $request->query('checkin');
         $checkout = $request->query('checkout');
-    
+
         // Rooms with overlapping bookings
-        $bookedRoomIDs = RoomBookTable::where(function($q) use ($checkin, $checkout) {
-                $q->where('checkin', '<=', $checkout)
-                  ->where('checkout', '>=', $checkin);
-            })
+        $bookedRoomIDs = RoomBookTable::where(function ($q) use ($checkin, $checkout) {
+            $q->where('checkin', '<=', $checkout)
+                ->where('checkout', '>=', $checkin);
+        })
             ->pluck('roomID')
             ->toArray();
-    
+
         // Cottages with overlapping bookings
-        $bookedCottageIDs = CottageBookTable::where(function($q) use ($checkin, $checkout) {
-                $q->where('checkin', '<=', $checkout)
-                  ->where('checkout', '>=', $checkin);
-            })
+        $bookedCottageIDs = CottageBookTable::where(function ($q) use ($checkin, $checkout) {
+            $q->where('checkin', '<=', $checkout)
+                ->where('checkout', '>=', $checkin);
+        })
             ->pluck('cottageID')
             ->toArray();
-    
+
         return response()->json([
             'bookedRooms' => $bookedRoomIDs,
             'bookedCottages' => $bookedCottageIDs,
@@ -1425,32 +1437,35 @@ class BookingController extends Controller
             $validated = $request->validate([
                 'room' => 'nullable|array',
                 'room.*' => 'integer|exists:rooms,roomID',
-                
+
                 'cottage' => 'nullable|array',
                 'cottage.*' => 'integer|exists:cottages,cottageID',
-                
+
                 'amenity' => 'nullable|array',
                 'amenity.*' => 'integer|exists:amenities,amenityID',
-                
+
                 'guestamount' => 'required|integer|min:1',
                 'amenity_adult_guest' => 'required|integer|min:0',
                 'amenity_child_guest' => 'required|integer|min:0',
-                
+
                 'firstname' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
                 'lastname'  => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
-                'contactnum'=> 'nullable|string|max:20',
+                'contactnum' => 'nullable|string|max:20',
                 'email'     => 'nullable|email|max:255',
                 'gender'    => 'nullable|string|in:Male,Female,Other',
                 'birthday'  => 'nullable|date',
                 'validID'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-                
+
                 'username' => 'nullable|string|min:5|max:20|unique:users,username',
                 'password' => [
-                    'nullable', 'string', 'min:8', 'max:20',
+                    'nullable',
+                    'string',
+                    'min:8',
+                    'max:20',
                     'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/'
                 ],
                 'password_confirmation' => 'nullable|string|same:password',
-                
+
                 'checkin' => 'required|date',
                 'checkout' => 'required|date|after_or_equal:checkin',
             ]);
@@ -1522,7 +1537,8 @@ class BookingController extends Controller
     }
 
 
-    public function walkInList(){
+    public function walkInList()
+    {
         $bookings = BookingTable::with([
             'guest',
             'amenity',
