@@ -645,44 +645,62 @@ class BookingController extends Controller
         }
     }
 
+
     public function approveBooking($bookingID)
     {
         try {
+            Log::info("Attempting to approve booking ID: {$bookingID}");
+
             $booking = BookingTable::where('bookingID', $bookingID)->firstOrFail();
+
+            // Update booking status
             $booking->status = 'Booked';
             $booking->save();
 
+            Log::info("Booking {$bookingID} status updated to 'Booked'");
+
             // Fetch the user who made the booking
-            $user = User::find($booking->guest->userID); // adjust field if different
+            $user = User::find($booking->guest->userID ?? null); // safe lookup
 
             if ($user) {
-                // Send FCM + database notification
+                Log::info("Found user [ID: {$user->id}, Name: {$user->username}] for booking {$bookingID}");
 
-                $user->notify(new BookingUpdateNotification([
+                // Prepare dynamic notification data
+                $messageData = [
                     'title' => "Booking #{$booking->bookingID} Updated",
-                    'body'  => "Hello {$user->username}, your booking on {$booking->bookingcreated} has been Approved.",
+                    'body'  => "Hello {$user->username}, your booking on {$booking->bookingcreated} has been approved.",
                     'extra' => [
-
                         'amount' => $booking->totalprice,
                         'status' => $booking->status,
-                    ]
-                ]));
+                    ],
+                ];
+
+                // Send notification
+                $user->notify(new BookingUpdateNotification($messageData));
+
+                Log::info("Notification sent to user ID {$user->id} for booking {$bookingID}", $messageData);
             } else {
                 Log::warning("Booking {$bookingID} has no associated user to notify");
             }
+
+            Log::info("Booking {$bookingID} approved successfully");
 
             return response()->json([
                 'success' => true,
                 'message' => 'Booking approved successfully!'
             ]);
         } catch (\Exception $e) {
-            Log::error("Error approving booking: " . $e->getMessage());
+            Log::error("Error approving booking [ID: {$bookingID}]: {$e->getMessage()}", [
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error updating booking'
             ], 500);
         }
     }
+
     public function declineBooking($bookingID)
     {
         try {
