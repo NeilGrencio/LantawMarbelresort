@@ -662,7 +662,7 @@ class BookingController extends Controller
                     'title' => "Booking #{$booking->id} Updated",
                     'body'  => "Hello {$user->name}, your booking on {$booking->checkin} has been Approved.",
                     'extra' => [
-                        'rooms' => $booking->rooms->pluck('name')->toArray(),
+                       
                         'amount' => $booking->total_amount,
                         'status' => $booking->status,
                     ]
