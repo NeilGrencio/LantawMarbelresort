@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Notification;
 use App\Notifications\Channels\FcmChannel;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
