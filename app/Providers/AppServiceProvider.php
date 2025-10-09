@@ -20,9 +20,9 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
-          $this->app->singleton(Messaging::class, function ($app) {
+        $this->app->singleton(Messaging::class, function ($app) {
             $factory = (new Factory)
-                ->withServiceAccount(config('firebase.credentials'));
+                ->withServiceAccount(base_path('storage/app/firebase/lantawmarbelresort-e4b76-firebase-adminsdk-fbsvc-42809a635b.json'));
 
             return $factory->createMessaging();
         });
