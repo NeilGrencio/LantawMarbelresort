@@ -14,6 +14,13 @@ use Illuminate\Support\Facades\Validator;
 
 class ApiAuthController extends Controller
 {
+    public function saveFcmToken(Request $request)
+    {
+        $user = $request->user();
+        $user->update(['fcm_token' => $request->fcm_token]);
+        return response()->json(['message' => 'Token saved']);
+    }
+    
     // Signup
     public function signup(Request $request)
     {
@@ -22,7 +29,9 @@ class ApiAuthController extends Controller
         $validator = Validator::make($request->all(), [
             'username'  => 'required|string|min:5|max:20|unique:users,username',
             'password'  => [
-                'required', 'min:8', 'max:20',
+                'required',
+                'min:8',
+                'max:20',
                 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/'
             ],
             'cpassword' => 'required|same:password',
@@ -95,7 +104,6 @@ class ApiAuthController extends Controller
                     'validID_url' => $validIDUrl
                 ])
             ], 201);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Signup failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
@@ -145,8 +153,8 @@ class ApiAuthController extends Controller
                 'firstname' => $user->guest->firstname,
                 'lastname'  => $user->guest->lastname,
                 'email'     => $user->guest->email,
-                'avatar_url'=> $user->guest->avatar ? route('guest.image', basename($user->guest->avatar)) : null,
-                'validID_url'=> $user->guest->validID ? route('guestid.image', basename($user->guest->validID)) : null
+                'avatar_url' => $user->guest->avatar ? route('guest.image', basename($user->guest->avatar)) : null,
+                'validID_url' => $user->guest->validID ? route('guestid.image', basename($user->guest->validID)) : null
             ];
         } elseif ($user->staff) {
             $role = 'staff';
@@ -156,7 +164,7 @@ class ApiAuthController extends Controller
                 'lastname'  => $user->staff->lastname,
                 'email'     => $user->staff->email,
                 'role'      => $user->staff->role,
-                'avatar_url'=> $user->staff->avatar ? route('staff.image', basename($user->staff->avatar)) : null
+                'avatar_url' => $user->staff->avatar ? route('staff.image', basename($user->staff->avatar)) : null
             ];
         }
 
