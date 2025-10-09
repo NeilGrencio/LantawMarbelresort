@@ -18,14 +18,10 @@ use App\Models\DiscountTable;
 use App\Models\BillingTable;
 use App\Models\PaymentTable;
 use App\Models\CheckTable;
-<<<<<<< HEAD
 use App\Services\OCRService; 
 use App\Models\SessionLogTable;
-=======
-use App\Services\OCRService;
-use App\Models\User; // Make sure to import your User model
+use App\Models\User;
 use App\Notifications\BookingUpdateNotification;
->>>>>>> 3e810b171cca36169dc4e1e3e79b4196a6e7de18
 use App\Models\RoomBookTable;
 use App\Models\CottageBookTable;
 use App\Models\ChargeTable;
@@ -47,15 +43,9 @@ class BookingController extends Controller
             )
             ->get();
 
-<<<<<<< HEAD
         $pending = BookingTable::from('booking')
             ->join('guest', 'booking.guestID', '=', 'guest.guestID')
             ->where('booking.status', 'Pending')
-=======
-        $bookingconfirmed = BookingTable::where('status', 'Booked')
-            ->where('booking.bookingstart', '>=', \Carbon\Carbon::today())
-            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
->>>>>>> 3e810b171cca36169dc4e1e3e79b4196a6e7de18
             ->select(
                 'booking.bookingID',
                 DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname"),
