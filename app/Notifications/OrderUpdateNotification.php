@@ -8,7 +8,7 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log; // ✅ add this
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification as FcmNotification;
-
+use Kreait\Firebase\Messaging;
 class OrderUpdateNotification extends Notification implements ShouldQueue
 {
     use Queueable;
@@ -44,7 +44,7 @@ class OrderUpdateNotification extends Notification implements ShouldQueue
      */
     public function toFcm($notifiable)
     {
-        $messaging = app('firebase.messaging');
+        $messaging = app(Messaging::class);
 
         if (! $notifiable->fcm_token) {
             Log::warning("User {$notifiable->id} has no FCM token");
