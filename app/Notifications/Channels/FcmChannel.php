@@ -2,12 +2,12 @@
 
 namespace App\Notifications\Channels;
 
-use App\Notifications\OrderUpdateNotification;
+use App\Notifications\BookingUpdateNotification;
 use Illuminate\Support\Facades\Log;
 
 class FcmChannel
 {
-    public function send($notifiable, OrderUpdateNotification $notification)
+    public function send($notifiable, BookingUpdateNotification $notification)
     {
         // Check if the notification has toFcm method
         if (!method_exists($notification, 'toFcm')) {

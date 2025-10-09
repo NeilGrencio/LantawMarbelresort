@@ -20,7 +20,7 @@ use App\Models\PaymentTable;
 use App\Models\CheckTable;
 use App\Services\OCRService;
 use App\Models\User; // Make sure to import your User model
-use App\Notifications\OrderUpdateNotification;
+use App\Notifications\BookingUpdateNotification;
 use App\Models\RoomBookTable;
 use App\Models\CottageBookTable;
 use App\Models\ChargeTable;
@@ -657,7 +657,16 @@ class BookingController extends Controller
 
             if ($user) {
                 // Send FCM + database notification
-                $user->notify(new OrderUpdateNotification($booking));
+
+                $user->notify(new BookingUpdateNotification([
+                    'title' => "Booking #{$booking->id} Updated",
+                    'body'  => "Hello {$user->name}, your booking on {$booking->checkin} has been Approved.",
+                    'extra' => [
+                        'rooms' => $booking->rooms->pluck('name')->toArray(),
+                        'amount' => $booking->total_amount,
+                        'status' => $booking->status,
+                    ]
+                ]));
             } else {
                 Log::warning("Booking {$bookingID} has no associated user to notify");
             }

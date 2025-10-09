@@ -5,19 +5,28 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Log; // ✅ add this
+use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification as FcmNotification;
 use Kreait\Firebase\Messaging;
-class OrderUpdateNotification extends Notification implements ShouldQueue
+
+class BookingUpdateNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $order;
+    protected array $messageData;
 
-    public function __construct($order)
+    /**
+     * @param array $messageData
+     * [
+     *   'title' => 'Notification title',
+     *   'body' => 'Notification body',
+     *   'extra' => ['key' => 'value'] // optional
+     * ]
+     */
+    public function __construct(array $messageData)
     {
-        $this->order = $order;
+        $this->messageData = $messageData;
     }
 
     /**
@@ -34,8 +43,9 @@ class OrderUpdateNotification extends Notification implements ShouldQueue
     public function toDatabase($notifiable)
     {
         return [
-            'title' => 'Order Update',
-            'body'  => "Your order #{$this->order->id} has been updated!",
+            'title' => $this->messageData['title'] ?? 'Notification',
+            'body'  => $this->messageData['body'] ?? '',
+            'extra' => $this->messageData['extra'] ?? [],
         ];
     }
 
@@ -44,20 +54,21 @@ class OrderUpdateNotification extends Notification implements ShouldQueue
      */
     public function toFcm($notifiable)
     {
-        $messaging = app(\Kreait\Firebase\Messaging::class);
-        
+        $messaging = app(Messaging::class);
+
         if (! $notifiable->fcm_token) {
             Log::warning("User {$notifiable->id} has no FCM token");
             return;
         }
 
         $notification = FcmNotification::create(
-            'Order Update',
-            "Your order #{$this->order->id} has been updated!"
+            $this->messageData['title'] ?? 'Notification',
+            $this->messageData['body'] ?? ''
         );
 
         $message = CloudMessage::withTarget('token', $notifiable->fcm_token)
-            ->withNotification($notification);
+            ->withNotification($notification)
+            ->withData($this->messageData['extra'] ?? []);
 
         $messaging->send($message);
     }
