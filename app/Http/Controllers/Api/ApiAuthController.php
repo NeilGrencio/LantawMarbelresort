@@ -16,25 +16,32 @@ class ApiAuthController extends Controller
 {
     public function saveFcmToken(Request $request)
     {
+        Log::info('saveFcmToken called', [
+            'request_data' => $request->all()
+        ]);
+
         // Validate incoming request
         $request->validate([
             'fcm_token' => 'required|string',
             'user_id' => 'required|integer',
         ]);
+        Log::info('Validation passed');
 
         // Fetch the user based on user_id
         $user = User::find($request->user_id);
-
         if (!$user) {
+            Log::warning('User not found', ['user_id' => $request->user_id]);
             return response()->json([
                 'message' => 'User not found'
             ], 404);
         }
+        Log::info('User found', ['user_id' => $user->id, 'email' => $user->email ?? null]);
 
         // Update the FCM token
         $user->update([
             'fcm_token' => $request->fcm_token
         ]);
+        Log::info('FCM token updated', ['user_id' => $user->id, 'fcm_token' => $request->fcm_token]);
 
         return response()->json(['message' => 'Token saved successfully']);
     }
