@@ -42,4 +42,7 @@ Route::prefix('bookings')->group(function () {
     Route::put('/{id}', [BookingController::class, 'update']);
 });
 Route::apiResource('chats', ChatController::class);
+// routes/api.php
+Route::post('/save-fcm-token', [ApiAuthController::class, 'saveFcmToken']);
+
 Route::get('chats/guest/{guestID}', [ChatController::class, 'getByGuest']);

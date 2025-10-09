@@ -42,5 +42,9 @@ return [
         'key' => env('OCR_SPACE_API_KEY'),
         'url' => 'https://api.ocr.space/parse/image',
     ],
-
+    'firebase' => [
+        'credentials' => [
+            'file' => env('GOOGLE_APPLICATION_CREDENTIALS'),
+        ],
+    ],
 ];
