@@ -13,11 +13,7 @@
         <div id="main-layout">
             <h1>Create Guest Information</h1>
 
-<<<<<<< HEAD
-             <form method="POST" action="{{ route('receptionist.submit_guest') }}" enctype="multipart/form-data">
-=======
             <form method="POST" action="{{ route('manager.save_guest') }}" enctype="multipart/form-data">
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
                 @csrf
                 <div id="add_user-container">
                     <div id="form-header-1">
@@ -32,13 +28,8 @@
                         </div>
 
                         <div>
-<<<<<<< HEAD
-                            <label for="txtlastname">Lastname:</label>
-                            <input id="txtlastname" type="text" placeholder="Lastname.." name="lastname"
-=======
                             <label for="txtalstname">Lastname:</label>
                             <input id="txtalstname" type="text" placeholder="Lastname.." name="lastname"
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
                                 value="{{ old('lastname') }}">
                         </div>
                     </div>
@@ -67,15 +58,10 @@
                                 <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Select Gender</option>
                                 <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
                                 <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
-<<<<<<< HEAD
                                 <option value="Prefer_not_to_say" {{ old('gender') == 'Prefer_not_to_say' ? 'selected' : '' }}>Prefer not to say</option>
-=======
-                                <optiion value="Prefer not to Say" {{ old ('gender') == 'Prefer not to Say' ? 'selected'  : '' }}>Prefer not to Say</optiion>
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
                             </select>
                         </div>
                         <div>
-                            {{-- Birthday --}}
                             <label id="lblbirthday" for="txtbirthday">Birthday:</label>
                             <input id="txtbirthday" type="date" name="birthday" value="{{ old('birthday') }}">
                         </div>
@@ -89,7 +75,6 @@
                         </div>
                     </div>
 
-                    {{-- Valid ID --}}
                     <div class="cl-validID" id="row4">
                         <label for="txtvalidid">Import Valid ID</label>
                         <div>
@@ -113,22 +98,12 @@
                     <div id="row6" class="user-information">
                         <div>
                             <label for="txtpassword">Password:</label>
-<<<<<<< HEAD
-                            <input id="txtpassword" type="text" placeholder="Password" name="password"
-                                value="{{ old('password') }}">
-                        </div>
-                        <div>
-                            <label for="txtcpassword">Confirm Password:</label>
-                            <input id="txtcpassword" type="text" placeholder="Confirm Password" name="cpassword"
-                                value="{{ old('cpassword') }}">
-=======
                             <input id="txtpassword" type="password" placeholder="Password" name="password">
                             <small>The password should contain 8 characters, one special, one capital, and one number* (Password123!) </small>
                         </div>
                         <div>
                             <label for="txtcpassword">Confirm Password:</label>
                             <input id="txtcpassword" type="password" placeholder="Confirm Password" name="cpassword">
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
                             <small id="password-match-msg" style="color: red; display: none; margin-top:.5rem;">
                                 <i class="fas fa-info-circle"></i> Password does not match.
                             </small>
@@ -341,8 +316,6 @@
 </style>
 
 <script>
-
-    //Display OTP for test
     window.Laravel = {
         testOtp: @json(session('test_otp'))
     };
@@ -403,17 +376,13 @@
             });
         }
 
-        
         if (txtRole) {
             txtRole.addEventListener('change', function () {
                 const isDGuest = this.value === 'Day Tour Guest';
-
                 userInformation.forEach(el => {
                     el.style.display = isDGuest ? 'none' : 'flex';
                 });
             });
-
-            // Trigger once on load
             txtRole.dispatchEvent(new Event('change'));
         }
 
@@ -459,5 +428,3 @@
         }
     });
 </script>
-
-

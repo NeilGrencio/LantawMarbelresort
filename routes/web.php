@@ -269,11 +269,8 @@ Route::get('manager/feedback', [FeedbackController::class, 'viewFeedback'])->nam
 Route::get( 'manager/chat', [ChatController::class, 'viewChats'])->name('manager.chat_logs');
 
 // Send Reply
-<<<<<<< HEAD
 Route::post( 'manager/chat', [ChatController::class, 'sendChat'])->name('manager.send_reply');
-=======
 Route::post('manager/chat', [ChatController::class, 'sendChat'])->name('manager.send_reply');
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
 
 // View Discounts
 Route::get('manager/discount', [DiscountController::class, 'viewDiscounts'])->name('manager.view_discounts');
@@ -330,6 +327,10 @@ Route::get('receptionist/search_daytour', [SearchUserController::class, 'searchD
 Route::get('receptionist/search_guest', [SearchUserController::class, 'searchGuestReceptionist'])->name('receptionist.search_guest');
 Route::get('receptionist/search_billing', [SearchUserController::class, 'searchBilling'])->name('receptionist.search_billing');
 Route::get('receptionist/search_menu', [SearchUserController::class, 'searchMenuReceptionist'])->name('receptionist.search_menu');
+Route::get('receptionist/search_service', [SearchUserController::class, 'searchServices'])->name('receptionist.search_service');
+
+Route::get('receptionist/search_checkin', [SearchUserController::class, 'searchCheckin'])->name('receptionist.search_checkin');
+Route::get('receptionist/search_checkout', [SearchUserController::class, 'searchCheckout'])->name('receptionist.search_checkout');
 
 
 // Booking Routes
@@ -370,8 +371,12 @@ Route::get('receptionist/daytourDashboard', [DayTourController::class, 'daytourD
 Route::get('receptionist/daytour', [DayTourController::class, 'viewDayTour'])->name('receptionist.daytour');
 
 Route::post('receptionist/daytour', [DayTourController::class, 'createDayTour'])->name('receptionist.createDayTour');
+Route::get('receptionist/guest-suggestions', [DayTourController::class, 'guestSuggestions'])
+    ->name('receptionist.guestSuggestions');
 
 Route::get('receptionist/check-in-out', [BookingController::class, 'viewCheckIn'])->name('receptionist.view_check');
+Route::get('receptionist/checkin_list', [BookingController::class, 'checkInList'])->name('receptionist.checkin_list');
+Route::get('receptionist/checkout_list', [BookingController::class, 'checkOutList'])->name('receptionist.checkout_list');
 
 Route::get('receptionist/bill/{bookingID}/{type}', [BookingController::class, 'getBillDetails']);
 
@@ -383,15 +388,27 @@ Route::get('receptionist/sendsmtp', [ManageUserController::class, 'send']);
 
 Route::get('receptionist/guest_list', [ManageGuestController::class, 'guestListReceptionist'])->name('receptionist.guest_list');
 Route::get('receptionist/view_guest/{guestID}', [ManageGuestController::class, 'viewGuestReceptionist'])->name('receptionist.view_guest');
-Route::get('receptionist/add_guest', [ManageGuestController::class, 'addGuestReceptionist'])->name('receptionist.add_guest');
-Route::post('receptionist/add_guest', [ManageGuestController::class, 'submitGuest'])->name('receptionist.submit_guest');
+Route::match(['get', 'post'], 'receptionist/add_guest', [ManageGuestController::class, 'addGuestReceptionist'])->name('receptionist.add_guest');
+Route::post('receptionist/edit_guest/{guestID}', [ManageGuestController::class, 'editGuest'])->name('receptionist.add_guest');
+
+Route::get('receptionist/orderlist', [OrderController::class, 'orderList'])->name('receptionist.orderlist');
 
 Route::get('receptionist/order', [OrderController::class, 'viewMenu'])->name('receptionist.order');
 Route::post('receptionist/order', [OrderController::class, 'submitOrder'])->name('receptionist.submitorder');
 
+Route::match(['get', 'post'], 'receptionist/edit_order/{bookingID}', [OrderController::class, 'editOrder'])->name('receptionist.editorder');
+
+Route::get('receptionist/services', [OrderController::class, 'viewService'])->name('receptionist.service');
+Route::post('receptionist/order_service', [OrderController::class, 'submitServiceOrder'])->name('receptionist.submitserviceorder');
+
 //Kitchen
 Route::get('kitchen/dashboard', [DashboardController::class, 'kitchenDashboard'])->name('kitchen.dashboard');
 Route::post('/orders/{order}/prepare', [OrderController::class, 'prepareOrder'])->name('orders.prepare');
+Route::post('/orders/{order}/serve', [OrderController::class, 'serveOrder'])->name('orders.serve');
+Route::get('kitchen/menu_list', [OrderController::class, 'viewMenuKitchen'])->name('kitchen.menu_list');
+
+Route::get('receptionist/revenue_pdf', [ReportController::class, 'receptionistRevenuePDF'])->name('report.exportPDF');
+
 Route::get('receptionist/edit_booking/{bookingID}', [BookingController::class, 'edit'])->name('booking.edit');
 
 // Update booking

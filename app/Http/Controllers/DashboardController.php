@@ -16,6 +16,7 @@ use App\Models\RoomTable;
 use App\Models\CottageTable;
 use App\Models\FeedbackTable;
 use App\Models\MenuBookingTable;
+use App\Models\MenuTable;
 
 class DashboardController extends BaseAuthController
 {
@@ -181,23 +182,88 @@ class DashboardController extends BaseAuthController
         ));
     }
 
-    public function kitchenDashboard()
+    public function kitchenDashboard(Request $request)
     {
-    $orders = MenuBookingTable::join('booking', 'menu_bookings.booking_id', '=', 'booking.bookingID')
-        ->join('guest', 'booking.guestID', '=', 'guest.guestID')
-        ->join('menu', 'menu_bookings.menu_id', '=', 'menu.menuID')
-        ->select(
-            'menu_bookings.*',
-            'guest.firstname',
-            'guest.lastname',
-            'menu.menuname',
-            'menu.itemtype',
-            DB::raw('menu_bookings.price * menu_bookings.quantity as total')
-        )
-        ->orderBy('menu_bookings.created_at', 'desc')
-        ->paginate(10);
-
-        return view('kitchenstaff.dashboard', compact('orders'));
+        $timeFilter = $request->input('time', 'all');
+        $typeFilter = $request->input('type', 'all');
+    
+        $orders = MenuBookingTable::where('menu_bookings.status', '!=', 'Finished')
+            ->whereDate('menu_bookings.created_at', Carbon::today())
+            ->join('booking', 'menu_bookings.booking_id', '=', 'booking.bookingID')
+            ->join('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->join('menu', 'menu_bookings.menu_id', '=', 'menu.menuID')
+            ->select(
+                'menu_bookings.id',
+                'menu_bookings.booking_id',
+                'booking.bookingID',
+                DB::raw("CONCAT('#', LPAD(menu_bookings.id, 3, '0')) as bookingTicket"),
+                'menu.menuname',
+                'menu.itemtype',
+                'menu_bookings.quantity',
+                DB::raw('menu_bookings.price * menu_bookings.quantity as total'),
+                'menu_bookings.status',
+                'menu_bookings.created_at'
+            )
+            ->orderBy('menu_bookings.created_at', 'desc')
+            ->paginate(10);
+    
+        $serving = MenuBookingTable::where('menu_bookings.status', 'Confirmed')
+            ->whereDate('menu_bookings.created_at', Carbon::today())
+            ->select(
+                'menu_bookings.*',
+                DB::raw("CONCAT('#', LPAD(menu_bookings.id, 3, '0')) as bookingTicket")
+            )
+            ->get();
+    
+        $totalOrders = MenuBookingTable::where(function ($query) {
+                $query->where('status', 'Pending')
+                    ->orWhere('status', 'Confirmed');
+            })
+            ->whereDate('created_at', Carbon::today())
+            ->count();
+    
+        $pendingOrders = MenuBookingTable::where('status', 'Confirmed')
+            ->whereDate('created_at', Carbon::today())
+            ->count();
+    
+        $confirmedOrders = MenuBookingTable::where('status', 'Finished')
+            ->whereDate('created_at', Carbon::today())
+            ->count();
+    
+        $topMenuItemsQuery = MenuBookingTable::select(
+                'menu.menuID',
+                'menu.menuname',
+                'menu.image',
+                DB::raw('SUM(menu_bookings.quantity) as totalOrdered')
+            )
+            ->join('menu', 'menu_bookings.menu_id', '=', 'menu.menuID')
+            ->groupBy('menu.menuID', 'menu.menuname', 'menu.image');
+    
+        if ($timeFilter === 'today') {
+            $topMenuItemsQuery->whereDate('menu_bookings.created_at', Carbon::today());
+        }
+    
+        if ($typeFilter !== 'all') {
+            $topMenuItemsQuery->where('menu.itemtype', $typeFilter);
+        }
+    
+        $topMenuItems = $topMenuItemsQuery
+            ->orderByDesc('totalOrdered')
+            ->get();
+    
+        foreach ($topMenuItems as $item) {
+            $item->image_url = $item->image
+                ? route('menu.image', ['filename' => basename($item->image)])
+                : null;
+        }
+    
+        return view('kitchenstaff.dashboard', compact(
+            'orders',
+            'serving',
+            'totalOrders',
+            'pendingOrders',
+            'confirmedOrders',
+            'topMenuItems'
+        ));
     }
-
 }

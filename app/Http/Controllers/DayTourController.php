@@ -10,19 +10,34 @@ use App\Models\AmenityTable;
 use App\Models\BillingTable;
 use App\Models\DiscountTable;
 use App\Models\QRTable;
+use App\Models\SessionLogTable;
 use App\Models\PaymentTable;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use thiagoalessio\TesseractOCR\TesseractOCR;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class DayTourController extends Controller
 {
     public function viewDayTour(){
         $amenities = AmenityTable::where('status', 'Available')->get();
         $discount = DiscountTable::where('status', 'Available')->get();
+        $guest = GuestTable::get();
 
-        return view('receptionist/daytour', compact('amenities', 'discount'));
+        return view('receptionist/daytour', compact('amenities', 'discount', 'guest'));
     }
+
+    public function guestSuggestions(Request $request)
+    {
+        $search = $request->query('q');
+        $guests = GuestTable::where('firstname', 'LIKE', "%{$search}%")
+            ->orWhere('lastname', 'LIKE', "%{$search}%")
+            ->limit(5)
+            ->get(['guestID', 'firstname', 'lastname']);
+
+        return response()->json($guests);
+    }
+    
     /*
     public function checkValidID($validID){
         if ($validID) {
@@ -174,6 +189,17 @@ class DayTourController extends Controller
                     'amenityID' => $amenity->amenityID,
                     'guestID' => $guest->guestID,
                 ]);
+
+            }
+
+            $userID = $request->session()->get('user_id');
+
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Created a Day Tour',
+                    'date'     => now(),
+                ]);
             }
 
             return redirect()
@@ -186,15 +212,41 @@ class DayTourController extends Controller
         }
     }
 
-    public function daytourDashboard(){
+    public function daytourDashboard()
+    {
         $today = Carbon::now()->toDateString();
-        $amenity = AmenityTable::get();
-        $qrcode = QRTable::with(['guest','amenity'])->orderBy('qrID','desc')->get();
-        $recent = QRTable::with(['guest','amenity'])
-                    ->whereDate('accessdate', $today)
-                    ->orderBy('qrID','desc')
-                    ->get();
-        return view('receptionist/daytourDashboard', compact('amenity', 'qrcode', 'recent'));
+        $qrcode = QRTable::with(['guest', 'amenity'])->orderBy('qrID', 'desc')->get();
+        $amenity = AmenityTable::select('amenityID', 'amenityname', 'capacity', 'status')->get();
+
+        $recent = QRTable::with(['guest', 'amenity'])
+            ->whereDate('accessdate', $today)
+            ->orderBy('qrID', 'desc')
+            ->get();
+
+        $usedCounts = QRTable::whereDate('accessdate', $today)
+            ->select('amenityID', DB::raw('COUNT(*) as used_count'))
+            ->groupBy('amenityID')
+            ->pluck('used_count', 'amenityID');
+
+        $amenitiesData = $amenity->map(function ($a) use ($usedCounts) {
+            $used = $usedCounts[$a->amenityID] ?? 0;
+            $available = max($a->capacity - $used, 0);
+
+            return [
+                'amenityID' => $a->amenityID,
+                'amenityname' => $a->amenityname,
+                'capacity' => $a->capacity,
+                'used' => $used,
+                'available' => $available,
+            ];
+        });
+
+        $differentAmenities = $amenity->where('status', 'Available')
+            ->pluck('amenityname')
+            ->unique()
+            ->values();
+
+        return view('receptionist/daytourDashboard', compact('amenity', 'recent', 'qrcode', 'differentAmenities', 'amenitiesData'));
     }
 
 }

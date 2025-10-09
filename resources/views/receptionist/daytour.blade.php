@@ -12,7 +12,7 @@
     @include('components.receptionist_sidebar')
     <div id="main-layout">
         <div id="layout-header">
-            <h1>Day Tour Management</h1>
+            <h1>Day Tour Creation</h1>
         </div>
         <div class="main-container">
             <div class="form-form">
@@ -64,18 +64,40 @@
                         </div>
 
                         <div id="row1">
-                            <div>
+                            <div style="position: relative;">
                                 <label for="txtfirstname">Firstname:</label>
-                                <input class="input" id="txtfirstname" type="text" placeholder="Firstname.." name="firstname">
+                                <input class="input" id="txtfirstname" type="text" placeholder="Firstname.." name="firstname" autocomplete="off">
+                                <ul id="firstname-suggestions" style="
+                                    position: absolute;
+                                    background: #fff;
+                                    border: 1px solid #ccc;
+                                    width: 100%;
+                                    list-style: none;
+                                    padding: 0;
+                                    margin: 0;
+                                    display: none;
+                                    z-index: 1000;
+                                "></ul>
                                 @error('firstname')
                                     <div class="error-message" style="color: red; font-style: italic;">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <div>
-                                <label for="txtalstname">Lastname:</label> 
-                                <input class="input" id="txtalstname" type="text" placeholder="Lastname.." name="lastname">
-                                    @error('lastname')
+                            <div style="position: relative;">
+                                <label for="txtlastname">Lastname:</label>
+                                <input class="input" id="txtlastname" type="text" placeholder="Lastname.." name="lastname" autocomplete="off">
+                                <ul id="lastname-suggestions" style="
+                                    position: absolute;
+                                    background: #fff;
+                                    border: 1px solid #ccc;
+                                    width: 100%;
+                                    list-style: none;
+                                    padding: 0;
+                                    margin: 0;
+                                    display: none;
+                                    z-index: 1000;
+                                "></ul>
+                                @error('lastname')
                                     <div class="error-message" style="color: red; font-style: italic;">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -108,15 +130,6 @@
                                         <option value="" disabled selected>Select Gender</option>
                                         <option value="Male">Male</option>
                                         <option value="Female">Female</option>
-                                        <option value="Non_Binary">Non-Binary</option>
-                                        <option value="Trans_Female">Transgender Female</option>
-                                        <option value="Trans_Male">Transgender Male</option>
-                                        <option value="Genderqueer">Genderqueer</option>
-                                        <option value="Agender">Agender</option>
-                                        <option value="Bigender">Bigender</option>
-                                        <option value="Genderfluid">Genderfluid</option>
-                                        <option value="Two_Spirit">Two-Spirit</option>
-                                        <option value="Other">Other</option>
                                         <option value="Prefer_not_to_say">Prefer not to say</option>
                                     </select>
                                     @error('gender')
@@ -221,8 +234,8 @@
 
                     <div id="button-container">
                         <div>
-                            <button id="btncancel" type="button" data-url="{{ url('receptionist/daytourDashboard')}}">Cancel</button>
-                            <button id="btnsubmit" type="submit">Submit</button>
+                            <button class="form-button" id="btncancel" type="button" data-url="{{ url('receptionist/daytourDashboard')}}">Cancel</button>
+                            <button class="form-button" id="btnsubmit" type="submit">Submit</button>
                         </div>
                     </div>
                 </form>
@@ -253,6 +266,7 @@
                         <p><span>Total Change:</span><span id="change-receipt">₱ 0.00</span></p>
                 </div>
             </div>
+            
         @if (session('error'))
             <div class="alert-message">
                 <h2>{{ session('error') }}</h2>
@@ -261,22 +275,39 @@
         </div>
     </body>
 <style>
+     .form-button{
+        height:2rem;
+        border-radius:.5rem;
+        border:solid 1px black;
+        box-shadow:.1rem .1rem 0 black;
+        cursor:pointer;
+        transition:all .2s ease;
+        font-size:.8rem;
+        padding:.3rem 1rem;
+        background: white;
+        margin-top:1rem;
+    }
+    .form-button:hover{
+        background: orange;
+        color:white;
+        scale:1.05;
+    }
     .main-container{
         display:grid;
-        grid-template-columns: 2fr .5fr;
+        grid-template-columns: 2fr 1fr;
         gap:.5rem;
         position:relative;
+        overflow-y:auto;
     }
     .form-form{
         width:100%;
         position: relative;
     }
     .rec{
-        width: 100%;
-        position:sticky;
         display: flex;
         flex-direction: row;
         width:100%;
+        min-width:100%;
         height:99.5%;
         gap:.5rem;
     }
@@ -447,12 +478,14 @@
         display: flex;
         flex-direction: row;
         height:100vh;
+        width:100%;
+        overflow-y:none;
     }
     #main-layout{
         display:flex;
         flex-direction: column;
         padding:1rem;
-        width:85%;
+        width:100%;
         height:100vh;
         transition: width 0.3s ease-in-out;
         margin-left:12rem;
@@ -460,6 +493,7 @@
         overflow-y: auto;
         overflow-x: hidden;
         gap:.5rem;
+        overflow-y:none;
     } 
     #layout-header{
         display: flex;
@@ -745,7 +779,6 @@
         const cashRadio = document.getElementById('cash');
         const gcashRadio = document.getElementById('gcash');
         const cashWrapper = document.getElementById('cash-amount-wrapper');
-
         if (cashRadio.checked) {
             cashWrapper.style.display = 'block';
         } else {
@@ -773,12 +806,10 @@
 
         const cashRadio = document.getElementById('cash');
         const gcashRadio = document.getElementById('gcash');
-
-        // Add change event listeners to both payment options
         if (cashRadio) cashRadio.addEventListener('change', toggleCashAmount);
         if (gcashRadio) gcashRadio.addEventListener('change', toggleCashAmount);
     });
-    // Amenity checkbox toggle
+
     document.querySelectorAll('.amenity-checkbox').forEach(checkbox => {
         const card = checkbox.closest('label').querySelector('.amenity-card');
         checkbox.addEventListener('change', function () {
@@ -790,12 +821,10 @@
         });
     });
 
-    // Toggle visibility of additional info
     const hasAccount = document.getElementById('hasAccount');
     const additionalInfo = document.querySelector('.additional-info');
-
     hasAccount.addEventListener('click', () => {
-        additionalInfo.classList.toggle('active'); // Toggle the 'active' class
+        additionalInfo.classList.toggle('active');
         if (additionalInfo.classList.contains('active')){
             hasAccount.innerHTML = '<i class="fas fa-info-circle fa-lg"></i> Click here if guest is not registered/ first time day tour guest';
         } else {
@@ -803,30 +832,25 @@
         }
     });
 
-    // Image preview fallback
     const fileInput = document.getElementById('txtvalidid');
     const preview = document.getElementById('id-preview');
     const defaultImage = "{{ asset('images/photo.png') }}";
     let currentImage = defaultImage;
-
     fileInput.addEventListener('change', function () {
         const file = this.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function (e) {
                 preview.src = e.target.result;
-                currentImage = e.target.result; // Save valid image
+                currentImage = e.target.result;
             };
             reader.readAsDataURL(file);
         } else {
-            // If user cancels, revert to last known image
             preview.src = defaultImage;
         }
     });
 
-    // -------------------------------------- RECEIPT LOGIC --------------------------------------
     document.addEventListener('DOMContentLoaded', function () {
-        // Get all form elements
         const firstNameInput = document.getElementById('txtfirstname');
         const lastNameInput = document.getElementById('txtalstname');
         const guestAmountInput = document.getElementById('guestamount');
@@ -839,8 +863,6 @@
         const fullPaymentRadio = document.getElementById('full-payment');
         const downpaymentRadio = document.getElementById('downpayment');
         const amenityCheckboxes = document.querySelectorAll('.amenity-checkbox');
-
-        // Get all receipt elements
         const guestNameField = document.getElementById('guest-name-receipt');
         const guestAmountField = document.getElementById('guest-amount-receipt');
         const selectedAmenitiesList = document.getElementById('selected-amenities-list');
@@ -856,7 +878,7 @@
         const amountTenderedField = document.getElementById('amount-tendered');
         const changeField = document.getElementById('change-receipt');
         const cashAmountWrapper = document.getElementById('cash-amount-wrapper');
-
+        guestAmountInput.readOnly = true;
         let subtotal = 0;
         let discountAmount = 0;
         let totalAmount = 0;
@@ -871,26 +893,24 @@
             }
         }
 
-        function updateGuestAmount() {
-            const guestAmount = guestAmountInput ? guestAmountInput.value : '0';
-            if (guestAmountField) {
-                guestAmountField.textContent = guestAmount || '0';
-            }
+        function updateGuestCount() {
+            const adultCount = parseInt(adultGuestInput.value) || 0;
+            const childCount = parseInt(childGuestInput.value) || 0;
+            const total = adultCount + childCount;
+            guestAmountInput.value = total;
+            if (guestAmountField) guestAmountField.textContent = total;
         }
 
         function updateSelectedAmenities() {
             const selectedAmenities = [];
             const adultCount = parseInt(adultGuestInput ? adultGuestInput.value : '0') || 0;
             const childCount = parseInt(childGuestInput ? childGuestInput.value : '0') || 0;
-
             amenityCheckboxes.forEach(checkbox => {
                 if (checkbox.checked) {
                     const amenityName = checkbox.dataset.name;
                     const adultPrice = parseFloat(checkbox.dataset.adultPrice) || 0;
                     const childPrice = parseFloat(checkbox.dataset.childPrice) || 0;
-
                     const totalPrice = (adultPrice * adultCount) + (childPrice * childCount);
-
                     selectedAmenities.push({
                         name: amenityName,
                         adultPrice: adultPrice,
@@ -899,7 +919,6 @@
                     });
                 }
             });
-
             if (selectedAmenitiesList) {
                 selectedAmenitiesList.innerHTML = '';
                 if (selectedAmenities.length === 0) {
@@ -914,37 +933,26 @@
             }
         }
 
-        // Function to calculate totals
         function calculateTotals() {
             const adultCount = parseInt(adultGuestInput ? adultGuestInput.value : '0') || 0;
             const childCount = parseInt(childGuestInput ? childGuestInput.value : '0') || 0;
-
             let totalAdultPrice = 0;
             let totalChildPrice = 0;
             let totalAmenityPrice = 0;
-
-            // Calculate selected amenities total
             amenityCheckboxes.forEach(checkbox => {
                 if (checkbox.checked) {
                     const adultPrice = parseFloat(checkbox.dataset.adultPrice) || 0;
                     const childPrice = parseFloat(checkbox.dataset.childPrice) || 0;
-
                     totalAdultPrice += adultPrice * adultCount;
                     totalChildPrice += childPrice * childCount;
                     totalAmenityPrice += (adultPrice * adultCount) + (childPrice * childCount);
                 }
             });
-
-            // Update individual totals
             if (adultTotalField) adultTotalField.textContent = '₱ ' + totalAdultPrice.toFixed(2);
             if (childTotalField) childTotalField.textContent = '₱ ' + totalChildPrice.toFixed(2);
             if (amenityTotalField) amenityTotalField.textContent = '₱ ' + totalAmenityPrice.toFixed(2);
-
-            // Calculate subtotal
             subtotal = totalAmenityPrice;
             if (subtotalField) subtotalField.textContent = '₱ ' + subtotal.toFixed(2);
-
-            // Calculate discount
             if (discountSelect) {
                 const selectedOption = discountSelect.options[discountSelect.selectedIndex];
                 const discountDecimal = parseFloat(selectedOption.getAttribute('data-amount')) || 0;
@@ -952,23 +960,17 @@
                 discountAmount = discountDecimal * subtotal;
                 if (discountField) discountField.textContent = discountPercentage + '%';
             }
-
-            // Calculate total after discount
             totalAmount = subtotal - discountAmount;
             if (totalPriceField) totalPriceField.textContent = '₱ ' + totalAmount.toFixed(2);
-
-            // Calculate amount due based on payment type
             if (downpaymentRadio && downpaymentRadio.checked) {
-                amountDue = totalAmount * 0.5; // 50% downpayment
+                amountDue = totalAmount * 0.5;
             } else {
-                amountDue = totalAmount; // Full payment
+                amountDue = totalAmount;
             }
             if (amountDueField) amountDueField.textContent = '₱ ' + amountDue.toFixed(2);
         }
 
-        // Function to update payment information
         function updatePaymentInfo() {
-            // Update payment type
             if (paymentTypeField) {
                 if (fullPaymentRadio && fullPaymentRadio.checked) {
                     paymentTypeField.textContent = 'Full Payment';
@@ -978,8 +980,6 @@
                     paymentTypeField.textContent = 'N/A';
                 }
             }
-
-            // Update payment method
             if (paymentMethodField) {
                 if (cashRadio && cashRadio.checked) {
                     paymentMethodField.textContent = 'Cash';
@@ -989,8 +989,6 @@
                     paymentMethodField.textContent = 'N/A';
                 }
             }
-
-            // Update amount tendered and change
             if (cashRadio && cashRadio.checked) {
                 if (cashAmountWrapper) cashAmountWrapper.style.display = 'block';
                 const amountPaid = parseFloat(amountPaidInput ? amountPaidInput.value : '0') || 0;
@@ -1005,47 +1003,73 @@
             }
         }
 
-        // Main function to update entire receipt
         function updateReceipt() {
             updateGuestName();
-            updateGuestAmount();
+            updateGuestCount();
             updateSelectedAmenities();
             calculateTotals();
             updatePaymentInfo();
         }
 
-        // Add event listeners to all form fields
         if (firstNameInput) firstNameInput.addEventListener('blur', updateReceipt);
         if (lastNameInput) lastNameInput.addEventListener('blur', updateReceipt);
-        if (guestAmountInput) guestAmountInput.addEventListener('blur', updateReceipt);
-        if (adultGuestInput) adultGuestInput.addEventListener('blur', updateReceipt);
-        if (childGuestInput) childGuestInput.addEventListener('blur', updateReceipt);
-
-        // Amenity checkboxes
+        if (adultGuestInput) adultGuestInput.addEventListener('input', updateReceipt);
+        if (childGuestInput) childGuestInput.addEventListener('input', updateReceipt);
         amenityCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', updateReceipt);
         });
-
-        // Payment fields
         if (amountPaidInput) {
-            amountPaidInput.addEventListener('blur', updateReceipt);
-            amountPaidInput.addEventListener('input', updateReceipt); // real-time feedback
+            amountPaidInput.addEventListener('input', updateReceipt);
         }
         if (discountSelect) discountSelect.addEventListener('change', updateReceipt);
         if (cashRadio) cashRadio.addEventListener('change', updateReceipt);
         if (gcashRadio) gcashRadio.addEventListener('change', updateReceipt);
         if (fullPaymentRadio) fullPaymentRadio.addEventListener('change', updateReceipt);
         if (downpaymentRadio) downpaymentRadio.addEventListener('change', updateReceipt);
-
-        // Change listeners for number inputs
-        if (adultGuestInput) adultGuestInput.addEventListener('change', updateReceipt);
-        if (childGuestInput) childGuestInput.addEventListener('change', updateReceipt);
-        if (guestAmountInput) guestAmountInput.addEventListener('change', updateReceipt);
-
-        // Initialize the receipt
         updateReceipt();
+
+        function setupSuggestion(inputId, suggestionId) {
+            const input = document.getElementById(inputId);
+            const suggestionBox = document.getElementById(suggestionId);
+
+            input.addEventListener('input', async function () {
+                const query = this.value.trim();
+                suggestionBox.innerHTML = '';
+                suggestionBox.style.display = 'none';
+
+                if (query.length < 2) return;
+
+                const response = await fetch(`{{ route('receptionist.guestSuggestions') }}?q=${encodeURIComponent(query)}`);
+                const guests = await response.json();
+
+                if (guests.length > 0) {
+                    guests.forEach(g => {
+                        const li = document.createElement('li');
+                        li.textContent = `${g.firstname} ${g.lastname}`;
+                        li.style.padding = '8px';
+                        li.style.cursor = 'pointer';
+                        li.addEventListener('click', function () {
+                            input.value = g[inputId === 'txtfirstname' ? 'firstname' : 'lastname'];
+                            suggestionBox.innerHTML = '';
+                            suggestionBox.style.display = 'none';
+                        });
+                        li.addEventListener('mouseenter', () => li.style.background = '#f0f0f0');
+                        li.addEventListener('mouseleave', () => li.style.background = '#fff');
+                        suggestionBox.appendChild(li);
+                    });
+                    suggestionBox.style.display = 'block';
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!input.contains(e.target) && !suggestionBox.contains(e.target)) {
+                    suggestionBox.innerHTML = '';
+                    suggestionBox.style.display = 'none';
+                }
+            });
+        }
+
+        setupSuggestion('txtfirstname', 'firstname-suggestions');
+        setupSuggestion('txtlastname', 'lastname-suggestions');
     });
-
 </script>
-
-        

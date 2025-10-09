@@ -306,6 +306,7 @@ class SearchUserController extends Controller
 
         $menu = DB::table('menu')
             ->select('menu.*')
+            ->where('menu.itemtype', '!=', 'services')
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('menu.menuname', 'like', "%{$search}%")
@@ -316,8 +317,42 @@ class SearchUserController extends Controller
             })
             ->get();
         $uniqueMenuTypes = $menu->pluck('itemtype')->unique()->values();
+        $guest = BookingTable::join('guest', 'booking.guestID', 'guest.guestID')
+            ->whereDate('bookingstart', Carbon::today())
+            ->select(
+                'booking.*',
+                'guest.firstname',
+                'guest.lastname',
+            )
+            ->get();
+        return view('receptionist.order', compact('guest','menu', 'uniqueMenuTypes', 'search'));
+    }
 
-        return view('receptionist.order', compact('menu', 'uniqueMenuTypes', 'search'));
+    public function searchServices(Request $request){
+        $search = $request->input('search');
+
+        $menu = DB::table('menu')
+            ->select('menu.*')
+            ->where('menu.itemtype', '=', 'services')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('menu.menuname', 'like', "%{$search}%")
+                    ->orWhere('menu.itemtype', 'like', "%{$search}%")
+                    ->orWhere('menu.price', 'like', "%{$search}%")
+                    ->orWhere('menu.status', 'like', "%{$search}%");
+                });
+            })
+            ->get();
+        $uniqueMenuTypes = $menu->pluck('itemtype')->unique()->values();
+        $guest = BookingTable::join('guest', 'booking.guestID', 'guest.guestID')
+            ->whereDate('bookingstart', Carbon::today())
+            ->select(
+                'booking.*',
+                'guest.firstname',
+                'guest.lastname',
+            )
+            ->get();
+        return view('receptionist.services', compact('guest', 'menu', 'uniqueMenuTypes', 'search'));
     }
 
     public function searchLogs(Request $request)
@@ -366,6 +401,55 @@ class SearchUserController extends Controller
             ->paginate(10);
 
         return view('manager.feedback', compact('feedbacks'));
+    }
+
+    public function searchCheckin(Request $request){
+        $search = $request->input('search');
+        $today = Carbon::today()->toDateString();
+
+        $checkin = BookingTable::with(['roomBookings.room', 'cottageBookings.cottage', 'billing'])
+            ->join('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->select('booking.*', DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname"))
+            ->where('booking.status', 'Booked')
+            ->whereDate('booking.bookingstart', '<=', $today)
+            ->when($search, function($query, $search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('booking.bookingID', 'like', "%{$search}%")
+                    ->orWhere('booking.status', 'like', "%{$search}%")
+                    ->orWhere('booking.bookingstart', 'like', "%{$search}%")
+                    ->orWhere('booking.bookingend', 'like', "%{$search}%")
+                    ->orWhere('booking.totalprice', 'like', "%{$search}%")
+                    ->orWhere(DB::raw("CONCAT(guest.firstname, ' ', guest.lastname)"), 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('booking.bookingstart', 'desc')
+            ->paginate(10);
+
+        return view('receptionist.checkin', compact('checkin', 'today'));
+    }
+
+    public function searchCheckout(Request $request){
+        $search = $request->input('search');
+        $today = Carbon::today()->toDateString();
+
+        $checkout = BookingTable::with(['roomBookings.room', 'cottageBookings.cottage', 'billing'])
+            ->join('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->select('booking.*', DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname"))
+            ->where('booking.status', 'Ongoing')
+            ->when($search, function($query, $search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('booking.bookingID', 'like', "%{$search}%")
+                    ->orWhere('booking.status', 'like', "%{$search}%")
+                    ->orWhere('booking.bookingstart', 'like', "%{$search}%")
+                    ->orWhere('booking.bookingend', 'like', "%{$search}%")
+                    ->orWhere('booking.totalprice', 'like', "%{$search}%")
+                    ->orWhere(DB::raw("CONCAT(guest.firstname, ' ', guest.lastname)"), 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('booking.bookingend', 'desc')
+            ->paginate(10);
+
+        return view('receptionist.checkout', compact('checkout', 'today'));
     }
 
 }

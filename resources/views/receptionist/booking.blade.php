@@ -77,41 +77,65 @@
                     @endforeach
                 </div>
                 <div class="calendar-container">
+                    <div id="calendar-legend">
+                        <h3>Legend</h3>
+                        <div id="calendar-legend">
+                            <div class="legend-item"><span style="background:#1E90FF;"></span>Booked</div>
+                            <div class="legend-item"><span style="background:#FFD700;"></span>Pending</div>
+                            <div class="legend-item"><span style="background:#A9A9A9;"></span>Cancelled</div>
+                            <div class="legend-item"><span style="background:#32CD32;"></span>Finished</div>
+                            <div class="legend-item"><span style="background:#FF6347;"></span>Ongoing</div>
+                        </div>
+                    </div>
                     <div id="calendar"></div>
                 </div>
                 <div class="booking-container">
                     <div class="booking-filter">
-                        <div class="filter-card" data-filter="Today">
-                            <h2>Today</h2>
-                        </div>
-                        <div class="filter-card" data-filter="Pending">
-                            <h2>Unconfirmed</h2>
-                        </div>
-                        <div class="filter-card" data-filter="Confirmed">
-                            <h2>Upcoming</h2>
-                        </div>
+                        <select id="booking-status-select">
+                            <option value="Booked">Booked</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="Finished">Finished</option>
+                            <option value="Ongoing">Ongoing</option>
+                        </select>
                     </div>
-                    <h2>Bookings</h2>
+                    <h2>Booking Display</h2>
                     <div id="empty-message" style="display: none;">There are currently no bookings for this filter.</div>
-                        @foreach($bookingtoday as $today)
-                            <div class="booking-card" data-status="Today" data-url="{{url('receptionist/view_booking/' . $today->bookingID)}}">
-                                <h3>{{ $today->fullname }}</h3>
-                                <p>Check-in: {{ $today->bookingstart }}</p>
-                                <p>Check-out: {{ $today->bookingend }}</p>
+                        @foreach($booked as $booked)
+                            <div class="booking-card" data-status="Booked" data-url="{{url('receptionist/view_booking/' . $booked->bookingID)}}" style="background:#1E90FF;">
+                                <h3>{{ $booked->fullname }}</h3>
+                                <p>Check-in: {{ $booked->bookingstart }}</p>
+                                <p>Check-out: {{ $booked->bookingend }}</p>
                             </div>
                         @endforeach
-                        @foreach($bookingpending as $pending)
-                            <div class="booking-card" data-status="Pending" data-url="{{url('receptionist/view_booking/' . $pending->bookingID)}}">
+                        @foreach($pending as $pending)
+                            <div class="booking-card" data-status="Pending" data-url="{{url('receptionist/view_booking/' . $pending->bookingID)}}" style="background:#FFD700;">
                                 <h3>{{ $pending->fullname }}</h3>
                                 <p>Check-in: {{ $pending->bookingstart }}</p>
                                 <p>Check-out: {{ $pending->bookingend }}</p>
                             </div>
                         @endforeach
-                        @foreach($bookingconfirmed as $confirmed)
-                            <div class="booking-card" data-status="Confirmed" data-url="{{url('receptionist/view_booking/' . $confirmed->bookingID)}}">
-                                <h3>{{ $confirmed->fullname }}</h3>
-                                <p>Check-in: {{ $confirmed->bookingstart }}</p>
-                                <p>Check-out: {{ $confirmed->bookingend }}</p>
+                        @foreach($cancelled as $cancelled)
+                            <div class="booking-card" data-status="Cancelled" data-url="{{url('receptionist/view_booking/' . $cancelled->bookingID)}}" style="background:#A9A9A9;">
+                                <h3>{{ $cancelled->fullname }}</h3>
+                                <p>Check-in: {{ $cancelled->bookingstart }}</p>
+                                <p>Check-out: {{ $cancelled->bookingend }}</p>
+                            </div>
+                        @endforeach
+
+                        @foreach($finished as $finished)
+                            <div class="booking-card" data-status="Finished" data-url="{{url('receptionist/view_booking/' . $finished->bookingID)}}" style="background:#32CD32;">
+                                <h3>{{ $finished->fullname }}</h3>
+                                <p>Check-in: {{ $finished->bookingstart }}</p>
+                                <p>Check-out: {{ $finished->bookingend }}</p>
+                            </div>
+                        @endforeach
+
+                        @foreach($ongoing as $ongoing)
+                            <div class="booking-card" data-status="Ongoing" data-url="{{url('receptionist/view_booking/' . $ongoing->bookingID)}}" style="background:#FF6347;">
+                                <h3>{{ $ongoing->fullname }}</h3>
+                                <p>Check-in: {{ $ongoing->bookingstart }}</p>
+                                <p>Check-out: {{ $ongoing->bookingend }}</p>
                             </div>
                         @endforeach
                 </div>
@@ -252,6 +276,35 @@
         border:black 1px solid;
         box-shadow:.1rem .1rem 0 black;
     }
+     #calendar-legend { 
+        display:flex; 
+        flex-direction:row; 
+        gap:.3rem; 
+        background:#fffaf0; 
+        padding:.5rem; 
+        border-radius:.5rem;
+        border:1px solid #ccc; 
+        margin-top:.5rem; 
+        font-size:.8rem; 
+        justify-content: center;
+        align-items: center;
+    }
+    #calendar-legend h3 { 
+        margin-bottom:.3rem; 
+        font-size:.9rem; 
+    }
+    .legend-item { 
+        display:flex; 
+        align-items:center; 
+        gap:.5rem; 
+    }
+    .legend-item span { 
+        width:1rem; 
+        height:1rem; 
+        border-radius:.2rem; 
+        display:inline-block; 
+        border:1px solid black; 
+    }
     #calendar {
         width: 100%;
         height: 100%;
@@ -298,15 +351,25 @@
         flex-direction: row;
         gap: .5rem;
         margin-bottom: .5rem;
-        height:2rem;
+        height:2.5rem;
         width: 100%;   
     }
-    .filter-card.active {
-        background: orange;
+    #booking-status-select {
+        display: block;
+        width: 100%;
+        background: #fff;
         color: black;
         font-weight: bold;
-        border: 2px solid black;
+        border: 1px solid black;
+        border-radius: 0.5rem;
+        box-shadow: 0.1rem 0.1rem 0 black;
+        padding: 0.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+        box-sizing: border-box;
     }
+
+
     #filter-container .filter-card.active {
         background: orange;
         color: black;
@@ -340,136 +403,110 @@
     }
 </style>    
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.booking-card').forEach(function(card) {
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.booking-card').forEach(card => {
         card.addEventListener('click', function () {
-            const url = this.getAttribute('data-url');
-            if (url) {
-                window.location.href = url;
+            const url = this.dataset.url;
+            if (url) window.location.href = url;
+        });
+    });
+
+    const addBtns = document.querySelectorAll('#add-action');
+    addBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+            window.location.href = this.dataset.url;
+        });
+    });
+
+    const bookingSelect = document.getElementById('booking-status-select');
+    const bookingCards = document.querySelectorAll('.booking-card');
+    const bookingEmptyMessage = document.getElementById('empty-message');
+    const bookingMessages = {
+        Booked: 'There are no booked reservations.',
+        Pending: 'There are no pending bookings.',
+        Cancelled: 'There are no cancelled bookings.',
+        Finished: 'There are no finished bookings.',
+        Ongoing: 'There are no ongoing bookings.'
+    };
+
+    function updateBookingFilter(status) {
+        let hasMatch = false;
+        bookingCards.forEach(card => {
+            if (card.dataset.status === status) {
+                card.style.display = 'flex';
+                hasMatch = true;
+            } else {
+                card.style.display = 'none';
             }
         });
+        bookingEmptyMessage.textContent = hasMatch ? '' : bookingMessages[status];
+        bookingEmptyMessage.style.display = hasMatch ? 'none' : 'block';
+    }
+
+    if (bookingSelect) updateBookingFilter(bookingSelect.value);
+    if (bookingSelect) {
+        bookingSelect.addEventListener('change', function () {
+            updateBookingFilter(this.value);
+        });
+    }
+
+    const roomFilterCards = document.querySelectorAll('#filter-container .filter-card');
+    const roomCards = document.querySelectorAll('.room-card');
+    const roomEmptyMessage = document.getElementById('room-empty-message');
+
+    function updateRoomFilter(category) {
+        let hasMatch = false;
+        roomCards.forEach(card => {
+            if (card.dataset.category === category) {
+                card.style.display = 'flex';
+                hasMatch = true;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        roomEmptyMessage.textContent = hasMatch ? '' : `No ${category}s available.`;
+        roomEmptyMessage.style.display = hasMatch ? 'none' : 'block';
+    }
+
+    roomFilterCards.forEach(card => {
+        card.addEventListener('click', function () {
+            roomFilterCards.forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            updateRoomFilter(this.dataset.filter);
+        });
     });
 
-        const message = document.querySelector('.alert-message');
-        if (message) {
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 3500);
-        }
-        // ===== Redirect on Add Booking Click =====
-        const addBtns = document.querySelectorAll('#add-action');
-        addBtns.forEach(btn => {
-            btn.addEventListener('click', function () {
-                window.location.href = this.dataset.url;
-            });
+    if (roomFilterCards.length > 0) roomFilterCards[0].click();
+
+    let calendarEl = document.getElementById('calendar');
+    if (calendarEl) {
+        let calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            height: '90%',
+            handleWindowResize: true,
+            events: function(fetchInfo, successCallback, failureCallback) {
+                fetch(`/receptionist/events?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}`)
+                    .then(response => response.json())
+                    .then(data => successCallback(data))
+                    .catch(error => failureCallback(error));
+            },
+            eventClick: function(info) {
+                const bookingID = info.event.id;
+                window.location.href = `/receptionist/view_booking/${bookingID}`;
+            },
+            eventDidMount: function(info) {
+                info.el.style.height = '2.2rem';
+                info.el.style.overflow = 'hidden';
+                info.el.style.whiteSpace = 'nowrap';
+                info.el.style.textOverflow = 'ellipsis';
+                info.el.style.cursor = "pointer";
+                info.el.style.borderRadius = '.3rem';
+            },
         });
+        calendar.render();
+    }
+});
 
-        // ===== Booking Filter (Today, Pending, Confirmed) =====
-        const bookingFilterCards = document.querySelectorAll('.booking-filter .filter-card');
-        const bookingCards = document.querySelectorAll('.booking-card');
-        const bookingEmptyMessage = document.getElementById('empty-message');
-
-        const bookingMessages = {
-            Today: 'There are no bookings for today.',
-            Pending: 'There are no pending bookings.',
-            Confirmed: 'There are no confirmed bookings.'
-        };
-
-        function updateBookingFilter(filterType) {
-            let hasMatch = false;
-
-            bookingCards.forEach(card => {
-                const status = card.getAttribute('data-status');
-                if (status === filterType) {
-                    card.style.display = 'flex';
-                    hasMatch = true;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            bookingEmptyMessage.textContent = hasMatch ? '' : bookingMessages[filterType];
-            bookingEmptyMessage.style.display = hasMatch ? 'none' : 'block';
-        }
-
-        bookingFilterCards.forEach(card => {
-            card.addEventListener('click', function () {
-                bookingFilterCards.forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
-
-                const filterType = this.getAttribute('data-filter');
-                updateBookingFilter(filterType);
-            });
-        });
-
-        if (bookingFilterCards.length > 0) {
-            bookingFilterCards[0].click(); // Trigger default filter
-        }
-
-        // ===== Room/Cottage/Amenity Filter =====
-        const roomFilterCards = document.querySelectorAll('#filter-container .filter-card');
-        const roomCards = document.querySelectorAll('.room-card');
-        const roomEmptyMessage = document.getElementById('room-empty-message');
-
-        function updateRoomFilter(category) {
-            let hasMatch = false;
-
-            roomCards.forEach(card => {
-                const cardCategory = card.getAttribute('data-category');
-                if (cardCategory === category) {
-                    card.style.display = 'flex';
-                    hasMatch = true;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            roomEmptyMessage.textContent = `No ${category} available.`;
-            roomEmptyMessage.style.display = hasMatch ? 'none' : 'block';
-        }
-
-        roomFilterCards.forEach(card => {
-            card.addEventListener('click', function () {
-                roomFilterCards.forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
-
-                const category = this.getAttribute('data-filter');
-                updateRoomFilter(category);
-            });
-        });
-
-        if (roomFilterCards.length > 0) {
-            roomFilterCards[0].click(); 
-        }
-
-        // ===== FullCalendar Setup =====
-        let calendarEl = document.getElementById('calendar');
-        if (calendarEl) {
-            let calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                selectable: false,
-                editable: false,
-                events: @json(url('receptionist/events')),
-                eventClick: function (info) {
-                    const bookingID = info.event.id;
-                    window.location.href = `/receptionist/view_booking/${bookingID}`;
-                },
-                eventDidMount: function(info) {
-                    info.el.style.height = '2.5rem';
-                    info.el.style.lineHeight = '2.5rem';
-                    info.el.style.overflow = 'hidden';
-                    info.el.style.whiteSpace = 'nowrap';
-                    info.el.style.textOverflow = 'ellipsis';
-                    info.el.style.cursor = "pointer";
-                    info.el.style.zIndex = '999';
-                    info.el.style.position = 'relative';
-                    info.el.style.marginTop = '-.5rem';
-                },
-            });
-
-            calendar.render();
-        }
-    });
 </script>
 
 </html>

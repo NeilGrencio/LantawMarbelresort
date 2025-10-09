@@ -23,7 +23,7 @@
         display:flex;
         flex-direction: column;
         padding:1rem;
-        width:85%;
+        width:100%;
         gap:.5rem;
         transition: width 0.3s ease-in-out;
         margin-left:12rem;
@@ -45,6 +45,19 @@
         justify-content: space-between; 
         gap: 1rem;
         font-size: .9rem;
+    }
+    #add-container{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+    }
+    .add-action{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+        cursor: pointer;
     }
     .check-wrapper{
         display:grid;
@@ -288,6 +301,16 @@
         <div id="main-layout">
             <div id="layout-header">
                 <h1>Check-in / Check-out</h1>
+                <div id="add-container">
+                    <div class="add-action" data-url="{{ url('receptionist/checkin_list') }}">
+                        <i class="fa-solid fa-arrow-right-to-bracket fa-2x"></i>
+                        <small>Check In List</small>
+                    </div>
+                    <div class="add-action" data-url="{{ url('receptionist/checkout_list') }}">
+                        <i class="fa-solid fa-arrow-right-from-bracket fa-2x"></i>
+                        <small>Check Out Booking</small>
+                    </div>
+                </div>
             </div>
 
             <div class="check-wrapper">
@@ -424,11 +447,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const cards = document.querySelectorAll('.check-card');
-        // Cache DOM elements
+        const actions = document.querySelectorAll('.add-action');
         const message = document.querySelector('.alert-message');
-        
 
-        // Hide alert message after 3.5 seconds
         if (message) {
             setTimeout(() => {
                 message.style.display = 'none';
@@ -444,7 +465,15 @@
             });
         });
 
-        // Initialize FullCalendar
+        actions.forEach(function(action) {
+            action.addEventListener('click', function() {
+                const url = action.dataset.url;
+                if (url) {
+                    window.location.href = url;
+                }
+            });
+        });
+
         const calendarEl = document.getElementById('calendar');
         if (calendarEl) {
             let calendar = new FullCalendar.Calendar(calendarEl, {
@@ -452,10 +481,8 @@
                 selectable: false,
                 editable: false,
                 events: @json(url('receptionist/checkEvents')),
-                eventClick: function (info) {
-                    // Handle event click here if needed
-                },
-                eventDidMount: function (info) {
+                eventClick: function(info) {},
+                eventDidMount: function(info) {
                     const el = info.el;
                     el.style.height = '2rem';
                     el.style.lineHeight = '1.5rem';
@@ -473,6 +500,4 @@
         }
     });
 </script>
-
-
 </html>

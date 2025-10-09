@@ -11,7 +11,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <style>
-    #booking{color:orange;}
+    #billingside{color:orange !important;}
     #layout{
         display: flex;
         flex-direction: row;
@@ -278,6 +278,19 @@
     .close-btn:hover {
         color: #F78A21;
     }
+    #add-container{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+    }
+    .add-action{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+        cursor: pointer;
+    }
 
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-10px); }
@@ -292,6 +305,10 @@
             <div id="layout-header">
                 <h1>Billing</h1>
                 <div class="button-group">
+                    <div class="add-action" data-url="{{ url('receptionist/revenue_pdf') }}">
+                        <i class="fa-solid fa-print fa-2x"></i>
+                        <small>Revenue Report</small>
+                    </div>
                     <div class="search-container">
                         <form action="{{ route('receptionist.search_billing') }}" method="GET">
                             <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
@@ -306,17 +323,6 @@
                 </div>
             </div>
             <div class="billing-container">
-                <div class="filter-wrapper">
-                    <div class="filter-card" data-filter="all">
-                        <strong>All</strong>
-                    </div>
-                    <div class="filter-card" data-filter="booking">
-                        <strong>Booking</strong>
-                    </div>
-                        <div class="filter-card">
-                    </div>
-                </div>
-
                 <div class="table-wrapper">
                     <table>
                         <thead>
@@ -345,10 +351,14 @@
                                         data-tender="{{ $bill->totaltender }}"
                                         data-total="{{ $bill->totalamount }}"
                                         data-amenity="{{ $bill->amenity_total }}"
-                                        data-menu="{{ $bill->menu_total }}">
+                                        data-menu="{{ $bill->menu_total }}"
+                                        data-room="{{ $bill->room_total }}"
+                                        data-cottage="{{ $bill->cottage_total }}"
+                                        data-additional="{{ $bill->additional_total }}">
                                         View
                                     </a>
-                                    <a href="{{ route('/edit_billing', ['id' => $bill->id]) }}">Edit</a>
+                                </td>
+                                    {{--<a href="{{ route('/edit_billing', ['id' => $bill->id]) }}">Edit</a>--}}
                                 </td>
                             </tr>
                             @endforeach
@@ -367,15 +377,18 @@
                     <div id="billingDetails">
                         <p><strong>Billing #:</strong> <span id="modalBillingNo"></span></p>
                         <p><strong>Guest Name:</strong> <span id="modalGuestName"></span></p>
-                        <p><strong>Amount Tendered:</strong> ₱<span id="modalTender"></span></p>
-                        <p><strong>Remaining Amount:</strong> ₱<span id="modalTotal"></span></p>
+                        <p><strong>Amount Tendered:</strong> ₱<span id="modalTenderTop"></span></p>
+                        <p><strong>Remaining Amount:</strong> ₱<span id="modalRemaining"></span></p>
                         <hr>
                         <div id="modalBreakdown">
                             <p><strong>Amenity Total:</strong> ₱<span id="modalAmenity"></span></p>
                             <p><strong>Menu Total:</strong> ₱<span id="modalMenu"></span></p>
+                            <p><strong>Room Total:</strong> ₱<span id="modalRoom"></span></p>
+                            <p><strong>Cottage Total:</strong> ₱<span id="modalCottage"></span></p>
+                            <p><strong>Additional Charges:</strong> ₱<span id="modalAdditional"></span></p> 
                             <hr>
-                            <p><strong>Grand Total:</strong> ₱<span id="modalTotal"></span></p>
-                            <p><strong>Amount Tendered:</strong> ₱<span id="modalTender"></span></p>
+                            <p><strong>Grand Total:</strong> ₱<span id="modalGrandTotal"></span></p>
+                            <p><strong>Amount Tendered:</strong> ₱<span id="modalTenderBottom"></span></p>
                             <p><strong>Balance:</strong> ₱<span id="modalBalance"></span></p>
                         </div>
                     </div>
@@ -388,34 +401,57 @@
         const modal = document.getElementById('billingModal');
         const closeBtn = document.querySelector('.close-btn');
 
+        document.querySelectorAll('.add-action').forEach(button => {
+            button.addEventListener('click', function () {
+                const url = this.getAttribute('data-url');
+                if (url) {
+                    window.open(url, '_blank');
+                }
+            });
+        });
+
         document.querySelectorAll('.view-billing-btn').forEach(button => {
             button.addEventListener('click', function (e) {
                 e.preventDefault();
 
-                const billingNo = this.dataset.billingNo;
-                const guestName = this.dataset.guestName;
+                const billingNo = this.dataset.billingNo || '';
+                const guestName = this.dataset.guestName || '';
                 const tender = parseFloat(this.dataset.tender || 0);
                 const total = parseFloat(this.dataset.total || 0);
                 const amenity = parseFloat(this.dataset.amenity || 0);
                 const menu = parseFloat(this.dataset.menu || 0);
+                const room = parseFloat(this.dataset.room || 0);
+                const cottage = parseFloat(this.dataset.cottage || 0);
+                const additional = parseFloat(this.dataset.additional || 0);
 
-                const balance = tender - total;
+                const grandTotal = amenity + menu + room + cottage + additional;
+                const balance = grandTotal - tender;
 
                 document.getElementById('modalBillingNo').textContent = billingNo;
                 document.getElementById('modalGuestName').textContent = guestName;
                 document.getElementById('modalAmenity').textContent = amenity.toFixed(2);
                 document.getElementById('modalMenu').textContent = menu.toFixed(2);
-                document.getElementById('modalTotal').textContent = total.toFixed(2);
-                document.getElementById('modalTender').textContent = tender.toFixed(2);
+                document.getElementById('modalRoom').textContent = room.toFixed(2);
+                document.getElementById('modalCottage').textContent = cottage.toFixed(2);
+                document.getElementById('modalAdditional').textContent = additional.toFixed(2);
+                document.getElementById('modalGrandTotal').textContent = grandTotal.toFixed(2);
+                document.getElementById('modalTenderTop').textContent = tender.toFixed(2);
+                document.getElementById('modalTenderBottom').textContent = tender.toFixed(2);
+                document.getElementById('modalRemaining').textContent = balance.toFixed(2);
                 document.getElementById('modalBalance').textContent = balance.toFixed(2);
 
                 modal.style.display = 'flex';
             });
         });
 
-        closeBtn.onclick = () => modal.style.display = 'none';
-        window.onclick = (e) => {
-            if (e.target === modal) modal.style.display = 'none';
-        };
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
     });
 </script>

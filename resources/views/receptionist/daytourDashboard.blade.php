@@ -6,9 +6,12 @@
 <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
 <title>Lantaw-Marbel Resort</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     .main-container{
         display:grid;
+        height:88vh;
+        padding:.5rem;
         grid-template-columns: 2fr .5fr;
         gap:.5rem;
         position:relative;
@@ -31,12 +34,12 @@
         display:flex;
         flex-direction: column;
         padding:1rem;
-        width:85%;
+        width:100%;
         height:100vh;
         transition: width 0.3s ease-in-out;
         margin-left:12rem;
         margin-right:.7rem;
-        overflow-y: auto;
+        overflow-y: hidden;
         overflow-x: hidden;
         gap:.5rem;
     } 
@@ -140,18 +143,16 @@
         border: 1px solid #F78A21;
     }
 
-    .qr-container{
+    .qr-container {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        gap:.5rem;
+        gap: .5rem;
         width: 100%;
-        height: auto;
-        padding: .5rem;
+        height: 100%;
         border-radius: .7rem;
-        margin-top: 1rem;
-        align-items: center;
-        align-content: center;
+        padding: .5rem;
+        overflow-y: auto;
     }
     .qr-card {
         display: flex;
@@ -187,19 +188,26 @@
         font-size:.7rem;
         align-self: start;
     }
-    .amenity-container{
-        display:flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        gap:.5rem;
-    }
-    .amenity-card{
+    .amenity-container {
         display: flex;
-        background:white;
-        border-radius:.4rem;
-        box-shadow:.1rem .1rem 0 black;
-        padding:.4rem;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: center;
+        gap: .5rem;
+        width: 100%;
+        padding: .5rem;
+        border-radius: .5rem;
+    }
+
+    .amenity-card {
+        display: flex;
+        align-items: center;
+        background: white;
+        border-radius: .4rem;
+        box-shadow: .05rem .05rem 0 black;
+        padding: .4rem .7rem;
+        font-size: .75rem;
+        white-space: nowrap;
     }
     .add-action{
         display:flex;
@@ -208,6 +216,55 @@
         justify-content:space-evenly;
         height:100%;
         font-size: .8rem;
+    }
+    .capacity-container{
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: auto;
+        border-radius: .7rem;
+        margin-top: 1rem;
+        background: white;
+        box-shadow: .1rem .1rem 0 black;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+    .modal{
+        display:none;
+        position:fixed;
+        z-index:2000;
+        left:0;
+        top:0;
+        width:100%;
+        height:100%;
+        background-color:rgba(0,0,0,0.7);
+        justify-content:center;
+        align-items:center;
+    }
+    .modal-content{
+        background:white;
+        padding:1rem;
+        border-radius:.7rem;
+        box-shadow:0 0 1rem rgba(0,0,0,0.5);
+        max-width:80vw;
+        max-height:80vh;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+    }
+    .modal-content img{
+        max-width:100%;
+        max-height:70vh;
+        object-fit:contain;
+    }
+    .close-modal{
+        position:absolute;
+        top:1rem;
+        right:1.5rem;
+        font-size:2rem;
+        color:white;
+        cursor:pointer;
     }
     .alert-message{
         display: flex;
@@ -263,54 +320,150 @@
             </div>
         </div>
 
-        @if(session('success'))
-            <div class="alert alert-success mt-4">
-                {{ session('success') }}
-            </div>
-        @endif
-        <div class="amenity-container">
-            @foreach($amenity as $a)
-            <div class="amenity-card">
-                <small>{{$a->amenityname}} is currently <strong>{{$a->status}}</strong></small>
-            </div>
-            @endforeach
-        </div>
-        <div class="qr-container">
-            <div class="qr-label"><h2>Today</h2></div>
-            @foreach($recent as $rec)
-                <div class="qr-card">
-                    <img src="{{ route('qr.code', ['filename' => basename($rec->qrcode)]) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
-                    <p><strong>Guest:</strong>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{ $rec->guest->firstname }} {{ $rec->guest->lastname }}</p>
-                    <p><strong>Amenity:</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       {{ $rec->amenity->amenityname }}</p>
-                    <p><strong>Access Date:</strong> &nbsp;&nbsp;&nbsp;&nbsp;{{ $rec->accessdate }}</p>
-                    
+            <div class="main-container">
+                <div class="qr-container">
+                    <div class="amenity-container">
+                        @foreach($amenity as $a)
+                        <div class="amenity-card">
+                            <small>{{$a->amenityname}} is currently <strong>{{$a->status}}</strong></small>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    <div class="qr-label"><h2>Today</h2></div>
+                    @foreach($recent as $rec)
+                        <div class="qr-card">
+                            <img src="{{ route('qr.code', ['filename' => basename($rec->qrcode)]) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
+                            <p><strong>Guest:</strong>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{ $rec->guest->firstname }} {{ $rec->guest->lastname }}</p>
+                            <p><strong>Amenity:</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       {{ $rec->amenity->amenityname }}</p>
+                            <p><strong>Access Date:</strong> &nbsp;&nbsp;&nbsp;&nbsp;{{ $rec->accessdate }}</p>
+                            
+                        </div>
+                    @endforeach
+                    <div class="qr-label"><h2>All QRCODES</h2></div>
+                    @foreach($qrcode as $qr)    
+                        <div class="qr-card">
+                            <img src="{{ route('qr.code', ['filename' => basename($qr->qrcode)]) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
+                            <p><strong>Guest:</strong>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{ $qr->guest->firstname }} {{ $qr->guest->lastname }}</p>
+                            <p><strong>Amenity:</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       {{ $qr->amenity->amenityname }}</p>
+                            <p><strong>Access Date:</strong> &nbsp;&nbsp;&nbsp;&nbsp;{{ $qr->accessdate }}</p>
+                            
+                        </div>
+                    @endforeach
                 </div>
-            @endforeach
-            <div class="qr-label"><h2>All QRCODES</h2></div>
-            @foreach($qrcode as $qr)    
-                <div class="qr-card">
-                    <img src="{{ route('qr.code', ['filename' => basename($qr->qrcode)]) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
-                    <p><strong>Guest:</strong>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{ $qr->guest->firstname }} {{ $qr->guest->lastname }}</p>
-                    <p><strong>Amenity:</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       {{ $qr->amenity->amenityname }}</p>
-                    <p><strong>Access Date:</strong> &nbsp;&nbsp;&nbsp;&nbsp;{{ $qr->accessdate }}</p>
-                    
+                <div class="capacity-container">
+                    <h3>Amenities Capacity Overview (Today)</h3>
+
+                    @foreach($differentAmenities as $amenitynames)
+                        <div style="margin-bottom: 40px;">
+                            <h4>{{ $amenitynames }}</h4>
+                            <canvas id="chart-{{ Str::slug($amenitynames) }}" width="400" height="200"></canvas>
+                        </div>
+                    @endforeach
                 </div>
-            @endforeach
+            </div>
+            @if(session('success'))
+                <div class="alert alert-success mt-4">
+                    {{ session('success') }}
+                </div>
+            @endif
         </div>
+    </div>
+</div>
+<div id="qrModal" class="modal">
+    <span class="close-modal">&times;</span>
+    <div class="modal-content">
+        <img id="modalImage" src="">
     </div>
 </div>
 </body>
 <script>
-   document.addEventListener("DOMContentLoaded", function() {
-    const createDayTour = document.getElementById('add-action');
-    
-    if (createDayTour) { 
-        const url = createDayTour.dataset.url;
+    document.addEventListener("DOMContentLoaded", function() {
+        const createDayTour = document.getElementById('add-action');
+        if (createDayTour) {
+            const url = createDayTour.dataset.url;
+            createDayTour.addEventListener('click', function() {
+                window.location.href = url;
+            });
+        }
 
-        createDayTour.addEventListener('click', function() {
-            window.location.href = url;
+        const qrImages = document.querySelectorAll('.qr-card img');
+        const modal = document.getElementById('qrModal');
+        const modalImg = document.getElementById('modalImage');
+        const closeModal = document.querySelector('.close-modal');
+
+        qrImages.forEach(img => {
+            img.style.cursor = 'pointer';
+            img.addEventListener('click', function() {
+                modal.style.display = 'flex';
+                modalImg.src = this.src;
+            });
         });
-    }
-});
 
+        closeModal.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        const amenities = @json($amenitiesData);
+
+        const grouped = {};
+        amenities.forEach(item => {
+            if (!grouped[item.amenityname]) grouped[item.amenityname] = [];
+            grouped[item.amenityname].push(item);
+        });
+
+        Object.keys(grouped).forEach(amenity => {
+            const data = grouped[amenity][0];
+            const ctx = document.getElementById(`chart-${slugify(amenity)}`);
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Used', 'Available'],
+                        datasets: [{
+                            label: 'Capacity Status',
+                            data: [data.used, data.available],
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(75, 192, 192, 0.6)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(75, 192, 192, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: `${amenity} (Total Capacity: ${data.capacity})`
+                            },
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Capacity' }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        function slugify(text) {
+            return text.toString().toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w-]+/g, '');
+        }
+    });
 </script>

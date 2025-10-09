@@ -193,6 +193,7 @@
       </div>
     </div>
   </div>
+
   <!-- Password Reset Modal -->
   <div id="reset-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; justify-content:center; align-items:center;">
     <div id="modal-loading" style="display:none; justify-content:center; align-items:center; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); z-index:200;">
@@ -221,11 +222,7 @@
         <label>
           New Password:
           <div style="position:relative;">
-<<<<<<< HEAD
             <input id="new-password" type="password" name="password" placeholder="New Password" required style="width:100%;" />
-=======
-            <input id="new-password" type="password" placeholder="New Password" required style="width:100%;" />
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
             <i class="fa-solid fa-eye-slash fa-lg" id="toggle-new-password" style="position:absolute; right:1rem; top:0.7rem;"></i>
           </div>
           <div id="password-strength" style="margin-top:0.3rem; font-size:0.9rem;"></div>
@@ -233,11 +230,7 @@
         <label>
           Confirm New Password:
           <div style="position:relative;">
-<<<<<<< HEAD
             <input id="confirm-password" type="password" name="password_confirmation" placeholder="Confirm Password" required style="width:100%;" />
-=======
-            <input id="confirm-password" type="password" placeholder="Confirm Password" required style="width:100%;" />
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
             <i class="fa-solid fa-eye-slash fa-lg" id="toggle-confirm-password" style="position:absolute; right:1rem; top:0.7rem;"></i>
           </div>
         </label>
@@ -247,7 +240,8 @@
       </div>
     </div>
   </div>
-    <script>
+
+  <script>
     const password = document.getElementById('password');
     const togglePassword = document.getElementById('password-toggle');
     togglePassword.addEventListener('click', function () {
@@ -272,7 +266,6 @@
     const resetOtp = document.getElementById('reset-otp');
     const newPassword = document.getElementById('new-password');
     const confirmPassword = document.getElementById('confirm-password');
-    const passwordStrength = document.getElementById('password-strength');
     const toggleNewPassword = document.getElementById('toggle-new-password');
     const toggleConfirmPassword = document.getElementById('toggle-confirm-password');
     const modalLoading = document.getElementById('modal-loading');
@@ -283,19 +276,17 @@
     forgotLink.addEventListener('click', () => { resetModal.style.display = 'flex'; });
     closeResetModal.addEventListener('click', () => { resetModal.style.display = 'none'; });
 
-    // Helper to safely parse JSON
     async function parseJsonSafe(res) {
       const text = await res.text();
       try { return JSON.parse(text); } catch { return { success: false, message: text }; }
     }
 
-    // Send OTP
     sendOtpBtn.addEventListener('click', () => {
       const username = resetUsername.value.trim();
       if (!username) { resetError.textContent = 'Please enter your username.'; return; }
       resetError.textContent = ''; showLoading();
       fetch('{{ url("auth/send_OTP") }}', {
-        method: 'post',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
         body: JSON.stringify({ username })
       })
@@ -306,7 +297,6 @@
       }).catch(e => { hideLoading(); resetError.textContent = 'Error: ' + e.message; });
     });
 
-    // Verify OTP
     verifyOtpBtn.addEventListener('click', () => {
       const username = resetUsername.value.trim();
       const otp = resetOtp.value.trim();
@@ -324,7 +314,6 @@
       }).catch(e => { hideLoading(); otpError.textContent = 'Error: ' + e.message; });
     });
 
-    // Save new password
     savePasswordBtn.addEventListener('click', () => {
       const username = resetUsername.value.trim();
       const otp = resetOtp.value.trim();
@@ -338,15 +327,12 @@
       fetch('{{ url("auth/reset_password") }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-<<<<<<< HEAD
         body: JSON.stringify({
           username: resetUsername.value.trim(),
           otp: resetOtp.value.trim(),
           password: password,
-          password_confirmation: confirm })
-=======
-        body: JSON.stringify({ username, otp, password })
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
+          password_confirmation: confirm
+        })
       })
       .then(parseJsonSafe).then(data => {
         hideLoading();
@@ -357,7 +343,6 @@
       }).catch(e => { hideLoading(); passwordError.textContent = 'Error: ' + e.message; });
     });
 
-    // Toggle password visibility inside modal
     toggleNewPassword.addEventListener('click', () => {
       newPassword.type = newPassword.type === 'text' ? 'password' : 'text';
       toggleNewPassword.className = newPassword.type === 'text' ? 'fa-solid fa-eye fa-lg' : 'fa-solid fa-eye-slash fa-lg';
@@ -368,8 +353,4 @@
     });
   </script>
 </body>
-<<<<<<< HEAD
 </html>
-=======
-</html>
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be

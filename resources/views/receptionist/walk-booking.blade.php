@@ -88,7 +88,6 @@
                         </div>
                         
                         <!--Amenity Selection-->
-                        <!--Amenity Selection-->
                         <div class="label-container toggle-header" data-target="amenity-content">
                             <h2>Amenity Selection</h2>
                             <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
@@ -134,21 +133,58 @@
                         <button type="button" id="alreadyLogin" class="hide_info"><i class="fa-solid fa-circle-info"></i> &nbsp;Click here if guest already has account</button>
                     </div>
                     <div class="guest-info-container">
-                        <div>
-                            <label id="label" for="firstname">Firstname:
-                                <input class="input" type="text" id="firstname" name="firstname" value="{{ old('firstname') }}" required>
-                            </label>
-                            
-                            @error('firstname')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                            <label id="label" for="lastname">Lastname:
-                                <input class="input" type="text" id="lastname" name="lastname" value="{{ old('lastname') }}" required>
-                            </label>
-                            
-                            @error('lastname')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                            <div>
+                            <div style="position: relative; display: inline-block; width: 48%; vertical-align: top;">
+                                <label id="label" for="firstname">Firstname:
+                                    <input class="input" type="text" id="firstname" name="firstname"
+                                        value="{{ old('firstname') }}" autocomplete="off" required>
+                                </label>
+                                <ul id="firstname-suggestions" style="
+                                    position: absolute;
+                                    top: 100%;
+                                    left: 0;
+                                    right: 0;
+                                    background: #fff;
+                                    border: 1px solid #ccc;
+                                    border-radius: 5px;
+                                    list-style: none;
+                                    padding: 0;
+                                    margin: 2px 0 0;
+                                    display: none;
+                                    max-height: 150px;
+                                    overflow-y: auto;
+                                    z-index: 1000;
+                                "></ul>
+                                @error('firstname')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div style="position: relative; display: inline-block; width: 48%; vertical-align: top; margin-left: 4%;">
+                                <label id="label" for="lastname">Lastname:
+                                    <input class="input" type="text" id="lastname" name="lastname"
+                                        value="{{ old('lastname') }}" autocomplete="off" required>
+                                </label>
+                                <ul id="lastname-suggestions" style="
+                                    position: absolute;
+                                    top: 100%;
+                                    left: 0;
+                                    right: 0;
+                                    background: #fff;
+                                    border: 1px solid #ccc;
+                                    border-radius: 5px;
+                                    list-style: none;
+                                    padding: 0;
+                                    margin: 2px 0 0;
+                                    display: none;
+                                    max-height: 150px;
+                                    overflow-y: auto;
+                                    z-index: 1000;
+                                "></ul>
+                                @error('lastname')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
                         </div>
 
                         <div id="row2">
@@ -939,6 +975,90 @@
 
         // Run once on page load
         updateGuestAmount();
+
+       // =================== NAME SUGGESTION ====================
+        function setupSuggestion(inputId, suggestionId) {
+            const input = document.getElementById(inputId);
+            const suggestionBox = document.getElementById(suggestionId);
+
+            input.addEventListener('input', async function () {
+                const query = this.value.trim();
+                suggestionBox.innerHTML = '';
+                suggestionBox.style.display = 'none';
+
+                if (query.length < 2) return;
+
+                const response = await fetch(`{{ route('receptionist.guestSuggestions') }}?q=${encodeURIComponent(query)}`);
+                const guests = await response.json();
+
+                if (guests.length > 0) {
+                    guests.forEach(g => {
+                        const li = document.createElement('li');
+                        li.textContent = `${g.firstname} ${g.lastname}`;
+                        li.style.padding = '8px';
+                        li.style.cursor = 'pointer';
+                        li.addEventListener('click', function () {
+                            if (inputId === 'firstname') input.value = g.firstname;
+                            if (inputId === 'lastname') input.value = g.lastname;
+                            suggestionBox.innerHTML = '';
+                            suggestionBox.style.display = 'none';
+                        });
+                        li.addEventListener('mouseenter', () => li.style.background = '#f0f0f0');
+                        li.addEventListener('mouseleave', () => li.style.background = '#fff');
+                        suggestionBox.appendChild(li);
+                    });
+                    suggestionBox.style.display = 'block';
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!input.contains(e.target) && !suggestionBox.contains(e.target)) {
+                    suggestionBox.innerHTML = '';
+                    suggestionBox.style.display = 'none';
+                }
+            });
+        }
+
+        setupSuggestion('firstname', 'firstname-suggestions');
+        setupSuggestion('lastname', 'lastname-suggestions');
+
+        // ===== Image Preview for Valid ID =====
+        const validIdInput = document.getElementById('txtvalidid');
+        const idPreview = document.getElementById('id-preview');
+
+        if (validIdInput && idPreview) {
+            validIdInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        idPreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    idPreview.src = "{{ asset('images/photo.png') }}";
+                }
+            });
+        }
+
+        // ===== Image Preview for Avatar =====
+        const avatarInput = document.getElementById('txtavatar');
+        const pfpPreview = document.getElementById('pfp-preview');
+
+        if (avatarInput && pfpPreview) {
+            avatarInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        pfpPreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    pfpPreview.src = "{{ asset('images/profile.jpg') }}";
+                }
+            });
+        }
     });
 </script>
 

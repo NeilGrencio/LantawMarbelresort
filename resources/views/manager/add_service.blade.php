@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -440,4 +439,3 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be

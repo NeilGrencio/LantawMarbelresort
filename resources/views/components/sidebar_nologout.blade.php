@@ -1,10 +1,6 @@
 @php
     if (!session()->get('logged_in')) {
-<<<<<<< HEAD
         header('Location: ' . route('login'));
-=======
-        header('Location: ' . route('checkLogin'));
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
         exit;
     }
 @endphp
@@ -72,23 +68,17 @@
             text-overflow: ellipsis;
         }
         #sidebar :nth-child(5),
-<<<<<<< HEAD
         #sidebar :nth-child(8),
         #sidebar :nth-child(11),
-        #sidebar :nth-child(13) {
-=======
+        #sidebar :nth-child(13),
         #sidebar :nth-child(8) {
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
             border-top: solid 1px #919191;
         }
         #sidebar :nth-child(4),
         #sidebar :nth-child(7),
-<<<<<<< HEAD
         #sidebar :nth-child(10),
-        #sidebar :nth-child(12) {
-=======
+        #sidebar :nth-child(12),
         #sidebar :nth-child(11) {
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
             margin-bottom: 0.6rem;
             border-bottom: solid 1px #919191;
         }

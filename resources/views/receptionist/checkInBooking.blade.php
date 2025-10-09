@@ -19,10 +19,11 @@
         display:flex;
         flex-direction: column;
         padding:1rem;
-        width:85%;
+        width:100%;
+        height:100vh;
         gap:.5rem;
         transition: width 0.3s ease-in-out;
-        margin-left:15rem;
+        margin-left:12rem;
         margin-right:.7rem;
         overflow-y: hidden;
         overflow-x: hidden;
@@ -59,7 +60,7 @@
         font-size:.8rem;
         padding:1rem;
         width:35%;
-        height:89%;
+        height:96%;
         overflow:hidden;
         transition:all .3s ease;
     }
@@ -105,7 +106,7 @@
         box-shadow:.1rem .1rem 0 black;
         padding:1rem;
         width:65%;
-        height:89%;
+        height:96%;
     }
     .payment-selection{
         display:flex;
@@ -140,6 +141,24 @@
         flex-direction: row;
         gap:1rem;
     }
+    .form-button{
+        height:2rem;
+        border-radius:.5rem;
+        border:solid 1px black;
+        box-shadow:.1rem .1rem 0 black;
+        cursor:pointer;
+        transition:all .2s ease;
+        font-size:.8rem;
+        padding:.3rem 1rem;
+        background: white;
+        margin-top:1rem;
+    }
+    .form-button:hover{
+        background: orange;
+        color:white;
+        scale:1.05;
+    }
+
 
     .alert-message{
         display: flex;
@@ -272,8 +291,8 @@
                                 <input type="number" id="amount_paid" name="amount_paid" class="form-control" min="0" step="0.01" required>
                         </div>
                         <div class="button-container">
-                            <button id="cancel-button" type="button" data-url="{{url('receptionist/check-in-out')}}">Cancel</button>
-                            <button type="submit">Submit</button>
+                            <button class="form-button" id="cancel-button" type="button" data-url="{{url('receptionist/check-in-out')}}">Cancel</button>
+                            <button class="form-button" type="submit">Submit</button>
                         </div>
                     </form >
 

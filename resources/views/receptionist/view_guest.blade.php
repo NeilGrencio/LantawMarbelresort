@@ -11,9 +11,9 @@
     <div id="layout">
         @include('components.receptionist_sidebar')
         <div id="main-layout">
-            <h1>View Guest Information</h1>
+            <h1>Create Guest Information</h1>
 
-             <form method="POST" action="{{ route('manager.add_guest') }}" enctype="multipart/form-data">
+             <form method="POST" action="{{ route('receptionist.add_guest', $guest->guestID) }}" enctype="multipart/form-data">
                 @csrf
                 <div id="add_user-container">
                     <div id="form-header-1">
@@ -27,7 +27,7 @@
                         </div>
 
                         <div>
-                            <label for="txtalstname">Lastname:</label> 
+                            <label for="txtalstname">Lastname:</label>
                             <input id="txtalstname" type="text" placeholder="Lastname.." name="lastname" value="{{$guest->lastname}}" readonly>
                         </div>
                     </div>
@@ -41,31 +41,20 @@
                             </div>
                         </div>
                         <div>
-                            <label for="txtemail">Email:</label> 
-                            <input id="txtemail" type="email" placeholder="@email.com.." name="email" value="{{$guest->email}}" readonly>  
+                            <label for="txtemail">Email:</label>
+                            <input id="txtemail" type="email" placeholder="@email.com.." name="email" value="{{$guest->email}}" readonly>
                         </div>
                     </div>
 
                     <div id="row3">
                         <div>
-                            <label for="txtgender">Gender:</label>
-                            <select id="txtgender"  name="gender" disabled>
-                                <option value="" disabled>Select Gender</option>
-                                    <option value="Male" {{ $guest->gender == 'Male' ? 'selected' : '' }}>Male</option>
-                                    <option value="Female" {{ $guest->gender == 'Female' ? 'selected' : '' }}>Female</option>
-                                    <option value="Non_Binary" {{ $guest->gender == 'Non_Binary' ? 'selected' : '' }}>Non-Binary</option>
-                                    <option value="Trans_Female" {{ $guest->gender == 'Trans_Female' ? 'selected' : '' }}>Transgender Female</option>
-                                    <option value="Trans_Male" {{ $guest->gender == 'Trans_Male' ? 'selected' : '' }}>Transgender Male</option>
-                                    <option value="Genderqueer" {{ $guest->gender == 'Genderqueer' ? 'selected' : '' }}>Genderqueer</option>
-                                    <option value="Agender" {{ $guest->gender == 'Agender' ? 'selected' : '' }}>Agender</option>
-                                    <option value="Bigender" {{ $guest->gender == 'Bigender' ? 'selected' : '' }}>Bigender</option>
-                                    <option value="Genderfluid" {{ $guest->gender == 'Genderfluid' ? 'selected' : '' }}>Genderfluid</option>
-                                    <option value="Two_Spirit" {{ $guest->gender == 'Two_Spirit' ? 'selected' : '' }}>Two-Spirit</option>
-                                    <option value="Other" {{ $guest->gender == 'Other' ? 'selected' : '' }}>Other</option>
-                                    <option value="Prefer_not_to_say" {{ $guest->gender == 'Prefer_not_to_say' ? 'selected' : '' }}>Prefer not to say</option>
+                            <select id="txtgender" name="gender" style="pointer-events: none; background-color: #f5f5f5;">
+                                <option value="Male" {{ $guest->gender == 'Male' ? 'selected' : '' }}>Male</option>
+                                <option value="Female" {{ $guest->gender == 'Female' ? 'selected' : '' }}>Female</option>
+                                <option value="Prefer_not_to_say" {{ $guest->gender == 'Prefer_not_to_say' ? 'selected' : '' }}>Prefer not to say</option>
                             </select>
                         </div>
-                        <div> 
+                        <div>
                             {{-- Birthday --}}
                         <label id="lblbirthday" for="txtbirthday">
                             Birthday:
@@ -73,13 +62,21 @@
                         <input id="txtbirthday" type="date" name="birthday"
                             value="{{ $guest->birthday }}" readonly>
                         </div>
+                        <div>
+                            <label for="role">Role:</label>
+                            <select id="txtrole" name="role" style="pointer-events: none; background-color: #f5f5f5;">
+                                <option value="Guest" {{ $guest->role == 'Guest' ? 'selected' : '' }}>Hotel Guest</option>
+                                <option value="Day Tour Guest" {{ $guest->role == 'Day Tour Guest' ? 'selected' : '' }}>Day Tour Guest</option>
+                            </select>
+                        </div>
                     </div>
 
                     {{-- Valid ID --}}
                      <div class="cl-validID" id="row4">
                         <label for="txtvalidid">Import Valid ID</label>
                         <div>
-                            <img id="id-preview" src="{{ asset('storage/' . $guest->validID) }}">
+                             <img id="id-preview" src="{{ route('guestid.image', ['filename' => basename($guest->validID)]) }}" alt={{ $user->username }}>
+
                         </div>
                     </div>
 
@@ -89,47 +86,41 @@
 
                     <div id="row5" class="user-information">
                         <div>
-                            <label for="txtusername">Username:</label> 
+                            <label for="txtusername">Username:</label>
                             <input id="txtusername" type="text" placeholder="Username" name="username" value="{{$user->username}}">
                         </div>
-                        <div>
-                            <label for="role">Role:</label> 
-                            <select id="txtrole" name="role" disabled>
-                                <option value="" disabled selected>Select Role</option>
-                                <option value="Guest" {{ $guest->role == 'Guest' ? 'selected' : '' }}>Hotel Guest</option>
-                                <option value="Day Tour Guest" {{ $guest->role == 'Day Tour Guest' ? 'selected' : '' }}>Day Tour Guest</option>
-                            </select>  
-                        </div>
-                         
+
                     </div>
 
                     <div id="row6" class="user-information">
                         <div>
-                            <label for="txtpassword">Password:</label> 
+                            <label for="txtpassword">Password:</label>
                             <input id="txtpassword" type="text" placeholder="Password" name="password">
-                        </div> 
+                        </div>
                         <div>
-                            <label for="txtcpassword">Confirm Password:</label> 
+                            <label for="txtcpassword">Confirm Password:</label>
                             <input id="txtcpassword" type="text" placeholder="Confirm Password" name="cpassword">
                             <small id="password-match-msg" style="color: red; display: none; margin-top:.5rem;"><i class="fas fa-info-circle"></i> Password does not match.</small>
-                        </div> 
+                        </div>
                     </div>
 
                     <div id="row7">
                         <div>
                             <label for="avatar">Select Avatar:</label>
-                            <img id="pfp-preview" src="{{ asset('storage/' . $guest->avatar) }}">
+
+                            <img id="pfp-preview" src="{{ route('guest.image', ['filename' => basename( $guest->avatar)]) }}" alt={{ $user->username }}>
+                          
                             <input id="txtavatar" type="file" accept=".png, .jpg, .jpeg, .webp" name="avatar">
                             @error('validAvatar')
                                 <div class="error-message" id="avatar-error-message">{{ $message}}</div>
-                            @enderror 
-                        </div> 
+                            @enderror
+                        </div>
                     </div>
                 </div>
 
                 <div id="button-container">
                     <div>
-                        <button id="btncancel" type="button" data-url="{{ url('manager/manage_user')}}">Cancel</button>
+                        <button id="btncancel" type="button" data-url="{{ url('receptionist/guest_list')}}">Cancel</button>
                         <button id="btnsubmit" type="submit">Submit</button>
                     </div>
                 </div>
@@ -164,121 +155,133 @@
 </body>
 
 <style>
-    #guest{color:#F78A21;}
-    body{
-        overflow-y:auto;
+    #guest{color: orange;}
+    body {
+        overflow-y: auto;
+        font-size: 0.85rem;
     }
-    #layout{
+
+    #layout {
         display: flex;
         flex-direction: row;
         height: 100vh;
     }
-    #main-layout{
-        display: flex;
-        flex-direction: column;
-        padding: 1rem;
+
+    #main-layout {
         width: 100%;
-        transition: width 0.3s ease-in-out;
+        height: auto;
+        padding: 0.75rem;
         margin-left: 12rem;
     }
-    #add_user-container{
-        display:flex;
+
+    #add_user-container {
+        display: flex;
         flex-direction: column;
-        width:100%;
+        width: 100%;
         height: auto;
-        border-radius:.7rem;
-        box-shadow:.1rem .1rem 0rem rgba(0,0,0,0.2);
-        background:white;
-        padding:.5rem;
+        border-radius: 1rem;
+        box-shadow: 0.5rem 0 1rem rgba(0, 0, 0, 0.1);
+        background: white;
+        padding: 0.75rem;
     }
-    #form-header-1, #form-header-2{
-        width:100%;
-        height:3.5rem;
-        background:rgb(54, 54, 54);
-        color:white;
-        padding-left:1rem;
-        border-radius:1rem;
+
+    #form-header-1, #form-header-2 {
+        width: 100%;
+        height: 2.5rem;
+        background: rgb(54, 54, 54);
+        color: white;
+        padding-left: 0.75rem;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
     }
-    #row1, #row2, #row3, #row4, #row5, #row6, #row7{
-        margin:1rem;
+
+    #row1, #row2, #row3, #row4, #row5, #row6, #row7 {
+        margin: 0.75rem;
         display: flex;
         flex-direction: row;
-        width:100%;
-        gap:2rem;
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 1.5rem;
     }
-    #row1 div, #row2 div, #row3 div, #row5 div, #row6 div, #row7 div{
+
+    #row1 div, #row2 div, #row3 div, #row5 div, #row6 div, #row7 div {
         display: flex;
         flex-direction: column;
-        width:30rem;
+        width: 100%;
+        max-width: 22rem;
     }
-    #row4 div{
-        display:flex;
-        height:20rem;
-        width:auto;
-        gap:2rem;
+
+    #row4 div {
+        display: flex;
+        height: 15rem;
+        width: auto;
+        gap: 1.5rem;
+        flex-wrap: wrap;
     }
-    #row4 img{
+
+    #row4 img {
         display: flex;
         height: auto;
         max-height: 80%;
-        width:auto;
-        min-width: 30%;
+        width: auto;
+        min-width: 25%;
         object-fit: contain;
-        align-content: center;
-        justify-content: center;
-        border:2px solid black;
-        border-radius:2rem;
+        border: 2px solid black;
+        border-radius: 1.5rem;
     }
-    label{
+
+    label {
         display: flex;
-        font-size: 1.5rem;
+        font-size: 0.9rem;
         font-weight: bold;
-        margin-left:.5rem;
+        margin-left: 0.25rem;
     }
-    input{
-        height:2.5rem;
-        width:30rem;
-        font-size:1rem;
-        border-radius: .5rem;
-        padding:.5rem;
+
+    input, select {
+        height: 2.2rem;
+        width: 100%;
+        max-width: 22rem;
+        font-size: 0.85rem;
+        border-radius: 0.4rem;
+        padding: 0.4rem;
     }
-    select{
-        height:2.5rem;
-        width:30rem;
-        font-size:1rem;
-        border-radius: .5rem;
-        padding:.5rem; 
-    }
-    #pfp-preview{
-        display: flex;
-        height:10rem;
-        width: 10rem;
+
+    #pfp-preview {
+        height: 8rem;
+        width: 8rem;
         border-radius: 50%;
         object-fit: cover;
     }
-    #button-container{
+
+    #button-container {
         display: flex;
-        margin-top: 1rem;
-        gap:1rem;
+        margin-top: 0.75rem;
+        gap: 0.75rem;
+        flex-wrap: wrap;
     }
-    #button-container button, #button-container input{
-        height:2.5rem;
-        width:10rem;
-        font-size:1rem;
-        border-radius: .5rem;
-        padding:.5rem;
+
+    #button-container button, #button-container input {
+        height: 2.2rem;
+        width: 7rem;
+        font-size: 0.85rem;
+        border-radius: 0.4rem;
+        padding: 0.4rem;
     }
-    #button-container button{
-        background:grey;
+
+    #button-container button {
+        background: grey;
+        color: white;
+        border: none;
     }
-    #button-container input{
-        background:orange;
+
+    #button-container input {
+        background: orange;
+        color: white;
+        border: none;
     }
-    .error-message{
-        width:100%;
-        background:red;
-        color:white;
-    }
+
     .alert-message{
         display: flex;
         flex-direction: column;
@@ -304,20 +307,11 @@
         flex-wrap: wrap;
         word-wrap: break-word;
     }
-    #popup-resend{
-        margin-top:1rem; 
-        padding: .5rem 2rem;
-        background: #ccc; 
-        color: #333; 
-        border: none;
-        border-radius: .5rem; 
-        font-size: 1rem;
-        transition:background 0.2s ease;
-    }
-    #popup-resend:hover{
-        background: rgb(77, 77, 77);
-        color:white;
-        cursor:pointer;
+
+    #popup-resend {
+        margin-top: 0.75rem;
+        padding: 0.4rem 1.5rem;
+        font-size: 0.85rem;
     }
 </style>
 
@@ -356,75 +350,6 @@
         const pfpPreview = document.getElementById('pfp-preview');
         const userInformation = document.querySelectorAll('.user-information')
 
-        function createPopup() {
-            const existing = document.getElementById('custom-popup');
-            if (existing) existing.remove();
-
-            const popup = document.createElement('div');
-            popup.id = 'custom-popup';
-            popup.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background: rgba(0,0,0,0.4);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 2000;
-            `;
-
-            //Get otp
-            const testOtp = window.Laravel.testOtp ?? 'N/A';
-
-            popup.innerHTML = `
-                <div style="
-                    background: white;
-                    padding: 2rem 2.5rem;
-                    border-radius: 1rem;
-                    box-shadow: 0 0 1rem rgba(0,0,0,0.3);
-                    text-align: center;
-                    min-width: 300px;
-                ">
-                    <h2>Enter your OTP Code</h2>
-                    <div>
-                        <label for="otpcode">OTP ${testOtp}</label>
-                        <input id="otpcode" name="otpCode" type="text" placeholder="OTP Code" pattern="\\d{6}" minlength="6" maxlength="6" required>
-                    </div>
-                    <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
-                        <button id="popup-cancel" style="padding: .5rem 2rem; background: #ccc; color: #333; border: none; border-radius: .5rem;">Cancel</button>
-                        <button id="popup-confirm" style="padding: .5rem 2rem; background: #F78A21; color: white; border: none; border-radius: .5rem;">Send</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(popup);
-
-            const otpInput = document.getElementById('otpcode');
-            otpInput.addEventListener('input', function () {
-                this.value = this.value.replace(/\D/g, '').slice(0, 6);
-            });
-
-            document.getElementById('popup-cancel').onclick = () => popup.remove();
-
-            document.getElementById('popup-confirm').onclick = () => {
-                const hiddenOtpInput = document.createElement('input');
-                hiddenOtpInput.type = 'hidden';
-                hiddenOtpInput.name = 'otpCode';
-                hiddenOtpInput.value = otpInput.value;
-                form.appendChild(hiddenOtpInput);
-                popup.remove();
-                form.submit();
-            };
-        }
-
-        if (btnSubmit && form) {
-            btnSubmit.addEventListener('click', function (e) {
-                e.preventDefault();
-                createPopup();
-            });
-        }
-
         if (message) {
             setTimeout(() => message.style.display = 'none', 3000);
         }
@@ -453,7 +378,7 @@
             });
         }
 
-        
+
         if (txtRole) {
             txtRole.addEventListener('change', function () {
                 const isDGuest = this.value === 'Day Tour Guest';
@@ -511,4 +436,3 @@
 </script>
 
 
->>>>>>> a79b538f46a09c81721aee6d202269bb51895927

@@ -11,7 +11,6 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <style>
-        /* --- Copy styling from View Booking --- */
         #booking {
             color: orange;
         }
@@ -28,7 +27,7 @@
             padding: 1rem;
             width: 85%;
             transition: width 0.3s ease-in-out;
-            margin-left: 15rem;
+            margin-left: 12rem;
             margin-right: .7rem;
             overflow-y: hidden;
             overflow-x: hidden;

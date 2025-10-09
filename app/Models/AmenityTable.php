@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class AmenityTable extends Model
 {
     protected $table = 'amenities';
-    protected $primaryKey = 'amenityID'; // <- Corrected
-    protected $keyType = 'int';          // Optional: if your key is integer
+    protected $primaryKey = 'amenityID';
+    protected $keyType = 'int';
     public $timestamps = false;
 
     protected $fillable = [
-        'amenityname', 'description', 'adultprice', 'childprice', 'image', 'status'
+        'amenityname', 'description', 'capacity', 'adultprice', 'childprice', 'image', 'status'
     ];
 }

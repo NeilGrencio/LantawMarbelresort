@@ -590,4 +590,105 @@ class ReportController extends Controller
 
         return $pdf->download('guest_report.pdf');
     }
+
+    public function receptionistRevenuePDF(Request $request)
+    {
+        $today = Carbon::today();
+
+        $paymentsQuery = DB::table('payment')
+            ->join('billing', 'payment.billingID', '=', 'billing.billingID')
+            ->join('guest', 'billing.guestID', '=', 'guest.guestID')
+            ->leftJoin('booking', 'billing.bookingID', '=', 'booking.bookingID')
+            ->leftJoin('orders', 'billing.orderID', '=', 'orders.orderID')
+            ->leftJoin('amenities', 'billing.amenityID', '=', 'amenities.amenityID')
+            ->leftJoin('additionalcharges', 'billing.chargeID', '=', 'additionalcharges.chargeID')
+            ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
+            ->select(
+                'payment.*',
+                'billing.bookingID',
+                'billing.orderID',
+                'billing.amenityID',
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as guestname"),
+                DB::raw("
+                    CASE
+                        WHEN billing.bookingID IS NOT NULL THEN 'Booking'
+                        WHEN billing.orderID IS NOT NULL THEN 'Order'
+                        WHEN billing.amenityID IS NOT NULL THEN 'Amenity'
+                        ELSE 'Unknown'
+                    END as payment_type
+                "),
+                'billing.totalamount',
+                'additionalcharges.amount as extracharge',
+                'discount.amount as discount',
+                DB::raw("
+                    ROUND(
+                        (billing.totalamount + IFNULL(additionalcharges.amount, 0)) * 
+                        (1 - (IFNULL(discount.amount, 0) / 100)),
+                    2) as computed_total
+                ")
+            )
+            ->whereBetween('payment.datepayment', [
+                Carbon::today()->startOfDay(),
+                Carbon::today()->endOfDay(),
+            ]);
+
+        $payments = $paymentsQuery->get();
+
+        $totalsQuery = DB::table('payment')
+            ->join('billing', 'payment.billingID', '=', 'billing.billingID')
+            ->leftJoin('additionalcharges', 'billing.chargeID', '=', 'additionalcharges.chargeID')
+            ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
+            ->selectRaw("
+                SUM(
+                    (billing.totalamount + IFNULL(additionalcharges.amount, 0)) * 
+                    (1 - (IFNULL(discount.amount, 0) / 100))
+                ) as overall,
+                SUM(
+                    CASE WHEN billing.bookingID IS NOT NULL 
+                        THEN (billing.totalamount + IFNULL(additionalcharges.amount, 0)) * 
+                            (1 - (IFNULL(discount.amount, 0) / 100)) ELSE 0 END
+                ) as booking,
+                SUM(
+                    CASE WHEN billing.orderID IS NOT NULL 
+                        THEN (billing.totalamount + IFNULL(additionalcharges.amount, 0)) * 
+                            (1 - (IFNULL(discount.amount, 0) / 100)) ELSE 0 END
+                ) as orders,
+                SUM(
+                    CASE WHEN billing.amenityID IS NOT NULL 
+                        THEN (billing.totalamount + IFNULL(additionalcharges.amount, 0)) * 
+                            (1 - (IFNULL(discount.amount, 0) / 100)) ELSE 0 END
+                ) as amenities
+            ")
+            ->whereBetween('payment.datepayment', [
+                Carbon::today()->startOfDay(),
+                Carbon::today()->endOfDay(),
+            ]);
+
+        $totals = $totalsQuery->first();
+
+        $grouped = [
+            'booking' => $payments->whereNotNull('bookingID'),
+            'order'   => $payments->whereNotNull('orderID'),
+            'amenity' => $payments->whereNotNull('amenityID'),
+        ];
+
+        $userID = $request->session()->get('user_id');
+        if ($userID) {
+            SessionLogTable::create([
+                'userID'   => $userID,
+                'activity' => 'User Printed a Generated Report: Revenue Report (Today)',
+                'date'     => now(),
+            ]);
+        }
+
+        $pdf = Pdf::loadView('manager.revenue_pdf', [
+            'payments' => $payments,
+            'totals'   => $totals,
+            'from'     => $today->toDateString(),
+            'to'       => $today->toDateString(),
+            'grouped'  => $grouped,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->download('revenue_report_today.pdf');
+    }
 }

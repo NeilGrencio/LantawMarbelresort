@@ -13,7 +13,7 @@
         <div id="main-layout">
             <h1>Create Guest Information</h1>
 
-            <form method="POST" action="{{ route('receptionist.add_guest') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('receptionist.edit_guest') }}" enctype="multipart/form-data">
                 @csrf
                 <div id="add_user-container">
                     <div id="form-header-1">
@@ -58,11 +58,10 @@
                                 <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Select Gender</option>
                                 <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
                                 <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
-                                <optiion value="Prefer not to Say" {{ old ('gender') == 'Prefer not to Say' ? 'selected'  : '' }}>Prefer not to Say</optiion>
+                                <option value="Prefer_not_to_say" {{ old('gender') == 'Prefer_not_to_say' ? 'selected' : '' }}>Prefer not to say</option>
                             </select>
                         </div>
                         <div>
-                            {{-- Birthday --}}
                             <label id="lblbirthday" for="txtbirthday">Birthday:</label>
                             <input id="txtbirthday" type="date" name="birthday" value="{{ old('birthday') }}">
                         </div>
@@ -76,7 +75,6 @@
                         </div>
                     </div>
 
-                    {{-- Valid ID --}}
                     <div class="cl-validID" id="row4">
                         <label for="txtvalidid">Import Valid ID</label>
                         <div>
@@ -126,7 +124,7 @@
 
                 <div id="button-container">
                     <div>
-                        <button id="btncancel" type="button" data-url="{{ url('manager/manage_user')}}">Cancel</button>
+                        <button id="btncancel" type="button" data-url="{{ url('receptionist/guest_list')}}">Cancel</button>
                         <button id="btnsubmit" type="submit">Submit</button>
                     </div>
                 </div>
@@ -158,6 +156,7 @@
     </div>
     </body>
 <style>
+    #guest{color: orange;}
     body {
         overflow-y: auto;
         font-size: 0.85rem;
@@ -318,8 +317,6 @@
 </style>
 
 <script>
-
-    //Display OTP for test
     window.Laravel = {
         testOtp: @json(session('test_otp'))
     };
@@ -380,17 +377,13 @@
             });
         }
 
-        
         if (txtRole) {
             txtRole.addEventListener('change', function () {
                 const isDGuest = this.value === 'Day Tour Guest';
-
                 userInformation.forEach(el => {
                     el.style.display = isDGuest ? 'none' : 'flex';
                 });
             });
-
-            // Trigger once on load
             txtRole.dispatchEvent(new Event('change'));
         }
 
@@ -436,5 +429,3 @@
         }
     });
 </script>
-
-

@@ -8,121 +8,133 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 </head>
 <body>
-    <body>
-<div id="layout">
-    @include('components.receptionist_sidebar')
-    <div id="main-layout">
-        <div id="layout-header">
-            <h1 id="h2">Menu Items</h1>
-            <div class="button-group">
-                <div class="search-container">
-                    <div id="add-container">
-                        <i id="add-menu" class="fa-solid fa-burger fa-2x"></i>
-                        <small>View Orders</small>
+    <div id="layout">
+        @include('components.receptionist_sidebar')
+        <div id="main-layout">
+            <div id="layout-header">
+                <h1 id="h2">Menu Items</h1>
+                <div class="button-group">
+                    <div class="search-container">
+                        <div id="add-container" data-url={{url('receptionist/orderlist')}}>
+                            <i id="add-menu" class="fa-solid fa-burger fa-2x"></i>
+                            <small>View Orders</small>
+                        </div>
+                        <form action="{{ route('receptionist.search_menu') }}" method="GET">
+                            <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
+                            <button type="submit"><i class="fa fa-search"></i></button>
+                            @if(request()->has('search') && request('search') !== '')
+                                <a href="{{ route('receptionist.search_menu') }}" class="reset-btn">Clear Search</a>
+                            @endif
+                        </form>
                     </div>
-                    <form action="{{ route('receptionist.search_menu') }}" method="GET">
-                        <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
-                        <button type="submit"><i class="fa fa-search"></i></button>
-                        @if(request()->has('search') && request('search') !== '')
-                            <a href="{{ route('receptionist.search_menu') }}" class="reset-btn">Clear Search</a>
-                        @endif
+                </div>
+            </div>
+
+            <div class="navbar">
+                <div class="navbar-item" data-filter="All"><h3>All</h3></div>
+                @foreach($uniqueMenuTypes as $menutypes)
+                    <div class="navbar-item" data-filter="{{ $menutypes}}">
+                        <h3>{{$menutypes}}</h3>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class='menu-contianer'>
+                <div class="menu-wrapper">
+                    @foreach($menu as $menuitem)
+                        <div class="menu-card" data-id="{{ $menuitem->menuID }}" data-type="{{ $menuitem->itemtype }}" data-price="{{ $menuitem->price }}" data-name="{{ $menuitem->menuname }}">
+                            <div id="img-container">
+                                <img src="{{asset('storage/' . $menuitem->image)}}">
+                            </div>
+                            <div id="menu-details">
+                                <h2>Name: {{$menuitem->menuname}}</h2>
+                                <h2>Type: {{$menuitem->itemtype}}</h2>
+                                <h2>Price: ₱ {{$menuitem->price}}</h2>
+                                <hr/>
+                                <div id="manage-container">
+                                    <h2>Add Item</h2>
+                                    <div class="amount-wrapper">
+                                        <button class="amount-btn sub"><i class="fas fa-circle-minus fa-lg"></i></button>
+                                        <h3>0</h3>
+                                        <button class="amount-btn add"><i class="fas fa-plus-circle fa-lg"></i></button>
+                                    </div>
+                                </div>
+                                <div class="drop-down">
+                                    <div data-url="{{url('manager/edit_menu/' . $menuitem->menuID)}}">
+                                        <h2>Update</h2>
+                                        <i class="fa-solid fa-pencil fa-lg"></i>
+                                    </div>
+                                    @if($menuitem->status == 'Available')
+                                        <div data-url="{{url('manager/deactivate_menu/' . $menuitem->menuID)}}">
+                                            <h2>Deactivate</h2>
+                                            <i class="fa-solid fa-times-circle fa-lg" style="color:red;"></i>
+                                        </div>
+                                    @else
+                                        <div data-url="{{url('manager/activate_menu/' . $menuitem->menuID)}}">
+                                            <h2>Activate</h2>
+                                            <i class="fas fa-circle fa-lg" style="color:green;"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="receipt-container">
+                    <div class="order-receipt">
+                        <h2>Order Details</h2>
+                        <strong>Selected Items</strong>
+                        <div class="selected-items">
+                            <p>No items selected</p>
+                        </div>
+                        <div class="order-button">
+                            <button id="btn-clear" type="button">Clear All</button>
+                            <button id="orderBtn" type="button">Place Order</button>
+                        </div>
+                    </div> 
+                </div>
+            </div>
+
+            <div id="orderModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Enter Booking Information</h2>
+                    <form id="orderForm" action="{{route('receptionist.submitorder')}}" method="POST">
+                        @csrf
+                        <label for="guestSearch">Available Guest</label>
+                        <div style="position: relative; width: 100%;">
+                            <input type="text" id="guestSearch" name="guest_name" placeholder="Type guest name..." class="input" autocomplete="off" required>
+                            <select id="firstname" name="guest_select" size="5" style="position: absolute; width: 100%; height:auto; top: 100%; left: 0; display: none; z-index: 10;">
+                                @foreach($guest as $g)
+                                    <option value="{{ $g->firstname . ' ' . $g->lastname }}">
+                                        {{ $g->firstname . ' ' . $g->lastname }}
+                                    </option>
+                                @endforeach
+                                @if($guest->isEmpty())
+                                <option value="" disabled>No Available Guest</option>
+                                @endif
+                            </select>
+                        </div>
+                        <div id="bookingInputContainer"></div>
+                        <div id="orderSummary">
+                            <h3>Order Summary</h3>
+                            <div id="orderItems"></div>
+                            <div id="orderTotal"></div>
+                        </div>
+                        <button type="submit">Confirm Order</button>
                     </form>
                 </div>
             </div>
-        </div>
 
-        <div class="navbar">
-            <div class="navbar-item" data-filter="All"><h3>All</h3></div>
-            @foreach($uniqueMenuTypes as $menutypes)
-                <div class="navbar-item" data-filter="{{ $menutypes}}">
-                    <h3>{{$menutypes}}</h3>
-                </div>
-            @endforeach
+            @if(session('success'))
+                <div class="alert-message"><h2>{{ session('success') }}</h2></div>
+            @endif
+            @if(session('error'))
+                <div class="alert-message"><h2>{{ session('error') }}</h2></div>
+            @endif
         </div>
-
-        <div class='menu-contianer'>
-            @foreach($menu as $menuitem)
-                <div class="menu-card" data-id="{{ $menuitem->menuID }}" data-type="{{ $menuitem->itemtype }}" data-price="{{ $menuitem->price }}" data-name="{{ $menuitem->menuname }}">
-                    <div id="img-container">
-                        <img src="{{asset('storage/' . $menuitem->image)}}">
-                    </div>
-                    <div id="menu-details">
-                        <h2>Name: {{$menuitem->menuname}}</h2>
-                        <h2>Type: {{$menuitem->itemtype}}</h2>
-                        <h2>Price: ₱ {{$menuitem->price}}</h2>
-                        <hr/>
-                        <div id="manage-container">
-                            <h2>Add Item</h2>
-                            <div class="amount-wrapper">
-                                <button class="amount-btn sub"><i class="fas fa-circle-minus fa-lg"></i></button>
-                                <h3>0</h3>
-                                <button class="amount-btn add"><i class="fas fa-plus-circle fa-lg"></i></button>
-                            </div>
-                        </div>
-                        <div class="drop-down">
-                            <div data-url="{{url('manager/edit_menu/' . $menuitem->menuID)}}">
-                                <h2>Update</h2>
-                                <i class="fa-solid fa-pencil fa-lg"></i>
-                            </div>
-                            @if($menuitem->status == 'Available')
-                                <div data-url="{{url('manager/deactivate_menu/' . $menuitem->menuID)}}">
-                                    <h2>Deactivate</h2>
-                                    <i class="fa-solid fa-times-circle fa-lg" style="color:red;"></i>
-                                </div>
-                            @else
-                                <div data-url="{{url('manager/activate_menu/' . $menuitem->menuID)}}">
-                                    <h2>Activate</h2>
-                                    <i class="fas fa-circle fa-lg" style="color:green;"></i>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
-        <div class="order-receipt">
-            <h2>Order Details</h2>
-            <strong>Selected Items</strong>
-            <div class="selected-items">
-                <p>No items selected</p>
-            </div>
-            <div class="order-button">
-                <button id="btn-clear" type="button">Clear All</button>
-                <button id="orderBtn" type="button">Place Order</button>
-            </div>
-        </div>
-
-        <div id="orderModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Enter Booking Information</h2>
-                <form id="orderForm" action="{{route('receptionist.submitorder')}}" method="POST">
-                    @csrf
-                    <label for="firstname">First Name</label>
-                    <input type="text" id="firstname" name="firstname" required>
-                    <label for="lastname">Last Name</label>
-                    <input type="text" id="lastname" name="lastname" required>
-                    <div id="bookingInputContainer"></div>
-                    <div id="orderSummary">
-                        <h3>Order Summary</h3>
-                        <div id="orderItems"></div>
-                        <div id="orderTotal"></div>
-                    </div>
-                    <button type="submit">Confirm Order</button>
-                </form>
-            </div>
-        </div>
-
-        @if(session('success'))
-            <div class="alert-message"><h2>{{ session('success') }}</h2></div>
-        @endif
-        @if(session('error'))
-            <div class="alert-message"><h2>{{ session('error') }}</h2></div>
-        @endif
     </div>
-</div>
-</body>
 </body>
 <style>
     #menu{color:#F78A21;}   
@@ -263,12 +275,30 @@
     .menu-contianer{
         display:flex;
         flex-direction:row;
+        gap:.5rem;
+        width:100%;
+        height: 100%;
+        overflow-y: auto;
+        justify-content:center;
+    }
+    .menu-wrapper{
+        display:flex;
+        flex-direction:row;
         flex-wrap: wrap;
         gap:1rem;
         padding:1rem;
         width:100%;
-        height: 100%;
-        overflow-y: auto;
+        height:100%;
+        overflow-y:auto;
+        justify-content:center;
+    }
+    .receipt-container{
+        display:flex;
+        flex-direction:column;
+        width:25%;
+        height:100%;
+        position:relative;
+        align-items:center;
         justify-content:center;
     }
     #manage-container{
@@ -361,10 +391,10 @@
         color: white;
     }
     .order-receipt{
-        display: none;
+        display: flex;
         flex-direction: column;
         height:100%;
-        width:15rem;
+        width:20rem;
         position:absolute;
         background:white;
         border-radius:.5rem;
@@ -452,13 +482,13 @@
         border: 1px solid #ccc;
     }
     .modal-content button {
-        background: #28a745;
+        background: #f87538;
         color: white;
         border: none;
         cursor: pointer;
     }
     .modal-content button:hover {
-        background: #218838;
+        background: #fe7f00;
     }
 .alert-message{
         display: flex;
@@ -488,7 +518,14 @@
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const receipt = document.querySelector('.order-receipt');
+    
+    document.getElementById('add-container').addEventListener('click', function() {
+        const targetUrl = this.getAttribute('data-url');
+        if (targetUrl) {
+            window.location.href = targetUrl;
+        }
+    });
+
     const selectedItemsContainer = document.querySelector('.selected-items');
     const addContainer = document.getElementById('add-container');
     const orderBtn = document.getElementById('orderBtn');
@@ -501,10 +538,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const bookingInputContainer = document.getElementById('bookingInputContainer');
 
     let cart = {};
-
-    addContainer.addEventListener('click', () => {
-        receipt.style.display = receipt.style.display === 'flex' ? 'none' : 'flex';
-    });
 
     function updateReceipt() {
         selectedItemsContainer.innerHTML = '';
@@ -625,6 +658,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('click', (e) => {
         if (e.target === modal) modal.style.display = 'none';
+    });
+    document.querySelectorAll('.navbar-item').forEach(navItem => {
+        navItem.addEventListener('click', () => {
+            const filter = navItem.getAttribute('data-filter');
+
+            // highlight active navbar item
+            document.querySelectorAll('.navbar-item').forEach(item => item.classList.remove('active'));
+            navItem.classList.add('active');
+
+            // filter menu cards
+            document.querySelectorAll('.menu-card').forEach(card => {
+                const type = card.getAttribute('data-type');
+                if (filter === 'All' || filter === type) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+    const guestSearch = document.getElementById('guestSearch');
+    const selectBox = document.getElementById('firstname');
+
+    guestSearch.addEventListener('focus', () => {
+        selectBox.style.display = 'block';
+    });
+
+    guestSearch.addEventListener('input', () => {
+        const filter = guestSearch.value.toLowerCase();
+        const options = selectBox.options;
+        let matchCount = 0;
+
+        for (let i = 0; i < options.length; i++) {
+            const text = options[i].text.toLowerCase();
+            const match = text.includes(filter);
+            options[i].style.display = match ? '' : 'none';
+            if (match) matchCount++;
+        }
+
+        selectBox.style.display = matchCount ? 'block' : 'none';
+    });
+
+    selectBox.addEventListener('change', () => {
+        guestSearch.value = selectBox.value;
+        selectBox.style.display = 'none';
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#guestSearch') && !e.target.closest('#firstname')) {
+            selectBox.style.display = 'none';
+        }
     });
 });
 </script>

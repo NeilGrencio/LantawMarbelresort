@@ -228,7 +228,7 @@ class LoginController extends Controller
                 return redirect('receptionist/dashboard')->with('success', 'Welcome, ' . $user->username);
             }
             if ($staff->role === 'Kitchen Staff') {
-                return redirect('kitchen/dashbaord')->with('success', 'Welcome, ' . $user->username);
+                return redirect('kitchen/dashboard')->with('success', 'Welcome, ' . $user->username);
             }
 
             return back()->withErrors([

@@ -83,7 +83,7 @@
 </body>
 
 <style>
-    #dashbaord{color:orange;}
+    #dashboard{color:orange;}
     #layout{
         display: flex;
         flex-direction: row;

@@ -19,7 +19,7 @@ use App\Models\BillingTable;
 use App\Models\PaymentTable;
 use App\Models\CheckTable;
 use App\Services\OCRService; 
-
+use App\Models\SessionLogTable;
 use App\Models\RoomBookTable;
 use App\Models\CottageBookTable;
 use App\Models\ChargeTable;
@@ -29,121 +29,134 @@ class BookingController extends Controller
 {
     public function bookingList()
     {
-
-        $bookingtoday = BookingTable::where('status', 'Booked')
-            ->orwhereDate('bookingstart', DB::raw('CURDATE()'))
-            ->orWhereDate('bookingend', DB::raw('CURDATE()'))
-            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+        $booked = BookingTable::from('booking')
+            ->join('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->where('booking.status', 'Booked')
             ->select(
-                'booking.*',
-                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
-            )
-            ->paginate(10);
-
-        $bookingpending = BookingTable::where('booking.status', 'Pending')
-            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
-            ->select(
-                'booking.*',
-                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
+                'booking.bookingID',
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname"),
+                DB::raw("DATE_FORMAT(booking.bookingstart, '%M %d, %Y') as bookingstart"),
+                DB::raw("DATE_FORMAT(booking.bookingend, '%M %d, %Y') as bookingend"),
+                'booking.status'
             )
             ->get();
 
-        $bookingconfirmed = BookingTable::where('status', 'Booked')
-            ->where('booking.bookingstart', '>=', \Carbon\Carbon::today()) 
-            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+        $pending = BookingTable::from('booking')
+            ->join('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->where('booking.status', 'Pending')
             ->select(
-                'booking.*',
-                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname")
+                'booking.bookingID',
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname"),
+                DB::raw("DATE_FORMAT(booking.bookingstart, '%M %d, %Y') as bookingstart"),
+                DB::raw("DATE_FORMAT(booking.bookingend, '%M %d, %Y') as bookingend"),
+                'booking.status'
             )
             ->get();
 
-        //$statuses = DB::table('cottages')->pluck('status');
-        //dd($statuses);
+        $cancelled = BookingTable::from('booking')
+            ->join('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->where('booking.status', 'Cancelled')
+            ->select(
+                'booking.bookingID',
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname"),
+                DB::raw("DATE_FORMAT(booking.bookingstart, '%M %d, %Y') as bookingstart"),
+                DB::raw("DATE_FORMAT(booking.bookingend, '%M %d, %Y') as bookingend"),
+                'booking.status'
+            )
+            ->get();
+
+        $finished = BookingTable::from('booking')
+            ->join('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->where('booking.status', 'Finished')
+            ->select(
+                'booking.bookingID',
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname"),
+                DB::raw("DATE_FORMAT(booking.bookingstart, '%M %d, %Y') as bookingstart"),
+                DB::raw("DATE_FORMAT(booking.bookingend, '%M %d, %Y') as bookingend"),
+                'booking.status'
+            )
+            ->get();
+
+        $ongoing = BookingTable::from('booking')
+            ->join('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->where('booking.status', 'Ongoing')
+            ->select(
+                'booking.bookingID',
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) as fullname"),
+                DB::raw("DATE_FORMAT(booking.bookingstart, '%M %d, %Y') as bookingstart"),
+                DB::raw("DATE_FORMAT(booking.bookingend, '%M %d, %Y') as bookingend"),
+                'booking.status'
+            )
+            ->get();
+            //$statuses = DB::table('cottages')->pluck('status');
+            //dd($statuses);
 
         $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
         $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
         $amenities = AmenityTable::whereIn('amenityname', ['Kiddy Pool'])->get();
 
-        return view('receptionist/booking', compact('bookingtoday', 'bookingpending', 'bookingconfirmed', 'rooms', 'cottages', 'amenities'));
+        return view('receptionist/booking', compact('booked', 'pending', 'cancelled', 'finished', 'ongoing', 'rooms', 'cottages', 'amenities'));
     }
-    public function events()
+
+    public function events(Request $request)
     {
-        $today = \Carbon\Carbon::today();
+        $start = $request->query('start'); 
+        $end   = $request->query('end');
+
         $booking = BookingTable::join('guest', 'booking.guestID', '=', 'guest.guestID')
             ->leftJoin('roombook', 'booking.bookingID', '=', 'roombook.bookingID')
             ->leftJoin('cottagebook', 'booking.bookingID', '=', 'cottagebook.bookingID')
             ->select(
                 'booking.bookingID',
-                DB::raw("MAX(CONCAT(guest.firstname, ' ', guest.lastname)) as guestname"), // Aggregate the guest name
+                DB::raw("MAX(CONCAT(guest.firstname, ' ', guest.lastname)) as guestname"),
                 DB::raw("COUNT(roombook.roomID) as rooms_count"),
                 DB::raw("COUNT(cottagebook.cottageID) as cottages_count"),
-                DB::raw("MAX(booking.guestamount) as guestamount"), // Aggregate guestamount
+                DB::raw("MAX(booking.guestamount) as guestamount"),
                 DB::raw("MAX(booking.bookingstart) as bookingstart"),
                 DB::raw("MAX(booking.bookingend) as bookingend"),
                 DB::raw("MAX(booking.status) as status")
             )
+            ->where('booking.bookingstart', '<=', $end)
+            ->where('booking.bookingend', '>=', $start)
             ->groupBy('booking.bookingID')
             ->get();
 
+        $statusColors = [
+            'Booked'     => '#1E90FF',
+            'Pending'    => '#FFD700',
+            'Cancelled'  => '#A9A9A9',
+            'Finished'   => '#32CD32',
+            'Ongoing'    => '#FF6347',
+        ];
+
         $events = [];
-        $count = 1;
         foreach ($booking as $bookings) {
-            $start = Carbon::parse($bookings->bookingstart);
-            $end = Carbon::parse($bookings->bookingend)->addDay();
+            $startDate = \Carbon\Carbon::parse($bookings->bookingstart);
+            $endDate = \Carbon\Carbon::parse($bookings->bookingend)->addDay();
             $status = $bookings->status;
-            $today = Carbon::today();
-            $colorIndex = $count;
-
-            if ($status === 'Booked' && $today->between($start, $end->copy()->subDay())) {
-                $hue = 210;
-                $saturation = 80;
-                $lightness = 40 + ($colorIndex * 5);
-                $color = "hsl($hue, $saturation%, $lightness%)";
-            } else if ($status === 'Booked') {
-                $hue = 120;
-                $saturation = 90;
-                $lightness = 20 + ($colorIndex * 5);
-                $color = "hsl($hue, $saturation%, $lightness%)";
-            } else if ($status === 'Pending') {
-                $hue = 180;
-                $saturation = 90;
-                $lightness = 50 + ($colorIndex * 5);
-                $color = "hsl($hue, $saturation%, $lightness%)";
-            } else if ($status === 'Cancelled' || $status === 'Finished') {
-                $hue = 10;
-                $saturation = 10;
-                $lightness = 20 + ($colorIndex * 5);
-                $color = "hsl($hue, $saturation%, $lightness%)";
-            }
-
+            $color = $statusColors[$status] ?? '#808080';
 
             $hasMessage = '';
             $hasRooms = $bookings->rooms_count > 0;
             $hasCottages = $bookings->cottages_count > 0;
-            $hasAmenity = $bookings->amenityID;
 
-            if ($hasRooms && $hasCottages && $hasAmenity) {
-                $hasMessage = 'is booking multiple resort services';
-            } elseif ($hasRooms) {
-                $hasMessage = 'is booking ' . $bookings->rooms_count . ' room' . ($bookings->rooms_count > 1 ? 's' : '');
-            } elseif ($hasCottages) {
-                $hasMessage = 'is booking ' . $bookings->cottages_count . ' cottage' . ($bookings->cottages_count > 1 ? 's' : '');
-            } elseif ($hasAmenity) {
-                $hasMessage = 'is booking an amenity';
-            }
+            if ($hasRooms && $hasCottages) $hasMessage = 'is booking multiple resort services';
+            elseif ($hasRooms) $hasMessage = 'is booking ' . $bookings->rooms_count . ' room' . ($bookings->rooms_count > 1 ? 's' : '');
+            elseif ($hasCottages) $hasMessage = 'is booking ' . $bookings->cottages_count . ' cottage' . ($bookings->cottages_count > 1 ? 's' : '');
 
             $events[] = [
-                'id' => $bookings->bookingID,
+                'id'    => $bookings->bookingID,
                 'title' => $bookings->guestname . ' ' . $hasMessage,
-                'start' => $start->format('Y-m-d'),
-                'end' => $end->format('Y-m-d'),
+                'start' => $startDate->format('Y-m-d'),
+                'end'   => $endDate->format('Y-m-d'),
                 'color' => $color,
+                'status'=> $status
             ];
-            $count++;
         }
+
         return response()->json($events);
     }
-    
+
     public function bookingListView()
     {
         $bookings = BookingTable::with([
@@ -447,6 +460,7 @@ class BookingController extends Controller
                 'adultguest'     => (int) ($data['amenity_adult_guest'] ?? 0),
                 'totalprice'     => $originalAmount,
                 'amenityID'      => !empty($data['amenity']) ? (int) $data['amenity'][0] : null,
+                'booking_type'   => $data['booking_type'] ?? 'Booking', 
                 'status'         => $status,
                 'guestID'        => $guest->guestID,
             ]);
@@ -501,6 +515,16 @@ class BookingController extends Controller
                 'totalchange' => $change,
                 'datepayment' => Carbon::now(),
             ]);
+
+            $userID = $request->session()->get('user_id');
+
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Created a Booking',
+                    'date'     => now(),
+                ]);
+            }
 
             DB::commit();
 
@@ -989,6 +1013,17 @@ class BookingController extends Controller
                 ]
             );
 
+
+            $userID = $request->session()->get('user_id');
+
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Updated a Booking',
+                    'date'     => now(),
+                ]);
+            }
+
             return redirect()->route('receptionist.booking')->with('success', 'Booking and billing updated successfully.');
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', 'Book update failed' . $e->getMessage());
@@ -1015,10 +1050,40 @@ class BookingController extends Controller
         return view('receptionist.check-in-out', compact('checkin', 'checkout', 'today'));
     }
 
+    public function checkinList(){
+        $today = Carbon::today()->toDateString();
+
+        $checkin = BookingTable::with(['roomBookings.room', 'cottageBookings.cottage', 'billing'])
+            ->join('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->select('booking.*', 
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname"))
+            ->where('booking.status', 'Booked')
+            ->whereDate('booking.bookingstart', '<=', $today)
+            ->orderBy('booking.bookingstart', 'desc')
+            ->paginate(10);
+
+        return view('receptionist.checkin', compact('checkin', 'today'));
+    }
+
+    public function checkoutList(){
+        $today = Carbon::today()->toDateString();
+
+        $checkout = BookingTable::with(['roomBookings.room', 'cottageBookings.cottage', 'billing'])
+            ->join('guest', 'booking.guestID', '=', 'guest.guestID')
+            ->select('booking.*', 
+                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname"))
+            ->where('booking.status', 'Ongoing')
+            ->orderBy('booking.bookingend', 'desc')
+            ->paginate(10);
+
+        return view('receptionist.checkout', compact('checkout', 'today'));
+    }
+
     public function checkInBooking(Request $request, $bookingID)
     {
         $today = Carbon::now()->format('m/d/Y');
         $todayDB = Carbon::now()->format('Y-m-d');
+
         $booking = BookingTable::where('bookingID', $bookingID)
             ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
             ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
@@ -1055,25 +1120,26 @@ class BookingController extends Controller
         if ($request->isMethod('post')) {
             $validated = $request->validate([
                 'payment' => 'required|in:cash,gcash',
-                'amount_paid' => 'required_if:payment,cash|numeric|min:0',
+                'amount_paid' => 'nullable|numeric|min:0',
             ]);
+
             try {
-                // Calculate remaining balance
-                $totalPaid = $payment->totaltender;
+                $today = Carbon::now();
                 $remainingBalance = $billing->total_amount;
 
-                // Validate payment amount for cash
+                if ($validated['payment'] === 'gcash') {
+                    $validated['amount_paid'] = $remainingBalance;
+                }
+
                 if ($validated['payment'] === 'cash' && $validated['amount_paid'] < $remainingBalance) {
                     return redirect()->back()->with('error', 'Insufficient payment amount. Remaining balance: ₱' . number_format($remainingBalance, 2));
                 }
 
-                $change = $validated['payment'] === 'cash' ?
-                    max(0, $validated['amount_paid'] - $remainingBalance) : 0;
+                $change = $validated['payment'] === 'cash'
+                    ? max(0, $validated['amount_paid'] - $remainingBalance)
+                    : 0;
 
-                $today = Carbon::now();
-
-                // Create payment record for this check-in payment
-                $payment = PaymentTable::create([
+                PaymentTable::create([
                     'totaltender' => $validated['amount_paid'],
                     'totalchange' => $change,
                     'datepayment' => $todayDB,
@@ -1081,29 +1147,13 @@ class BookingController extends Controller
                     'billingID' => $billing->billingID,
                 ]);
 
-                // Check if billing is fully paid
-                $newTotalPaid = PaymentTable::where('billingID', $billing->billingID)->first();
-                $newTotalPaidAmount = $newTotalPaid ? $newTotalPaid->totaltender : 0;
-
-                $billingtotal = (int) $billing->totalamount - (int) $validated['payment'];
-                $billing->totalamount = $billingtotal;
-
-                if ($billing->totalamount < 0) {
-                    $billing->totalamount = 0;
-                }
-
+                $billing->totalamount = 0;
+                $billing->status = 'Paid';
                 $billing->save();
 
-                if ((int) $newTotalPaidAmount + (int) $validated['payment'] >= $billing->totalamount) {
-                    $billing->status = 'Paid';
-                    $billing->save();
-                }
-
-                // Update booking status
                 $booking->status = 'Ongoing';
                 $booking->save();
 
-                // Create check record
                 CheckTable::create([
                     'date' => $todayDB,
                     'status' => 'Checked In',
@@ -1111,24 +1161,31 @@ class BookingController extends Controller
                     'bookingID' => $bookingID,
                 ]);
 
-                // Update room status
-                foreach ($booking->roomBookings as $roomBook) {
-                    RoomTable::where('roomID', $roomBook->roomID, $roomBook->bookingDate)->update(['status' => 'Booked']);
+                foreach ($room as $roomBook) {
+                    RoomTable::where('roomID', $roomBook->roomID)->update(['status' => 'Booked']);
                 }
 
-                // Update cottage status
-                foreach ($booking->cottageBookings as $cottageBook) {
-                    CottageTable::where('cottageID', $cottageBook->cottageID, $cottageBook->bookingDate)->update(['status' => 'Booked']);
+                foreach ($cottage as $cottageBook) {
+                    CottageTable::where('cottageID', $cottageBook->cottageID)->update(['status' => 'Booked']);
                 }
 
                 if ($booking->amenityID) {
-                    AmenityTable::where('amenityID', $booking->amenityID)
-                        ->update(['status' => 'Booked']);
+                    AmenityTable::where('amenityID', $booking->amenityID)->update(['status' => 'Booked']);
+                }
+
+                $userID = $request->session()->get('user_id');
+
+                if ($userID) {
+                    SessionLogTable::create([
+                        'userID'   => $userID,
+                        'activity' => 'User Checked-In a Guest',
+                        'date'     => now(),
+                    ]);
                 }
 
                 return redirect()->route('receptionist.view_check')->with('success', 'Booking successfully checked in.');
             } catch (\Exception $e) {
-                return back()->withInput()->with('error', 'Failed to check-in booking' . $e->getMessage());
+                return back()->withInput()->with('error', 'Failed to check-in booking: ' . $e->getMessage());
             }
         }
     }
@@ -1169,81 +1226,98 @@ class BookingController extends Controller
         if ($request->isMethod('get')) {
             return view('receptionist.checkOutBooking', compact('booking', 'today', 'room', 'cottage', 'billing', 'payment'));
         }
+
         if ($request->isMethod('post')) {
             $validated = $request->validate([
                 'addcharge' => 'sometimes|numeric',
                 'chargedesc' => 'sometimes|string',
-                'payment' => 'sometimes|in:cash,gcash',
-                'amount_paid' => 'required_if:payment,cash|numeric|min:0',
+                'payment' => 'required|in:cash,gcash',
+                'amount_paid' => 'nullable|numeric|min:0',
             ]);
-            try {
-                // Calculate remaining balance
-                $totalPaid = $payment->totaltender;
-                $remainingBalance = $billing->total_amount;
 
-                // Validate payment amount for cash
+            try {
+                $remainingBalance = $billing->totalamount;
+
+                // 🔸 Handle GCash: assume exact amount
+                if ($validated['payment'] === 'gcash') {
+                    $validated['amount_paid'] = $remainingBalance;
+                }
+
+                // 🔸 Validate cash payment
                 if ($validated['payment'] === 'cash' && $validated['amount_paid'] < $remainingBalance) {
                     return redirect()->back()->with('error', 'Insufficient payment amount. Remaining balance: ₱' . number_format($remainingBalance, 2));
                 }
 
-                $change = $validated['payment'] === 'cash' ?
-                    max(0, $validated['amount_paid'] - $remainingBalance) : 0;
+                $change = $validated['payment'] === 'cash'
+                    ? max(0, $validated['amount_paid'] - $remainingBalance)
+                    : 0;
 
-                $today = Carbon::now();
+                $todayDB = Carbon::now()->format('Y-m-d');
 
-                // Create payment record for this check-in payment
+                // 🔹 Create payment record
                 $payment = PaymentTable::create([
                     'totaltender' => $validated['amount_paid'],
                     'totalchange' => $change,
-                    'datepayment' => $today,
+                    'datepayment' => $todayDB,
                     'guestID' => $booking->guestID,
                     'billingID' => $billing->billingID,
                 ]);
 
+                // 🔹 Create additional charge record (if any)
                 $charge = ChargeTable::create([
-                    'amount' => $validated['addcharge'],
-                    'chargedescription' => $validated['chargedesc'],
+                    'amount' => $validated['addcharge'] ?? 0,
+                    'chargedescription' => $validated['chargedesc'] ?? 'N/A',
                 ]);
 
-                // Check if billing is fully paid
-                $newTotalPaid = PaymentTable::where('billingID', $billing->billingID)->first();
-                $newTotalPaidAmount = $newTotalPaid ? $newTotalPaid->totaltender : 0;
-                if ($newTotalPaidAmount >= $billing->totalamount) {
-                    $billing->status = 'Paid';
-                    $billing->update(['chargeID' => $charge->chargeID]);
-                    $billing->save();
-                }
+                // 🔹 Update billing status and link charge
+                $newTotalPaidAmount = PaymentTable::where('billingID', $billing->billingID)->sum('totaltender');
+                $billing->update([
+                    'chargeID' => $charge->chargeID,
+                    'status' => ($newTotalPaidAmount >= $billing->totalamount) ? 'Paid' : 'Unpaid'
+                ]);
 
-                // Update booking status
-                $booking->status = 'Finished';
-                $booking->save();
+                // 🔹 Update booking status
+                $booking->update(['status' => 'Finished']);
 
-                // Create check record
+                // 🔹 Record check-out
                 CheckTable::create([
-                    'date' => $today,
+                    'date' => $todayDB,
                     'status' => 'Checked Out',
                     'guestID' => $booking->guestID,
                     'bookingID' => $bookingID,
                 ]);
 
-                // Update room status
+                // 🔹 Update room statuses
                 foreach ($booking->roomBookings as $roomBook) {
-                    RoomTable::where('roomID', $roomBook->roomID, $roomBook->bookingDate)->update(['status' => 'Available']);
+                    RoomTable::where('roomID', $roomBook->roomID)
+                        ->update(['status' => 'Available']);
                 }
 
-                // Update cottage status
+                // 🔹 Update cottage statuses
                 foreach ($booking->cottageBookings as $cottageBook) {
-                    CottageTable::where('cottageID', $cottageBook->cottageI, $cottageBook->bookingDate)->update(['status' => 'Available']);
+                    CottageTable::where('cottageID', $cottageBook->cottageID)
+                        ->update(['status' => 'Available']);
                 }
 
+                // 🔹 Update amenity status (if any)
                 if ($booking->amenityID) {
                     AmenityTable::where('amenityID', $booking->amenityID)
                         ->update(['status' => 'Available']);
                 }
 
+                $userID = $request->session()->get('user_id');
+
+                if ($userID) {
+                    SessionLogTable::create([
+                        'userID'   => $userID,
+                        'activity' => 'User Checked-Out a Guest',
+                        'date'     => now(),
+                    ]);
+                }
+
                 return redirect()->route('receptionist.view_check')->with('success', 'Booking successfully checked out.');
             } catch (\Exception $e) {
-                return back()->withInput()->with('error', 'Failed to check-out booking' . $e->getMessage());
+                return back()->withInput()->with('error', 'Failed to check-out booking. ' . $e->getMessage());
             }
         }
     }
@@ -1337,6 +1411,16 @@ class BookingController extends Controller
                 }
             }
         });
+
+        $userID = $request->session()->get('user_id');
+
+        if ($userID) {
+            SessionLogTable::create([
+                'userID'   => $userID,
+                'activity' => 'User Updated a Booking',
+                'date'     => now(),
+            ]);
+        }
 
         return redirect()->route('receptionist.booking.edit', $bookingID)
             ->with('success', 'Booking updated successfully.');
@@ -1515,6 +1599,16 @@ class BookingController extends Controller
                 'booking_data_' . $bookingSessionID => $validated,
                 'booking_prices_' . $bookingSessionID => $prices,
             ]);
+
+            $userID = $request->session()->get('user_id');
+
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Created a Booking',
+                    'date'     => now(),
+                ]);
+            }
 
             // Redirect to receipt page
             return redirect()->route('receptionist.booking_receipt', ['sessionID' => $bookingSessionID]);

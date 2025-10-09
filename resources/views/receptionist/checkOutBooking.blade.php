@@ -19,10 +19,11 @@
         display:flex;
         flex-direction: column;
         padding:1rem;
-        width:85%;
+        width:100%;
+        height:98vh;
         gap:.5rem;
         transition: width 0.3s ease-in-out;
-        margin-left:15rem;
+        margin-left:12rem;
         margin-right:.7rem;
         overflow-y: hidden;
         overflow-x: hidden;
@@ -59,7 +60,7 @@
         font-size:.8rem;
         padding:1rem;
         width:35%;
-        height:89%;
+        height:96%;
         overflow:hidden;
         transition:all .3s ease;
     }
@@ -105,7 +106,7 @@
         box-shadow:.1rem .1rem 0 black;
         padding:1rem;
         width:65%;
-        height:89%;
+        height:96%;
     }
     .payment-selection{
         display:flex;
@@ -140,6 +141,38 @@
         flex-direction: row;
         gap:1rem;
     }
+    .no-charge-btn {
+        background: none;
+        color: white;
+        border: none;
+        font-size: .8rem;
+        cursor: pointer;
+        font-style: italic;
+        transition: all .2s ease;
+    }
+
+    .no-charge-btn:hover {
+        color: rgb(255, 169, 64);
+        scale: 1.05;
+    }
+    .form-button{
+        height:2rem;
+        border-radius:.5rem;
+        border:solid 1px black;
+        box-shadow:.1rem .1rem 0 black;
+        cursor:pointer;
+        transition:all .2s ease;
+        font-size:.8rem;
+        padding:.3rem 1rem;
+        background: white;
+        margin-top:1rem;
+    }
+    .form-button:hover{
+        background: orange;
+        color:white;
+        scale:1.05;
+    }
+
 
     .alert-message{
         display: flex;
@@ -255,8 +288,9 @@
                 <div class="payment-container">
                     <form action="{{url('receptionist/checkout/' . $booking->bookingID)}}" method="post">
                         @csrf
-                        <div class="payment-label">
+                        <div class="payment-label" style="display: flex; justify-content: space-between; align-items: center;">
                             <h2>Additional Charges <i style="font-size:.7rem;align-item:center;color:grey;">Optional</i></h2>
+                            <button type="button" id="no-charge-btn" class="no-charge-btn">No Additional Charge</button>
                         </div> 
                         <div class="charge-wrapper">
                             <label for="addcharge">Charge Amount:
@@ -289,8 +323,8 @@
                                 <input type="number" id="amount_paid" name="amount_paid" class="form-control" min="0" step="0.01" required>
                         </div>
                         <div class="button-container">
-                            <button id="cancel-button" type="button" data-url="{{url('receptionist/check-in-out')}}">Cancel</button>
-                            <button type="submit">Submit</button>
+                            <button class="form-button" id="cancel-button" type="button" data-url="{{url('receptionist/check-in-out')}}">Cancel</button>
+                            <button class="form-button" type="submit">Submit</button>
                         </div>
                     </form >
 
@@ -318,6 +352,16 @@
                 message.style.display = 'none';
             }, 3500);
         }
+
+        const noChargeBtn = document.getElementById('no-charge-btn');
+        const chargeDescInput = document.getElementById('chargedesc');
+
+        noChargeBtn.addEventListener('click', function () {
+            addChargeInput.value = 0;
+            chargeDescInput.value = 'N/A';
+            updateCharges();
+        });
+
         const cashRadio = document.getElementById('cash');
         const gcashRadio = document.getElementById('gcash');
         const amountInputDiv = document.getElementById('cash-amount-input');
