@@ -44,8 +44,8 @@ class OrderUpdateNotification extends Notification implements ShouldQueue
      */
     public function toFcm($notifiable)
     {
-        $messaging = app(Messaging::class);
-
+        $messaging = app(\Kreait\Firebase\Messaging::class);
+        
         if (! $notifiable->fcm_token) {
             Log::warning("User {$notifiable->id} has no FCM token");
             return;
