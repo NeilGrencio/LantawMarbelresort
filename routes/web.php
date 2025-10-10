@@ -366,6 +366,9 @@ Route::post('receptionist/chat', [ChatController::class, 'sendChat'])
 Route::get('receptionist/events', [BookingController::class, 'events'])->name('receptionist.events');
 Route::get('receptionist/checkEvents', [BookingController::class, 'checkEvents'])->name('receptionist.checkEvents');
 
+Route::get('/receptionist/check', [BookingController::class, 'check'])
+    ->name('receptionist.checkAvailability');
+
 Route::get('receptionist/daytourDashboard', [DayTourController::class, 'daytourDashboard'])->name('receptionist.daytour_dashboard');
 
 Route::get('receptionist/daytour', [DayTourController::class, 'viewDayTour'])->name('receptionist.daytour');
