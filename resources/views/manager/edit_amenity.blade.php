@@ -29,6 +29,10 @@
 
                     <label for="txtDescription">Amenity Description</label>
                     <textarea id="txtDescription" name="description" placeholder="Amenity Description..">{{ old('description', $amenity->description) }}</textarea>
+                    
+                    <label for="txtAmenityCapacity">Amenity Capacity</label>
+                    <input id="txtAmenityCapacity" name="amenitycapacity" type="text" placeholder="20"
+                        value="{{ old('amenitycapacity', $amenity->capacity) }}"> 
 
                     <label class="image-loader" for="image">Amenity image
                     <img class="image-loader" id="imagePreview" src="{{ asset('storage/' . $amenity->image) }}">
