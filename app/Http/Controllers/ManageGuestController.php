@@ -23,6 +23,14 @@ class ManageGuestController extends Controller
     public function guestList(Request $request)
     {
         $guest = GuestTable::orderBy('guestID', 'desc')->paginate(10);
+        
+        foreach ($guest as $g) {
+            $avatar = $g->avatar ?? null;
+        
+            $g->image_url = !empty($avatar)
+                ? route('avatar.image', ['filename' => basename($avatar)])
+                : asset('images/profile.jpg');
+        }
 
         $userID = $request->session()->get('user_id');
 
