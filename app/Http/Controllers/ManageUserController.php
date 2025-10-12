@@ -40,6 +40,17 @@ class ManageUserController extends Controller
             )
             ->orderBy('userID', 'desc')
             ->paginate(10);
+            
+            // Prepare image URLs via route
+        foreach ($users as $user) {
+            $avatar = $user->s_avatar ?? $user->g_avatar;
+    
+            $user->image_url = $avatar
+                ? route('avatar.image', ['filename' => basename($avatar)])
+                : asset('images/profile.jpg');
+        }
+        
+        //dd($users->toArray());
 
             // Get the userID from the session
             $userID = $request->session()->get('user_id');
