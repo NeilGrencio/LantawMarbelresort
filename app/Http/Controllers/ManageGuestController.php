@@ -469,6 +469,125 @@ class ManageGuestController extends Controller
         }
         
     }
+
+    public function editGuestManager(Request $request, $guestID){
+        $guest = GuestTable::findOrFail($guestID);
+        $user = $guest->userID ? UserTable::find($guest->userID) : null;
+
+        $rules = [
+            'firstname'  => 'required|string',
+            'lastname'   => 'required|string',
+            'contactnum' => 'required|digits:10',
+            'email'      => 'required|email',
+            'gender'     => 'sometimes',
+            'birthday'   => 'required|date',
+            'role'       => 'required',
+            'validID'    => 'sometimes|nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ];
+
+        if ($request->input('role') === 'Guest') {
+            if ($user) {
+                $rules['username'] = [
+                    'required', 'min:5', 'max:20',
+                    Rule::unique('users', 'username')->ignore($user->userID, 'userID')
+                ];
+                if ($request->filled('password')) {
+                    $rules['password'] = [
+                        'nullable', 'min:8', 'max:20',
+                        'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/'
+                    ];
+                    $rules['cpassword'] = 'nullable|same:password';
+                }
+            } else {
+                $rules['username'] = ['required', 'min:5', 'max:20', 'unique:users,username'];
+                $rules['password'] = [
+                    'required', 'min:8', 'max:20',
+                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/'
+                ];
+                $rules['cpassword'] = 'required|same:password';
+            }
+
+            $rules['avatar'] = 'sometimes|nullable|image|mimes:jpeg,png,jpg|max:2048';
+        } else {
+            $rules['avatar'] = 'sometimes|nullable|image|mimes:jpeg,png,jpg|max:2048';
+        }
+
+        $validated = $request->validate($rules);
+
+        DB::beginTransaction();
+        try {
+            if ($request->hasFile('validID')) {
+                $validIDPath = $request->file('validID')->store('valid_ids', 'public');
+                if ($guest->validID) {
+                    Storage::disk('public')->delete($guest->validID);
+                }
+                $guest->validID = $validIDPath;
+            }
+
+            if ($request->hasFile('avatar')) {
+                $avatarPath = $request->file('avatar')->store('avatars', 'public');
+                if ($guest->avatar) {
+                    Storage::disk('public')->delete($guest->avatar);
+                }
+                $guest->avatar = $avatarPath;
+            }
+
+            if ($validated['role'] === 'Guest') {
+                if ($user) {
+                    $user->username = $validated['username'];
+                    if (!empty($validated['password'])) {
+                        $user->password = Hash::make($validated['password']);
+                    }
+                    $user->status = 'Active';
+                    $user->save();
+
+                    $guest->userID = $user->userID;
+                } else {
+                    $newUser = new UserTable();
+                    $newUser->username = $validated['username'];
+                    $newUser->password = Hash::make($validated['password']);
+                    $newUser->status = 'Active';
+                    $newUser->save();
+
+                    $guest->userID = $newUser->userID;
+                }
+            } else {
+                if ($user) {
+                    $user->status = 'Inactive';
+                    $user->save();
+                    $guest->userID = null;
+                }
+            }
+
+            $guest->firstname  = $validated['firstname'];
+            $guest->lastname   = $validated['lastname'];
+            $guest->mobilenum  = $validated['contactnum'];
+            $guest->email      = $validated['email'];
+            $guest->gender     = $validated['gender'];
+            $guest->birthday   = $validated['birthday'];
+            $guest->role       = $validated['role'] ?? 'Daytour Guest';
+
+            $guest->save();
+
+            $userID = $request->session()->get('user_id');
+
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Updated a Guest',
+                    'date'     => now(),
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect('manager/guest_list')->with('success', 'Guest updated successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error', 'Update failed. ' . $e->getMessage());
+        }
+    }
+
     public function editGuest(Request $request, $guestID){
         $guest = GuestTable::findOrFail($guestID);
         $user = $guest->userID ? UserTable::find($guest->userID) : null;

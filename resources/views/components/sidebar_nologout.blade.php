@@ -4,15 +4,15 @@
         exit;
     }
 @endphp
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
-        <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
-        <title>Lantaw-Marbel Resort</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-        <style>
-            * {
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
+    <title>Lantaw-Marbel Resort</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        * {
             box-sizing: border-box;
         }
         body {
@@ -93,7 +93,7 @@
             margin-top: auto;
             font-size: 11px;
             padding: 0.4rem 0;
-            margin-bottom:1rem;
+            margin-bottom: 1rem;
         }
         #profile-container img {
             width: 2.5rem;
@@ -101,14 +101,13 @@
             border-radius: 50%;
             object-fit: cover;
         }
-
         .more-action {
             display: flex;
             position: absolute;
             bottom: 60px; 
             left: 2rem;    
             width: 10%; 
-            height:3rem;
+            height: 3rem;
             background: white;
             color: black;
             border-radius: 0.7rem;
@@ -119,189 +118,152 @@
             box-shadow: 0 0.3rem 0.5rem rgba(0,0,0,0.2);
             z-index: 2000;
         }
-
         .more-action div {
             width: 100%;
-            height:2rem;
+            height: 2rem;
             list-style: none;
             padding: 0;
             margin: 0;
             cursor: pointer;
-            padding:.5rem;
-            display:flex;
+            padding: .5rem;
+            display: flex;
             align-items: center;
             justify-content: start;
             border-radius: 0.5rem;
-            gap:.5rem;
+            gap: .5rem;
         }
-
         .more-action div:hover {
             background-color: rgb(255,145,0);
             color: black;
         }
-
         .logo-container img {
             object-fit: contain;
             height: 2.5rem;
             width: 100%;
         }
-        </style>
-    </head>
-    <body>
-        <div id="sidebar" style="cursor:pointer">
-            <div class="logo-container">
-                <img src="{{ asset('images/logo.png')}}">
+    </style>
+</head>
+<body>
+    <div id="sidebar" style="cursor:pointer">
+        <div class="logo-container">
+            <img src="{{ asset('images/logo.png')}}">
+        </div>
+        <div id="dashboard" class="sidebar-item" data-url="{{ route('manager.dashboard') }}">
+            <div class="icons">
+                <i class="fas fa-house fa-2x"></i>
             </div>
-            <div id="dashboard" class="sidebar-item" data-url="{{ route('manager.dashboard') }}" >
-                <div class="icons">
-                    <i class="fas fa-house fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span >Dashboard</span>
-                </div>
+            <div class="label">
+                <span>Dashboard</span>
             </div>
-            <div id="discount" class="sidebar-item" data-url="{{ url('manager/discount') }}">
-                <div class="icons">
+        </div>
+        <div id="discount" class="sidebar-item" data-url="{{ url('manager/discount') }}">
+            <div class="icons">
                 <i class="fa-solid fa-tag fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span class="label">Discount</span>
-                </div>
             </div>
-            <div id="inquiry" class="sidebar-item" data-url="{{ url('manager/chat') }}">
-                <div class="icons">
-                    <i class="fa-regular fa-message fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span>Inquiry</span>
-                </div>
+            <div class="label">
+                <span>Discount</span>
             </div>
-
-            <div id="user" class="sidebar-item" data-url="{{ url('manager/manage_user') }}">
-                <div class="icons">
-                    <i class="fas fa-users fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span >Users</span>
-                </div>
+        </div>
+        <div id="inquiry" class="sidebar-item" data-url="{{ url('manager/chat') }}">
+            <div class="icons">
+                <i class="fa-regular fa-message fa-2x"></i>
             </div>
-            <div id="guest" class="sidebar-item" data-url="{{ url('manager/guest_list') }}">
-                <div class="icons">
-                    <i class="fas fa-person-walking-luggage fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span >Guests</span>
-                </div>
+            <div class="label">
+                <span>Inquiry</span>
             </div>
-            <div id="session" class="sidebar-item" data-url="{{ url('manager/session_logs') }}">
-                <div class="icons">
+        </div>
+        <div id="user" class="sidebar-item" data-url="{{ url('manager/manage_user') }}">
+            <div class="icons">
+                <i class="fas fa-users fa-2x"></i>
+            </div>
+            <div class="label">
+                <span>Users</span>
+            </div>
+        </div>
+        <div id="guest" class="sidebar-item" data-url="{{ url('manager/guest_list') }}">
+            <div class="icons">
+                <i class="fas fa-person-walking-luggage fa-2x"></i>
+            </div>
+            <div class="label">
+                <span>Guests</span>
+            </div>
+        </div>
+        <div id="session" class="sidebar-item" data-url="{{ url('manager/session_logs') }}">
+            <div class="icons">
                 <i class="fas fa-chart-line fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span >Session Logs</span>
-                </div>
             </div>
-
-            <div id="rooms" class="sidebar-item" data-url="{{ url('manager/room_list') }}">
-                <div class="icons">
-                    <i class="fas fa-bed fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span>Rooms</span>
-                </div>
-            </div>
-            <div id="amenities" class="sidebar-item" data-url="{{ url('manager/amenity_list') }}">
-                <div class="icons">
-                    <i class="fas fa-person-swimming fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span>Amenities</span>
-                </div>
-            </div>
-            <div id="cottages" class="sidebar-item" data-url="{{ url('manager/cottage_list') }}">
-                <div class="icons">
-                    <i class="fas fa-campground fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span >Cottages</span>
-                </div>
-            </div>
-            <div id="menu" class="sidebar-item" data-url="{{ url('manager/menu_list') }}">
-                <div class="icons">
-                    <i class="fas fa-utensils fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span>Menu</span>
-                </div>
-            </div>
-<<<<<<< HEAD
-            <div id="service" class="sidebar-item" data-url="{{ url('manager/services_list') }}">
-=======
-
-            <div id="service" class="sidebar-item" data-url="{{ url('manager/service_list') }}">
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
-                <div class="icons">
-                    <i class="fas fa-bell-concierge fa-2x"></i>
-                </div>
-                <div class="label">
-<<<<<<< HEAD
-                    <span>Service</span>
-                </div>
-            </div>
-=======
-                    <span>Services</span>
-                </div>
-            </div>
-
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
-            <div id="report" class="sidebar-item" data-url="{{ url('manager/report') }}">
-                <div class="icons">
-                    <i class="fas fa-chart-simple fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span>Report</span>
-                </div>
-            </div>
-
-            <div id="feedback" class="sidebar-item" data-url="{{ url('manager/feedback') }}">
-                <div class="icons">
-                    <i class="fas fa-star fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span>Feedback</span>
-                </div>
-            </div>
-
-<<<<<<< HEAD
-            <div id="profile-container">
-                <img src="{{ asset('storage/' . session('avatar')) }}" alt="Avatar" />
-                <h2>{{ session('username') }}</h2>
-                <i class="fas fa-chevron-down fa-lg"></i>
+            <div class="label">
+                <span>Session Logs</span>
             </div>
         </div>
-=======
-                <div id="profile-container">
-                    <img src="{{ asset('storage/' . session('avatar')) }}" alt="Avatar" />
-                    <h2>{{ session('username') }}</h2>
-                    <i class="fas fa-chevron-down fa-lg"></i>
-                </div>
-        </div>
-        <div class="more-action" style="display:none;">
-                
-                
-                
+        <div id="rooms" class="sidebar-item" data-url="{{ url('manager/room_list') }}">
+            <div class="icons">
+                <i class="fas fa-bed fa-2x"></i>
             </div>
+            <div class="label">
+                <span>Rooms</span>
+            </div>
+        </div>
+        <div id="amenities" class="sidebar-item" data-url="{{ url('manager/amenity_list') }}">
+            <div class="icons">
+                <i class="fas fa-person-swimming fa-2x"></i>
+            </div>
+            <div class="label">
+                <span>Amenities</span>
+            </div>
+        </div>
+        <div id="cottages" class="sidebar-item" data-url="{{ url('manager/cottage_list') }}">
+            <div class="icons">
+                <i class="fas fa-campground fa-2x"></i>
+            </div>
+            <div class="label">
+                <span>Cottages</span>
+            </div>
+        </div>
+        <div id="menu" class="sidebar-item" data-url="{{ url('manager/menu_list') }}">
+            <div class="icons">
+                <i class="fas fa-utensils fa-2x"></i>
+            </div>
+            <div class="label">
+                <span>Menu</span>
+            </div>
+        </div>
+        <div id="service" class="sidebar-item" data-url="{{ url('manager/service_list') }}">
+            <div class="icons">
+                <i class="fas fa-bell-concierge fa-2x"></i>
+            </div>
+            <div class="label">
+                <span>Services</span>
+            </div>
+        </div>
+        <div id="report" class="sidebar-item" data-url="{{ url('manager/report') }}">
+            <div class="icons">
+                <i class="fas fa-chart-simple fa-2x"></i>
+            </div>
+            <div class="label">
+                <span>Report</span>
+            </div>
+        </div>
+        <div id="feedback" class="sidebar-item" data-url="{{ url('manager/feedback') }}">
+            <div class="icons">
+                <i class="fas fa-star fa-2x"></i>
+            </div>
+            <div class="label">
+                <span>Feedback</span>
+            </div>
+        </div>
+        <div id="profile-container">
+            <img src="{{ asset('storage/' . session('avatar')) }}" alt="Avatar" />
+            <h2>{{ session('username') }}</h2>
+            <i class="fas fa-chevron-down fa-lg"></i>
+        </div>
+    </div>
+    <div class="more-action" style="display:none;"></div>
 
->>>>>>> d927b3a3dbe225427cfaf6d569765ffb9f95c0be
     <script>
-
         document.addEventListener('DOMContentLoaded', () => {
-            const toggleButton = document.getElementById('sidebar-container'); // now correctly points to the toggle
             const sidebar = document.getElementById('sidebar');
-            const body = document.body; // fallback for layout expansion if no #main-layout
-
             const sidebarItems = sidebar.querySelectorAll('[data-url]');
-            const labels = sidebar.querySelectorAll('.label');
             const profile = document.getElementById('profile-container');
             const dropdown = document.querySelector('.more-action');
 
@@ -316,7 +278,7 @@
                 }
             });
 
-            // Handle navigation clicks inside the dropdown
+            // Handle navigation clicks inside dropdown
             document.querySelectorAll('.more-action div').forEach(item => {
                 item.addEventListener('click', function () {
                     const url = this.dataset.url;
@@ -328,7 +290,7 @@
 
             sidebarItems.forEach(item => {
                 item.addEventListener('click', (e) => {
-                    e.stopPropagation(); // prevent sidebar toggle from closing it
+                    e.stopPropagation();
                     const targetURL = item.dataset.url;
                     if (targetURL) {
                         window.location.href = targetURL;
@@ -336,6 +298,5 @@
                 });
             });
         });
-
     </script>
-    </body>
+</body>

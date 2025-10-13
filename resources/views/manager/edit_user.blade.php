@@ -1,6 +1,3 @@
-@php
-    $isGuest = strtolower(old('role', $guest->role ?? '')) === 'guest';
-@endphp
 <body>
     <div id="layout">
         @include('components.sidebar')

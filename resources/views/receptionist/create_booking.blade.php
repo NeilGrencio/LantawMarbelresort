@@ -271,7 +271,7 @@
 
                         <div>
                             <label id="label" for="guestamount">Number of Guest:
-                                <input class="input" type="text" id="guestamount" name="guestamount" value="{{ old('guestamount') }}" required>
+                                <input class="input" type="text" id="guestamount" name="guestamount" value="{{ old('guestamount') }}" readonly>
                             </label>
                             
                             @if($errors->has('guestamount'))
@@ -283,10 +283,10 @@
 
                         <div class="guest-counts" id="guest-counts" style="display:flex;">
                             <label id="label">Adult Guests:
-                                <input type="number" min="0" name="amenity_adult_guest" class="input" placeholder="Enter number of adults" value="{{ old('amenity_adult_guest') }}">
+                                <input id="adultguest" type="number" min="0" name="amenity_adult_guest" class="input" placeholder="Enter number of adults" value="{{ old('amenity_adult_guest') }}">
                             </label>
                             <label id="label">Child Guests:
-                                <input type="number" min="0" name="amenity_child_guest" class="input" placeholder="Enter number of children" value="{{ old('amenity_child_guest') }}">
+                                <input id="childguest" type="number" min="0" name="amenity_child_guest" class="input" placeholder="Enter number of children" value="{{ old('amenity_child_guest') }}">
                             </label>
                         </div>
 
@@ -692,6 +692,28 @@
             font-style:italic;
         }
 
+        #room-selection, #cottage-selection {
+            transition: opacity 0.3s ease;
+        }
+
+        .unavailable-overlay {
+            position: relative;
+        }
+
+        .unavailable-overlay::after {
+            content: 'BOOKED';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
         .alert-message{
             display: flex;
             flex-direction: column;
@@ -880,6 +902,23 @@ document.addEventListener('DOMContentLoaded', function () {
     password.addEventListener('input', checkPasswordMatch);
     confirmPassword.addEventListener('input', checkPasswordMatch);
 
+    const adultGuestInput = document.getElementById('adultguest');
+    const childGuestInput = document.getElementById('childguest');
+    const totalGuestInput = document.getElementById('guestamount');
+
+    function updateGuestTotal() {
+        const adults = parseInt(adultGuestInput?.value || 0);
+        const children = parseInt(childGuestInput?.value || 0);
+        const total = adults + children;
+        if (totalGuestInput) totalGuestInput.value = total;
+    }
+
+    if (adultGuestInput && childGuestInput && totalGuestInput) {
+        adultGuestInput.addEventListener('input', updateGuestTotal);
+        childGuestInput.addEventListener('input', updateGuestTotal);
+        updateGuestTotal(); // Initialize total on page load
+    }
+
     // ===== Guest Already Has Account Toggle =====
     const guestInfoLabel = document.getElementById('guest-label');
     const accountInfoFields = document.querySelectorAll('.user-information, #row4, #row2, #row3, #row7');
@@ -904,6 +943,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
+
+        const birthdayField = document.getElementById('txtbirthday');
+        if (birthdayField) {
+            if (guestHasAccount) {
+                birthdayField.value = ''; // Clear field
+                birthdayField._flatpickr && birthdayField._flatpickr.clear(); // Reset Flatpickr date
+            } else {
+                birthdayField._flatpickr && birthdayField._flatpickr.setDate('today'); // Restore default if needed
+            }
+        }
 
         toggleBtn.textContent = guestHasAccount
             ? 'Click here if guest does NOT have account'
@@ -986,6 +1035,129 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setupSuggestion('firstname', 'firstname-suggestions');
     setupSuggestion('lastname', 'lastname-suggestions');
+
+    // ======================================
+    const checkinInput = document.getElementById('checkin');
+    const checkoutInput = document.getElementById('checkout');
+
+    function hideBookedItems(containerSelector, bookedIDs, checkboxName) {
+        const containers = document.querySelectorAll(containerSelector);
+        
+        containers.forEach(container => {
+            const checkbox = container.querySelector(`input[name="${checkboxName}"]`);
+            
+            if (checkbox) {
+                const itemID = parseInt(checkbox.value);
+                
+                if (bookedIDs.includes(itemID)) {
+                    container.style.display = 'none';
+                    
+                    if (checkbox.checked) {
+                        checkbox.checked = false;
+                        
+                        const card = container.querySelector('.room-card, .cottage-card, .amenity-card');
+                        if (card) {
+                            card.classList.remove('active');
+                        }
+                    }
+                } else {
+                    container.style.display = 'flex';
+                }
+            }
+        });
+    }
+
+    function showAllRoomsAndCottages() {
+        const allItems = document.querySelectorAll('.room, .cottage');
+        allItems.forEach(item => {
+            item.style.display = 'flex';
+        });
+        refreshAllScrollButtons();
+    }
+
+    function refreshAllScrollButtons() {
+        document.querySelectorAll('.room-selection-wrapper').forEach(wrapper => {
+            const container = wrapper.querySelector('.scroll-container') || 
+                            wrapper.querySelector('div[id$="-selection"]');
+            const leftBtn = wrapper.querySelector('.left-btn');
+            const rightBtn = wrapper.querySelector('.right-btn');
+
+            if (!container || !leftBtn || !rightBtn) return;
+
+            const isScrollable = container.scrollWidth > container.clientWidth;
+
+            leftBtn.style.display = isScrollable ? 'flex' : 'none';
+            rightBtn.style.display = isScrollable ? 'flex' : 'none';
+        });
+    }
+
+    function showLoadingIndicator() {
+        const roomSelection = document.getElementById('room-selection');
+        const cottageSelection = document.getElementById('cottage-selection');
+        
+        if (roomSelection) roomSelection.style.opacity = '0.5';
+        if (cottageSelection) cottageSelection.style.opacity = '0.5';
+    }
+
+    function hideLoadingIndicator() {
+        const roomSelection = document.getElementById('room-selection');
+        const cottageSelection = document.getElementById('cottage-selection');
+        
+        if (roomSelection) roomSelection.style.opacity = '1';
+        if (cottageSelection) cottageSelection.style.opacity = '1';
+    }
+
+    async function checkAvailabilityWithLoading() {
+        const checkin = checkinInput.value;
+        const checkout = checkoutInput.value;
+
+        if (!checkin || !checkout) {
+            showAllRoomsAndCottages();
+            return;
+        }
+
+        if (new Date(checkout) <= new Date(checkin)) {
+            showAllRoomsAndCottages();
+            return;
+        }
+
+        showLoadingIndicator();
+
+        try {
+            const response = await fetch(`{{ route('receptionist.checkAvailability') }}?checkin=${checkin}&checkout=${checkout}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+
+            hideBookedItems('.room', data.bookedRooms, 'room[]');
+            hideBookedItems('.cottage', data.bookedCottages, 'cottage[]');
+            
+            refreshAllScrollButtons();
+        } catch (error) {
+            console.error('Error checking availability:', error);
+            alert('Error checking availability. Please try again.');
+        } finally {
+            hideLoadingIndicator();
+        }
+    }
+
+    checkinInput.addEventListener('change', checkAvailabilityWithLoading);
+    checkoutInput.addEventListener('change', checkAvailabilityWithLoading);
+
+    checkinInput.addEventListener('input', function() {
+        if (!this.value) {
+            showAllRoomsAndCottages();
+        }
+    });
+
+    checkoutInput.addEventListener('input', function() {
+        if (!this.value) {
+            showAllRoomsAndCottages();
+        }
+    });
 });
 </script>
 

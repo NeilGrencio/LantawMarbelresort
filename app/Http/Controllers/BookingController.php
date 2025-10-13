@@ -909,31 +909,53 @@ class BookingController extends Controller
             ->pluck('cottageID')
             ->toArray();
     }
+
     public function check(Request $request)
     {
-        $checkin = $request->query('checkin');
-        $checkout = $request->query('checkout');
+        try {
+            $checkin = $request->query('checkin');
+            $checkout = $request->query('checkout');
 
-        // Rooms with overlapping bookings
-        $bookedRoomIDs = RoomBookTable::where(function ($q) use ($checkin, $checkout) {
-            $q->where('checkin', '<=', $checkout)
-                ->where('checkout', '>=', $checkin);
-        })
-            ->pluck('roomID')
-            ->toArray();
+            if (!$checkin || !$checkout) {
+                return response()->json([
+                    'bookedRooms' => [],
+                    'bookedCottages' => [],
+                ]);
+            }
 
-        // Cottages with overlapping bookings
-        $bookedCottageIDs = CottageBookTable::where(function ($q) use ($checkin, $checkout) {
-            $q->where('checkin', '<=', $checkout)
-                ->where('checkout', '>=', $checkin);
-        })
-            ->pluck('cottageID')
-            ->toArray();
+            $checkin = date('Y-m-d', strtotime($checkin));
+            $checkout = date('Y-m-d', strtotime($checkout));
 
-        return response()->json([
-            'bookedRooms' => $bookedRoomIDs,
-            'bookedCottages' => $bookedCottageIDs,
-        ]);
+            $bookedRoomIDs = DB::table('roombook')
+                ->join('booking', 'roombook.bookingID', '=', 'booking.bookingID')
+                ->where('booking.bookingstart', '<=', $checkout)
+                ->where('booking.bookingend', '>=', $checkin)
+                ->pluck('roombook.roomID')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $bookedCottageIDs = DB::table('cottagebook')
+                ->join('booking', 'cottagebook.bookingID', '=', 'booking.bookingID')
+                ->where('booking.bookingstart', '<=', $checkout)
+                ->where('booking.bookingend', '>=', $checkin)
+                ->pluck('cottagebook.cottageID')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            return response()->json([
+                'bookedRooms' => $bookedRoomIDs,
+                'bookedCottages' => $bookedCottageIDs,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'bookedRooms' => [],
+                'bookedCottages' => [],
+            ], 500);
+        }
     }
 
     public function updateBooking(Request $request, $bookingID)

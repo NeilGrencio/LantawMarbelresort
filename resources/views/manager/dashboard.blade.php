@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    @include('components.notification_manager')
     <div id="layout">
         @include('components.sidebar')
         <div id="main-layout">

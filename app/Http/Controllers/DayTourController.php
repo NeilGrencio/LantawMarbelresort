@@ -88,23 +88,18 @@ class DayTourController extends Controller
         $validated = $request->validate([
             'amenity' => 'nullable|array|min:1',
             'amenity.*' => 'exists:amenities,amenityID',
-
             'firstname' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
             'lastname' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
-
             'contactnum' => 'sometimes|unique:guest,mobilenum',
             'email' => 'sometimes|max:255|unique:guest,email',
             'gender' => 'sometimes',
             'birthday' => 'sometimes',
             'validID' => 'sometimes',
-
             'guestamount' => 'required|integer|min:1|max:50',
             'amenity_adult_guest' => 'required|integer|min:0|max:50',
             'amenity_child_guest' => 'required|integer|min:0|max:50',
-
             'payment' => 'required|in:cash,gcash',
             'cashamount' => 'required_if:payment,cash|numeric|min:0',
-
             'discount' => 'nullable',
         ]);
 
@@ -137,14 +132,14 @@ class DayTourController extends Controller
 
             foreach ($validated['amenity'] ?? [] as $selectedAmenity) {
                 $amenity = AmenityTable::where('amenityID', $selectedAmenity)->firstOrFail();
-                
                 $totalAdult = $amenity->adultprice * $adultcount;
                 $totalChild = $amenity->childprice * $childcount;
                 $totalAmount = $totalAdult + $totalChild;
-                
-                $discountID = $validated['discount'] ?? null;
+                $discountID = !empty($validated['discount']) && $validated['discount'] != 0
+                    ? $validated['discount']
+                    : null;
 
-                if (!is_null($discountID)) {
+                if ($discountID) {
                     $discountAmount = DiscountTable::find($discountID)?->amount ?? 0;
                     $totalAmount -= ($totalAmount * ($discountAmount / 100));
                 }
@@ -152,9 +147,9 @@ class DayTourController extends Controller
                 $bill = BillingTable::create([
                     'totalamount' => $totalAmount,
                     'datebilled' => Carbon::now()->toDateString(),
-                    'status' => 'Paid',
+                    'status' => 'Unpaid',
                     'amenityID' => $amenity->amenityID,
-                    'discount' => $discountID,
+                    'discountID' => $discountID,
                     'guestID' => $guest->guestID,
                 ]);
 
@@ -169,19 +164,23 @@ class DayTourController extends Controller
                     'billingID' => $bill->billingID,
                 ]);
 
+                if ($amountPaid >= $totalAmount) {
+                    $bill->update(['status' => 'Paid']);
+                } elseif ($amountPaid > 0 && $amountPaid < $totalAmount) {
+                    $bill->update(['status' => 'Unpaid']);
+                } else {
+                    $bill->update(['status' => 'Unpaid']);
+                }
+
                 $text = "Guest: {$guest->firstname} {$guest->lastname}, Amenity: {$amenity->amenityname}";
                 $qrFilename = 'qrcodes/qrcode_' . $guest->guestID . '_' . $amenity->amenityID . '.svg';
-
                 $qrSvg = QrCode::format('svg')->size(300)->generate($text);
 
-                // save QR SVG to storage
                 if (!Storage::disk('public')->exists($qrFilename)) {
                     Storage::disk('public')->put($qrFilename, $qrSvg);
                 }
 
-                // get the full path or URL
                 $qrPath = Storage::url($qrFilename);
-
 
                 QRTable::create([
                     'qrcode' => $qrPath,
@@ -189,24 +188,21 @@ class DayTourController extends Controller
                     'amenityID' => $amenity->amenityID,
                     'guestID' => $guest->guestID,
                 ]);
-
             }
 
             $userID = $request->session()->get('user_id');
 
             if ($userID) {
                 SessionLogTable::create([
-                    'userID'   => $userID,
+                    'userID' => $userID,
                     'activity' => 'User Created a Day Tour',
-                    'date'     => now(),
+                    'date' => now(),
                 ]);
             }
 
             return redirect()
                 ->route('receptionist.daytour_dashboard')
                 ->with('success', 'Daytour successfully created!');
-
-
         } catch (\Exception $e) {
             return back()->with('error', 'Daytour failed to create: ' . $e->getMessage());
         }
