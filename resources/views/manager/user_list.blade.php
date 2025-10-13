@@ -64,13 +64,7 @@
                                 <td>{{ $user->username }}</td>
                                 <td>••••••••</td>
                                 <td>
-                                    @if(isset($user->s_role) && $user->s_role)
-                                        <img alt="Profile photo of staff user" src="{{ asset('storage/app/public/' . $user->s_avatar) }}">
-                                     @elseif(isset($user->g_role) && $user->g_role)
-                                        <img alt="Profile photo of guest user" src="{{ asset('storage/app/public/' . $user->g_avatar) }}">
-                                    @else
-                                        <img src="{{asset('iamges/profile.jpg')}}"/>
-                                    @endif
+                                     <img src="{{ $user->image_url }}">
                                 </td>
                                 <td>
                                     @if(isset($user->s_role) && $user->s_role)

@@ -57,7 +57,7 @@
                                 <td>Day Tour Guest</td>
                             @endif
                             <td>
-                                <img src="{{ asset('storage/' . $guests->avatar) }}"/>
+                                <img src="{{ $guests->image_url }}">
                             </td>
                             <td style="cursor: pointer;" >
                                 <div class="view" data-url="{{ route('manager.view_guest', ['guestID' => $guests->guestID])}}">

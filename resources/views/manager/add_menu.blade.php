@@ -30,7 +30,6 @@
                         <option value="Drinks" {{ old('itemtype') == 'Drinks' ? 'selected' : '' }}>Drinks</option>
                         <option value="Dessert" {{ old('itemtype') == 'Dessert' ? 'selected' : '' }}>Dessert</option>
                         <option value="Appetizer" {{ old('itemtype') == 'Appetizer' ? 'selected' : '' }}>Appetizer</option>
-                        <option value="Services" {{ old('itemtype') == 'Services' ? 'selected' : '' }}>Services</option>
                     </select>
 
                     <label class="image" for="image">Select Menu image

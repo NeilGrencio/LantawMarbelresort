@@ -46,6 +46,14 @@ class SearchUserController extends Controller
                 });
             })
             ->paginate(10);
+            
+            foreach ($users as $user) {
+                $avatar = $user->s_avatar ?? $user->g_avatar;
+        
+                $user->image_url = $avatar
+                    ? route('avatar.image', ['filename' => basename($avatar)])
+                    : asset('images/profile.jpg');
+            }
 
         return view('manager.user_list', compact('users'));
     }
@@ -73,6 +81,14 @@ class SearchUserController extends Controller
                 });
             })
             ->paginate(10);
+            
+            foreach ($guest as $g) {
+                $avatar = $g->avatar ?? null;
+            
+                $g->image_url = !empty($avatar)
+                    ? route('avatar.image', ['filename' => basename($avatar)])
+                    : asset('images/profile.jpg');
+            }
 
         return view('manager.guest_list', compact('guest'));
     }

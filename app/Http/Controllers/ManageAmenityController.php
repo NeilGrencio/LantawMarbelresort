@@ -44,6 +44,7 @@ class ManageAmenityController extends Controller
     {
         $validatedData = $request->validate([
             'amenityname' => 'required|string|max:255',
+            'amenitycapacity' => 'required|int',
             'description' => 'required|string',
             'amenityimage' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'childprice' => 'required|numeric|min:0',
@@ -58,6 +59,7 @@ class ManageAmenityController extends Controller
             $amenity->amenityname = $validatedData['amenityname'];
             $amenity->description = $validatedData['description'];
             $amenity->image = $imagePath;
+            $amenity->capacity = $validatedData['amenitycapacity'];
             $amenity->childprice = $validatedData['childprice'];
             $amenity->adultprice = $validatedData['adultprice'];
             $amenity->status = 'Available';
@@ -98,6 +100,7 @@ class ManageAmenityController extends Controller
 
         $validatedData = $request->validate([
             'amenityname' => 'required|string|max:255',
+            'amenitycapacity' => 'required|int',
             'description' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'childprice' => 'required|numeric|min:0',
@@ -108,6 +111,7 @@ class ManageAmenityController extends Controller
         $hasChanges = (
             $amenity->amenityname != $validatedData['amenityname'] ||
             $amenity->description != $validatedData['description'] ||
+            $amenity->capacity = $validatedData['amenitycapacity'] ||
             $amenity->childprice != $validatedData['childprice'] ||
             $amenity->adultprice != $validatedData['adultprice'] ||
             $amenity->status != $validatedData['status'] ||
@@ -122,6 +126,7 @@ class ManageAmenityController extends Controller
         try {
             $amenity->amenityname = $validatedData['amenityname'];
             $amenity->description = $validatedData['description'];
+            $amenity->capacity = $validatedData['amenitycapacity'];
             $amenity->childprice = $validatedData['childprice'];
             $amenity->adultprice = $validatedData['adultprice'];
             $amenity->status = $validatedData['status'];

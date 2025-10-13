@@ -127,7 +127,18 @@ Route::get('/qr-code/{filename}', function ($filename) {
         'Content-Type' => $mimeType
     ]);
 })->name('qr.code');
+Route::get('/avatars/{filename}', function ($filename) {
+    $path = storage_path('app/public/avatars/' . $filename);
 
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType
+    ]);
+})->name('avatar.image');
 
 Route::match(['get', 'post'], 'auth/login', [LoginController::class, 'login'])->name('login');
 Route::post('auth/logout', [LoginController::class, 'logout'])->name('logout');

@@ -143,6 +143,14 @@ class DayTourController extends Controller
                     $discountAmount = DiscountTable::find($discountID)?->amount ?? 0;
                     $totalAmount -= ($totalAmount * ($discountAmount / 100));
                 }
+                
+                $amountPaid = $validated['cashamount'] ?? 0;
+                $change = $amountPaid - $totalAmount;
+                
+                $totalAmount -= $amountPaid;
+                if($totalAmount < 0) {
+                    $totalAmount = 0;
+                }
 
                 $bill = BillingTable::create([
                     'totalamount' => $totalAmount,
@@ -152,9 +160,6 @@ class DayTourController extends Controller
                     'discountID' => $discountID,
                     'guestID' => $guest->guestID,
                 ]);
-
-                $amountPaid = $validated['cashamount'] ?? 0;
-                $change = $amountPaid - $totalAmount;
 
                 PaymentTable::create([
                     'totaltender' => $amountPaid,
