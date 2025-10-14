@@ -13,7 +13,6 @@ use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\SessionLogController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\RoomMobile;
 use App\Http\Controllers\DayTourController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\Api\AmenityController;
@@ -286,10 +285,10 @@ Route::match(['get', 'post'], 'manager/add_service', [ManageMenuController::clas
 Route::get('manager/feedback', [FeedbackController::class, 'viewFeedback'])->name('manager.feedback');
 
 // View Chats
-Route::get( 'manager/chat', [ChatController::class, 'viewChats'])->name('manager.chat_logs');
+Route::get('manager/chat', [ChatController::class, 'viewChats'])->name('manager.chat_logs');
 
 // Send Reply
-Route::post( 'manager/chat', [ChatController::class, 'sendChat'])->name('manager.send_reply');
+Route::post('manager/chat', [ChatController::class, 'sendChat'])->name('manager.send_reply');
 Route::post('manager/chat', [ChatController::class, 'sendChat'])->name('manager.send_reply');
 
 // View Discounts
@@ -354,6 +353,7 @@ Route::get('receptionist/search_checkout', [SearchUserController::class, 'search
 
 
 // Booking Routes
+
 
 Route::get('receptionist/booking', [BookingController::class, 'bookingList'])->name('receptionist.booking');
 Route::get('receptionist/booking_list', [BookingController::class, 'bookingListView'])->name('receptionist.booking_list');
