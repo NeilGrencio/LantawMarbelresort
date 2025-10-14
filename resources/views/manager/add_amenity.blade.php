@@ -27,6 +27,9 @@
 
                     <label for="txtDescription">Amenity Description</label>
                     <textarea id="txtDescription" oninput="autoResize(this)" name="description" placeholder="Amenity Descriptions.."></textarea>
+                    
+                    <label for="txtAmenityCapacity">Amenity Capacity</label>
+                    <input id="txtAmenityCapacity" name="amenitycapacity" type="text" placeholder="20"> 
 
                     <label class="image-loader" for="image">Amenity Image
                     <img class="image-loader" id="imagePreview" src="{{asset('images/photo.png')}}">

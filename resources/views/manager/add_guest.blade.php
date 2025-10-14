@@ -124,7 +124,7 @@
 
                 <div id="button-container">
                     <div>
-                        <button id="btncancel" type="button" data-url="{{ url('manager/manage_user')}}">Cancel</button>
+                        <button id="btncancel" type="button" data-url="{{ url('manager/guest_list')}}">Cancel</button>
                         <button id="btnsubmit" type="submit">Submit</button>
                     </div>
                 </div>
@@ -156,6 +156,7 @@
     </div>
     </body>
 <style>
+    #guest{color:orange;}
     body {
         overflow-y: auto;
         font-size: 0.85rem;

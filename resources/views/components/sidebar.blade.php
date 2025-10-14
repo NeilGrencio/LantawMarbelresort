@@ -106,7 +106,7 @@
             bottom: 60px; 
             left: 2rem;    
             width: 10%; 
-            height:3rem;
+            height:auto;
             background: white;
             color: black;
             border-radius: 0.7rem;
@@ -118,30 +118,45 @@
             z-index: 2000;
         }
 
-        .more-action div {
-            width: 100%;
-            height:2rem;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            cursor: pointer;
-            padding:.5rem;
+        .sidebar-select{
             display:flex;
-            align-items: center;
-            justify-content: start;
-            border-radius: 0.5rem;
-            gap:.5rem;
+            height:2rem;
+            font-size:.8rem;
+            padding:.5rem;
+            border-radius:0.3rem;
+            width:100%;
+            transition:all .2s ease;
+            background:#ffffff;
+            border:2px solid black;
         }
-
-        .more-action div:hover {
+        .sidebar-select:hover {
             background-color: rgb(255,145,0);
-            color: black;
+            color:black;
         }
 
         .logo-container img {
             object-fit: contain;
             height: 2.5rem;
             width: 100%;
+        }
+
+        #logout-form {
+            width:100%;
+            height:100%;
+        }
+
+        #logout-side {
+            display:flex;
+            padding:.5rem;
+            border-radius:0.3rem;
+            width:100%;
+            transition:all .2s ease;
+            cursor:pointer;
+        }
+
+        #logout-side:hover {
+            background-color: rgb(255,145,0);
+            color:black;
         }
         </style>
     </head>
@@ -265,15 +280,22 @@
             </div>
         </div>
         <div class="more-action" style="display:none;">
-                
-                <form id="logout-form" action="{{ route('logout') }}" method="POST">
-                    <div>
-                    @csrf
-                    <button type="submit" style="all:unset; cursor:pointer; font-size:12px; width:100%;">Log Out</button>
-                    </div>
-                </form>
-                
+
+            <div class="sidebar-select" data-url="{{ url('manager/view_profile/' . session()->get('user_id')) }}">
+                Profile
             </div>
+            <div class="sidebar-select" data-url="{{ url('manager/notifications') }}">
+                Notifications
+            </div>
+                
+            <form id="logout-form" action="{{ route('logout') }}" method="POST">
+                <div>
+                @csrf
+                <button id="logout-side" type="submit">Log Out</button>
+                </div>
+            </form>
+            
+        </div>
 
     <script>
 
@@ -303,7 +325,7 @@
                 item.addEventListener('click', function () {
                     const url = this.dataset.url;
                     if (url) {
-                        window.location.href = `/${url}`;
+                        window.location.href = url; 
                     }
                 });
             });

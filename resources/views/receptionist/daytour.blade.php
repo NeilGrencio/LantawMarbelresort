@@ -294,10 +294,12 @@
     }
     .main-container{
         display:grid;
-        grid-template-columns: 2fr 1fr;
+        grid-template-columns: 80% 20%;
         gap:.5rem;
+        width:(100vw - 12rem);
         position:relative;
         overflow-y:auto;
+        overflow-x:none;
     }
     .form-form{
         width:100%;
@@ -569,6 +571,8 @@
         display:flex;
         flex-direction: row;
         gap:.5rem;
+        width:100%;
+        overflow-x:auto;
     }
     .scroll-btn{
         position: absolute;

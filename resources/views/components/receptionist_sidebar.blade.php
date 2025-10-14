@@ -159,31 +159,57 @@
             position: absolute;
             bottom: 60px;
             left: 2rem;
+            width:11rem;
             background: white;
             color: black;
             border-radius: 0.7rem;
-            padding: 0.5rem;
+            padding: 0.3rem;
             flex-direction: column;
             align-items: flex-start;
             font-size: 11px;
             box-shadow: 0 0.3rem 0.5rem rgba(0,0,0,0.2);
             z-index: 2000;
+            gap:.5rem;
         }
 
-        #logout-side {
+        .sidebar-select{
+            display:flex;
+            height:2rem;
+            font-size:.8rem;
             padding:.5rem;
             border-radius:0.3rem;
-            width:11rem;
+            width:100%;
             transition:all .2s ease;
+            background:#ffffff;
+            border:2px solid black;
+        }
+        .sidebar-select:hover {
+            background-color: rgb(255,145,0);
+            color:black;
+        }
+
+        #logout-form {
+            width:100%;
+            height:100%;
         }
 
         #logout-side {
+            display:flex;
+            padding:.5rem;
+            border-radius:0.3rem;
+            width:100%;
+            transition:all .2s ease;
+            cursor:pointer;
+        }
+
+        #logout-side:hover {
             background-color: rgb(255,145,0);
             color:black;
         }
     </style>
 </head>
 <body>
+    @include('components.notification_receptionist')
     <div id="sidebar">
         <div class="logo-container">
             <img src="{{ asset('images/logo.png')}}">
@@ -262,9 +288,15 @@
         </div>
 
         <div class="drop-down">
+            <div class="sidebar-select" data-url="{{ url('receptionist/view_profile/' . session()->get('user_id')) }}">
+                Profile
+            </div>
+            <div class="sidebar-select" data-url="{{ url('receptionist/notifications') }}">
+                Notifications
+            </div>
             <form id="logout-form" action="{{ route('logout') }}" method="POST">
                 @csrf
-                <button id="logout-side" type="submit" style="all:unset; cursor:pointer; font-size:12px;">Log Out</button>
+                <button id="logout-side" type="submit">Log Out</button>
             </form>
         </div>
 

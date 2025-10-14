@@ -707,7 +707,7 @@ document.addEventListener('DOMContentLoaded', function () {
         cursor:pointer;
     }
     .menu-card{
-        height:22rem;
+        height:auto;
         width:15rem;
         display:flex;
         flex-direction:column;
@@ -715,7 +715,7 @@ document.addEventListener('DOMContentLoaded', function () {
         border-radius:.5rem;
         padding: .5rem;
         font-size:.7rem;
-        box-shadow: .1rem .3rem 0 rgba(0,0,0,0.2);
+        box-shadow: .1rem .1rem 0 rgba(0,0,0);
     }
     .menu-card img{
         height:10rem;
@@ -788,15 +788,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const filterButtons = Array.from(document.querySelectorAll('.navbar-item'));
     const menuCards = Array.from(document.querySelectorAll('.menu-card'));
     const addMenu = document.getElementById("add-container");
+    const message = document.querySelector('.alert-message');
+
+    if (message) {
+        setTimeout(() => { message.style.display = 'none'; }, 2500);
+    }
 
     if (addMenu) {
         addMenu.addEventListener("click", function () {
             const url = this.dataset.url;
-            if (url) {
-                window.location.href = url;
-            } else {
-                console.error("No data-url found on #add-container");
-            }
+            if (url) window.location.href = url;
         });
     }
 
@@ -807,7 +808,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function applyFilter(filter) {
         const f = normalize(filter);
         menuCards.forEach(card => {
-            const rawType = card.dataset.type || card.getAttribute('data-type') || '';
+            const rawType = card.dataset.type || '';
             const types = rawType.split(',').map(t => normalize(t));
             const matches = (f === 'all') || types.includes(f);
             card.style.display = matches ? '' : 'none';
@@ -832,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    document.querySelectorAll('#manage-button').forEach(button => {
+    document.querySelectorAll('.manage-button').forEach(button => {
         button.addEventListener('click', function (event) {
             event.stopPropagation();
             const menuCard = this.closest('.menu-card');

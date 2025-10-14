@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\PopUpController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -125,13 +126,30 @@ Route::get('/qr-code/{filename}', function ($filename) {
         'Content-Type' => $mimeType
     ]);
 })->name('qr.code');
+Route::get('/avatars/{filename}', function ($filename) {
+    $path = storage_path('app/public/avatars/' . $filename);
 
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+    return response()->file($path, [
+        'Content-Type' => $mimeType
+    ]);
+})->name('avatar.image');
 
 Route::match(['get', 'post'], 'auth/login', [LoginController::class, 'login'])->name('login');
 Route::post('auth/logout', [LoginController::class, 'logout'])->name('logout');
 Route::post('auth/send_OTP', [LoginController::class, 'sendOTP']);
 Route::post('auth/forgot_password', [LoginController::class, 'verifyOTP']);
 Route::post('auth/reset_password', [LoginController::class, 'resetPassword']);
+
+Route::get('manager/view_profile/{userID}', [LoginController::class, 'viewProfile']);
+Route::get('receptionist/view_profile/{userID}', [LoginController::class, 'viewProfile']);
+
+Route::get('manager/notifications', [PopUpController::class, 'notifications']);
+Route::get('receptionist/notifications', [PopUpController::class, 'notifications']);
 
 Route::get('manager/dashboard', [DashboardController::class, 'managerDashboard'])->name('manager.dashboard');
 
@@ -176,6 +194,8 @@ Route::get('manager/guest_list', [ManageGuestController::class, 'guestList'])->n
 
 // Display Add User Form
 Route::get('manager/add_guest', [ManageGuestController::class, 'addGuest'])->name('manager.add_guest');
+Route::post('manager/save_guest', [ManageGuestController::class, 'submitGuest'])->name('manager.save_guest');
+Route::post('manager/edit_guest/{guestID}', [ManageGuestController::class, 'update'])->name('manager.edit_guest');
 
 // Add a Room
 Route::post('manager/save_room', [ManageRoomController::class, 'saveRoom'])->name('manager.save_room');
@@ -366,6 +386,9 @@ Route::post('receptionist/chat', [ChatController::class, 'sendChat'])
 Route::get('receptionist/events', [BookingController::class, 'events'])->name('receptionist.events');
 Route::get('receptionist/checkEvents', [BookingController::class, 'checkEvents'])->name('receptionist.checkEvents');
 
+Route::get('/receptionist/check', [BookingController::class, 'check'])
+    ->name('receptionist.checkAvailability');
+
 Route::get('receptionist/daytourDashboard', [DayTourController::class, 'daytourDashboard'])->name('receptionist.daytour_dashboard');
 
 Route::get('receptionist/daytour', [DayTourController::class, 'viewDayTour'])->name('receptionist.daytour');
@@ -413,6 +436,9 @@ Route::get('receptionist/edit_booking/{bookingID}', [BookingController::class, '
 
 // Update booking
 Route::post('receptionist/update_booking/{bookingID}', [BookingController::class, 'update'])->name('booking.update');
+
+Route::get('/popUp', [PopUpController::class, 'popUp']);
+Route::get('/popUpManager', [PopUpController::class, 'popUpManager']);
 
 //For Mobile
 // Route::get('mobile/rooms', [RoomMobile::class, 'roomList']);

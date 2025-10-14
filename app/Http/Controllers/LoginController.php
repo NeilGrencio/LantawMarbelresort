@@ -15,7 +15,7 @@ use App\Mail\smtpSender;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 use Termwind\Components\Raw;
-
+use Illuminate\Support\Facades\DB;
 class LoginController extends Controller
 {
 
@@ -255,6 +255,43 @@ class LoginController extends Controller
         $request->session()->flush();
 
         return redirect('auth/login')->with('success', 'Logged out successfully.');
+    }
+
+    public function viewProfile($userID, Request $request)
+    {
+        $role = session()->get('role');
+        $userID = session()->get('user_id');
+
+        $user = User::join('staff', 'users.userID', '=', 'staff.userID')
+            ->select(
+                'users.userID',
+                'users.username',
+                'users.password',
+                'users.status',
+                'staff.staffID',
+                'staff.firstname',
+                'staff.lastname',
+                'staff.gender',
+                'staff.mobilenum',
+                'staff.email',
+                'staff.role',
+                'staff.avatar',
+                DB::raw("CONCAT(staff.firstname, ' ', staff.lastname) AS fullname")
+            )
+            ->where('users.userID', $userID)
+            ->first(); 
+
+        if (!$user) {
+            return response('User not found.', 404);
+        }
+
+        if ($role === 'Manager') {
+            return view('manager.view_profile', compact('user'));
+        } elseif ($role === 'Receptionist') {
+            return view('receptionist.view_profile', compact('user'));
+        } else {
+            return response('Error: Unauthorized role.', 403);
+        }
     }
 
 

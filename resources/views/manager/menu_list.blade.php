@@ -61,7 +61,7 @@
                                 <button id="manage-button">Manage&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down fa-lg"></i></button>
                             </div>
                             <div class="drop-down">
-                                <div data-url="{{url('manager/edit_service/' . $menuitem->menuID)}}">
+                                <div data-url="{{url('manager/edit_menu/' . $menuitem->menuID)}}">
                                     <h2>Update</h2>
                                     <i class="fa-solid fa-pencil fa-lg"></i>
                                 </div>
@@ -371,12 +371,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const filterButtons = Array.from(document.querySelectorAll('.navbar-item'));
     const menuCards = Array.from(document.querySelectorAll('.menu-card'));
     const message = document.querySelector('.alert-message');
+    const addMenu = document.getElementById('add-container');
 
     if (message) {
             setTimeout(() => {
                 message.style.display = 'none';
             }, 2500);
         }
+        
+    if (addMenu) {
+        addMenu.addEventListener('click', function () {
+            const url = this.dataset.url;
+            if (url) window.location.href = url;
+        });
+    }
 
     function normalize(s) {
         return (s || '').toString().trim().toLowerCase();

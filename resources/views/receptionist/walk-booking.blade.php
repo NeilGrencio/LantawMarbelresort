@@ -1059,8 +1059,127 @@
                 }
             });
         }
+        // ======================================
+    const checkinInput = document.getElementById('checkin');
+    const checkoutInput = document.getElementById('checkout');
+
+    function hideBookedItems(containerSelector, bookedIDs, checkboxName) {
+        const containers = document.querySelectorAll(containerSelector);
+        
+        containers.forEach(container => {
+            const checkbox = container.querySelector(`input[name="${checkboxName}"]`);
+            
+            if (checkbox) {
+                const itemID = parseInt(checkbox.value);
+                
+                if (bookedIDs.includes(itemID)) {
+                    container.style.display = 'none';
+                    
+                    if (checkbox.checked) {
+                        checkbox.checked = false;
+                        
+                        const card = container.querySelector('.room-card, .cottage-card, .amenity-card');
+                        if (card) {
+                            card.classList.remove('active');
+                        }
+                    }
+                } else {
+                    container.style.display = 'flex';
+                }
+            }
+        });
+    }
+
+    function showAllRoomsAndCottages() {
+        const allItems = document.querySelectorAll('.room, .cottage');
+        allItems.forEach(item => {
+            item.style.display = 'flex';
+        });
+        refreshAllScrollButtons();
+    }
+
+    function refreshAllScrollButtons() {
+        document.querySelectorAll('.room-selection-wrapper').forEach(wrapper => {
+            const container = wrapper.querySelector('.scroll-container') || 
+                            wrapper.querySelector('div[id$="-selection"]');
+            const leftBtn = wrapper.querySelector('.left-btn');
+            const rightBtn = wrapper.querySelector('.right-btn');
+
+            if (!container || !leftBtn || !rightBtn) return;
+
+            const isScrollable = container.scrollWidth > container.clientWidth;
+
+            leftBtn.style.display = isScrollable ? 'flex' : 'none';
+            rightBtn.style.display = isScrollable ? 'flex' : 'none';
+        });
+    }
+
+    function showLoadingIndicator() {
+        const roomSelection = document.getElementById('room-selection');
+        const cottageSelection = document.getElementById('cottage-selection');
+        
+        if (roomSelection) roomSelection.style.opacity = '0.5';
+        if (cottageSelection) cottageSelection.style.opacity = '0.5';
+    }
+
+    function hideLoadingIndicator() {
+        const roomSelection = document.getElementById('room-selection');
+        const cottageSelection = document.getElementById('cottage-selection');
+        
+        if (roomSelection) roomSelection.style.opacity = '1';
+        if (cottageSelection) cottageSelection.style.opacity = '1';
+    }
+
+    async function checkAvailabilityWithLoading() {
+        const checkin = checkinInput.value;
+        const checkout = checkoutInput.value;
+
+        if (!checkin || !checkout) {
+            showAllRoomsAndCottages();
+            return;
+        }
+
+        if (new Date(checkout) <= new Date(checkin)) {
+            showAllRoomsAndCottages();
+            return;
+        }
+
+        showLoadingIndicator();
+
+        try {
+            const response = await fetch(`{{ route('receptionist.checkAvailability') }}?checkin=${checkin}&checkout=${checkout}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+
+            hideBookedItems('.room', data.bookedRooms, 'room[]');
+            hideBookedItems('.cottage', data.bookedCottages, 'cottage[]');
+            
+            refreshAllScrollButtons();
+        } catch (error) {
+            console.error('Error checking availability:', error);
+            alert('Error checking availability. Please try again.');
+        } finally {
+            hideLoadingIndicator();
+        }
+    }
+
+    checkinInput.addEventListener('change', checkAvailabilityWithLoading);
+    checkoutInput.addEventListener('change', checkAvailabilityWithLoading);
+
+    checkinInput.addEventListener('input', function() {
+        if (!this.value) {
+            showAllRoomsAndCottages();
+        }
+    });
+
+    checkoutInput.addEventListener('input', function() {
+        if (!this.value) {
+            showAllRoomsAndCottages();
+        }
+    });
     });
 </script>
-
-
-
