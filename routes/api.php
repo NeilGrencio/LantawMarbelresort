@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ChatController;
 use App\Models\User;
 use App\Http\Controllers\Api\FeedbackController;
+use App\Http\Controllers\Api\QRCodeController;
 
 
 /*
@@ -87,3 +88,16 @@ Route::post('/save-fcm-token', [ApiAuthController::class, 'saveFcmToken']);
 Route::get('chats/guest/{guestID}', [ChatController::class, 'getByGuest']);
 Route::post('/feedback', [FeedbackController::class, 'store']); // Add feedback
 Route::get('/feedback/{guestID}', [FeedbackController::class, 'index']);
+use App\Http\Controllers\QRController;
+
+// Get all QR codes for a specific guest
+Route::get('/qrcodes/{guestID}', [QRCodeController::class, 'index']);
+
+// Get a single QR code by ID
+Route::get('/qrcode/{id}', [QRCodeController::class, 'show']);
+
+// Create a new QR code
+Route::post('/qrcode', [QRCodeController::class, 'store']);
+
+// (Optional) Delete a QR code
+Route::delete('/qrcode/{id}', [QRCodeController::class, 'destroy']);
