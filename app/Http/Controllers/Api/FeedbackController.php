@@ -20,7 +20,7 @@ class FeedbackController extends Controller
             'rating' => $validated['rating'],
             'guestID' => $validated['guestID'],
             'date' => now(),
-            'status' => 'pending', // or 'approved' depending on logic
+            'status' => 'Unread', // or 'approved' depending on logic
         ]);
 
         return response()->json([
