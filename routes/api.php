@@ -95,7 +95,7 @@ Route::get('/qrcodes/{guestID}', [QRCodeController::class, 'index']);
 
 // Get a single QR code by ID
 Route::get('/qrcode/{id}', [QRCodeController::class, 'show']);
-
+Route::get('/qrcodeByGuest/{id}', [QRCodeController::class, 'showbyGuest']);
 // Create a new QR code
 Route::post('/qrcode', [QRCodeController::class, 'store']);
 

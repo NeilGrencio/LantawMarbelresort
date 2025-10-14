@@ -35,6 +35,25 @@ class QRCodeController extends Controller
 
         return response()->json(['success' => true, 'data' => $qr]);
     }
+public function showbyGuest($guestID)
+{
+    $qr = QRTable::with(['Amenity', 'Guest'])
+        ->where('guestID', $guestID)
+        ->latest('accessdate') // optional: get latest by date
+        ->first();
+
+    if (!$qr) {
+        return response()->json([
+            'success' => false,
+            'message' => 'No QR record found for this guest.'
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $qr
+    ]);
+}
 
     /**
      * Store a new QR code record
