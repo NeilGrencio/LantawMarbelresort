@@ -195,6 +195,7 @@ class DashboardController extends BaseAuthController
             ->select(
                 'menu_bookings.id',
                 'menu_bookings.booking_id',
+                'menu_bookings.orderdate',
                 'booking.bookingID',
                 DB::raw("CONCAT('#', LPAD(menu_bookings.id, 3, '0')) as bookingTicket"),
                 'menu.menuname',
@@ -204,7 +205,7 @@ class DashboardController extends BaseAuthController
                 'menu_bookings.status',
                 'menu_bookings.created_at'
             )
-            ->orderBy('menu_bookings.created_at', 'desc')
+            ->orderBy('menu_bookings.orderdate', 'desc')
             ->paginate(10);
     
         $serving = MenuBookingTable::where('menu_bookings.status', 'Confirmed')

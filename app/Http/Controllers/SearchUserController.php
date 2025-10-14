@@ -236,6 +236,29 @@ class SearchUserController extends Controller
                     ->orderBy('qrID', 'desc')
                     ->get();
 
+        $usedCounts = QRTable::whereDate('accessdate', $today)
+            ->select('amenityID', DB::raw('COUNT(*) as used_count'))
+            ->groupBy('amenityID')
+            ->pluck('used_count', 'amenityID');
+
+        $amenitiesData = $amenity->map(function ($a) use ($usedCounts) {
+            $used = $usedCounts[$a->amenityID] ?? 0;
+            $available = max($a->capacity - $used, 0);
+
+            return [
+                'amenityID' => $a->amenityID,
+                'amenityname' => $a->amenityname,
+                'capacity' => $a->capacity,
+                'used' => $used,
+                'available' => $available,
+            ];
+        });
+
+        $differentAmenities = $amenity->where('status', 'Available')
+            ->pluck('amenityname')
+            ->unique()
+            ->values();
+
         $daytours = QRTable::with(['guest', 'amenity'])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -253,7 +276,7 @@ class SearchUserController extends Controller
             })
             ->paginate(10);
 
-        return view('receptionist.daytourDashboard', compact('amenity', 'qrcode', 'recent', 'daytours'));
+        return view('receptionist.daytourDashboard', compact('amenity', 'qrcode', 'recent', 'daytours', 'usedCounts', 'differentAmenities', 'amenitiesData'));
     }
 
     public function searchGuestReceptionist(Request $request)

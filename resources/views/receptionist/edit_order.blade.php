@@ -107,6 +107,15 @@
                                 required
                             >
                         </div>
+                        <label for="date">Date and time to Serve</label>
+                        <input 
+                            type="datetime-local" 
+                            id="date" 
+                            name="date" 
+                            min="{{ \Carbon\Carbon::parse($bookingstart)->format('Y-m-d\TH:i') }}" 
+                            max="{{ \Carbon\Carbon::parse($bookingend)->format('Y-m-d\TH:i') }}" 
+                            required
+                        >
                         <div id="bookingInputContainer"></div>
                         <div id="orderSummary">
                             <h3>Order Summary</h3>
@@ -513,6 +522,26 @@
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('date');
+
+    // Use JSON encoding to safely pass Blade variables into JS
+    const bookingStart = {!! json_encode($bookingstart) !!};
+    const bookingEnd = {!! json_encode($bookingend) !!};
+
+    if (bookingStart && bookingEnd) {
+        const start = new Date(bookingStart);
+        const end = new Date(bookingEnd);
+
+        function formatDateTimeLocal(date) {
+            const pad = (n) => n.toString().padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        }
+
+        dateInput.min = formatDateTimeLocal(start);
+        dateInput.max = formatDateTimeLocal(end);
+        dateInput.value = formatDateTimeLocal(start);
+    }
+
     let cart = {};
 
     document.querySelectorAll('.menu-card').forEach(card => {
@@ -632,5 +661,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target == modal) modal.style.display = 'none';
     });
 });
+
 </script>
 </html>

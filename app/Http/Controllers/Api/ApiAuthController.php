@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Models\GuestTable;
+use App\Models\SessionLogTable;
+use App\Mail\smtpSender;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class ApiAuthController extends Controller
@@ -203,5 +206,113 @@ class ApiAuthController extends Controller
             ],
             'profile' => $profile
         ], 200);
+    }
+
+    // ------------------- SEND OTP -------------------
+    public function sendOTP(Request $request)
+    {
+        $request->validate(['username' => 'required|string']);
+
+        // Get user and staff
+        $email = GuestTable::where('email', $request->email)->first();
+        if (!$email) {
+            return response()->json(['success' => false, 'message' => 'Email not found.']);
+        }
+
+        // Generate OTP
+        $otp = rand(100000, 999999);
+
+        // Store OTP in session for 5 minutes
+        session([
+            'otp_'.$email->guestID => $otp,
+            'otp_expiration_'.$email->guestID => now()->addMinutes(5)
+        ]);
+
+        try {
+            Mail::to($email->email)->send(new smtpSender($email->email, $otp));
+
+            return response()->json(['success' => true, 'message' => 'OTP sent to your email.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to send OTP: '.$e->getMessage()]);
+        }
+    }
+
+    // ------------------- VERIFY OTP -------------------
+    public function verifyOTP(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'otp' => 'required|numeric'
+        ]);
+
+        $user = User::where('username', $request->username)->first();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Username not found.']);
+
+        $guest = GuestTable::where('userID', $user->userID)->first();
+        if (!$guest) return response()->json(['success' => false, 'message' => 'Guest was not found.']);
+
+        $cachedOtp = session('otp_'.$guest->staffID);
+        $expiration = session('otp_expiration_'.$guest->staffID);
+
+        if (!$cachedOtp || !$expiration || now()->greaterThan($expiration)) {
+            return response()->json(['success' => false, 'message' => 'OTP expired.']);
+        }
+
+        if ($cachedOtp != $request->otp) {
+            return response()->json(['success' => false, 'message' => 'Invalid OTP.']);
+        }
+
+        // OTP verified → keep it in session for reset, optionally
+        return response()->json(['success' => true, 'message' => 'OTP verified.']);
+    }
+
+    // ------------------- RESET PASSWORD -------------------
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string',
+            'otp' => 'required|numeric',
+            'password' => 'required|string|min:8|confirmed', // password_confirmation required
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        $user = User::where('username', $request->username)->first();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Username not found.']);
+
+        $guest = GuestTable::where('userID', $user->userID)->first();
+        if (!$guest) return response()->json(['success' => false, 'message' => 'Guest was not found.']);
+
+        // Verify OTP from session
+        $cachedOtp = session('otp_'.$guest->staffID);
+        $expiration = session('otp_expiration_'.$guest->staffID);
+
+        if (!$cachedOtp || !$expiration || now()->greaterThan($expiration)) {
+            return response()->json(['success' => false, 'message' => 'OTP expired.']);
+        }
+
+        if ($cachedOtp != $request->otp) {
+            return response()->json(['success' => false, 'message' => 'Invalid OTP.']);
+        }
+
+        // Update password
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Remove OTP from session
+        session()->forget(['otp_'.$guest->staffID, 'otp_expiration_'.$guest->staffID]);
+
+        $userlogs = new SessionLogTable();
+        $userlogs->userID = $user->userID;
+        $userlogs->activity = 'Password Reset';
+        $userlogs->date = now();
+        $userlogs->save();
+
+        return response()->json(['success' => true, 'message' => 'Password has been reset successfully.']);
     }
 }

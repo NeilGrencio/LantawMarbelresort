@@ -75,10 +75,7 @@ class OrderController extends Controller
     public function editOrder(Request $request, $bookingID)
     {
         if ($request->isMethod('get')) {
-            $menu = MenuTable::where("status", 'Available')
-                ->where("itemtype", '!=', 'services')
-                ->get();
-
+            $menu = MenuTable::where("status", 'Available')->get();
             $uniqueMenuTypes = $menu->pluck('itemtype')->unique();
 
             $guest = BookingTable::join('guest', 'booking.guestID', '=', 'guest.guestID')
@@ -105,19 +102,35 @@ class OrderController extends Controller
                     'menu_bookings.status',
                     'menu_bookings.created_at',
                     'menu_bookings.updated_at',
-                    'booking.bookingstart as bookingDate'
+                    'booking.bookingstart as bookingStart',
+                    'booking.bookingend as bookingEnd'
                 )
                 ->orderBy('menu_bookings.created_at', 'desc')
                 ->get();
 
             $guestName = $orders->isNotEmpty() ? $orders->first()->guestname : '';
-            
-            return view('receptionist.edit_order', compact('menu', 'uniqueMenuTypes', 'guest', 'orders', 'bookingID', 'guestName'));
+
+            // Define variables for Blade
+            $bookingstart = $orders->isNotEmpty() ? $orders->first()->bookingstart : null;
+            $bookingend   = $orders->isNotEmpty() ? $orders->first()->bookingend : null;
+
+            return view('receptionist.edit_order', compact(
+                'menu', 
+                'uniqueMenuTypes', 
+                'guest', 
+                'orders', 
+                'bookingID', 
+                'guestName',
+                'bookingstart',
+                'bookingend'
+            ));
         }
+
 
         $validated = $request->validate([
             'order'       => 'nullable|array',
             'order.*'     => 'integer|exists:menu,menuID',
+            'date'        =>  'date|required',
             'quantity'    => 'nullable|array',
             'quantity.*'  => 'integer|min:0|max:100',
         ]);
@@ -157,6 +170,8 @@ class OrderController extends Controller
                 $totalPrice = $pricePerUnit * $quantity;
                 $grandTotal += $totalPrice;
 
+                $orderDate = Carbon::parse($validated['date'])->format('Y-m-d H:i:s');
+
                 MenuBookingTable::updateOrCreate(
                     [
                         'booking_id' => $bookingID,
@@ -165,6 +180,7 @@ class OrderController extends Controller
                     [
                         'quantity'   => $quantity,
                         'price'      => $pricePerUnit,
+                        'orderdate'  => $orderDate,
                         'status'     => 'Pending',
                         'updated_at' => now(),
                     ]
@@ -239,92 +255,74 @@ class OrderController extends Controller
             'guest_name' => 'required|string',
             'order'      => 'required|array',
             'order.*'    => 'integer|exists:menu,menuID',
+            'date'       => 'required|date',
             'quantity'   => 'required|array',
             'quantity.*' => 'integer|min:1|max:10',
         ]);
 
-        try {
-            DB::beginTransaction();
+        DB::beginTransaction();
 
-            $nameParts = explode(' ', $validated['guest_name'], 2);
-            $firstname = $nameParts[0] ?? '';
-            $lastname  = $nameParts[1] ?? '';
+        try {
+            $guestName = trim($validated['guest_name']);
+            $lastSpace = strrpos($guestName, ' ');
+
+            if ($lastSpace !== false) {
+                $firstname = substr($guestName, 0, $lastSpace);
+                $lastname = substr($guestName, $lastSpace + 1);
+            } else {
+                $firstname = $guestName;
+                $lastname = '';
+            }
 
             $guest = GuestTable::where('firstname', $firstname)
                 ->where('lastname', $lastname)
-                ->first();
-
-            if (!$guest) {
-                return redirect()->back()->with('error', 'Guest not found.');
-            }
+                ->firstOrFail();
 
             $today = Carbon::today();
             $booking = BookingTable::where('guestID', $guest->guestID)
                 ->whereDate('bookingstart', '<=', $today)
                 ->whereDate('bookingend', '>=', $today)
-                ->first();
-
-            if (!$booking) {
-                return redirect()->back()->with('error', 'No booking found for this guest.');
-            }
+                ->firstOrFail();
 
             $grandTotal = 0;
             $createdOrders = [];
 
+            $orderDate = Carbon::parse($validated['date'])->format('Y-m-d H:i:s');
+
             foreach ($validated['order'] as $index => $menuId) {
                 $quantity = $validated['quantity'][$index];
-                $menu = MenuTable::find($menuId);
+                $menu = MenuTable::findOrFail($menuId);
+                $itemPrice = $menu->price * $quantity;
 
-                if ($menu) {
-                    $itemPrice = $menu->price * $quantity;
-                    $grandTotal += $itemPrice;
+                $order = MenuBookingTable::create([
+                    'menu_id'     => $menuId,
+                    'booking_id'  => $booking->bookingID,
+                    'quantity'    => $quantity,
+                    'price'       => $itemPrice,
+                    'orderdate' => $orderDate,
+                    'bookingDate' => $booking->bookingstart,
+                    'status'      => 'Pending',
+                ]);
 
-                    $order = MenuBookingTable::create([
-                        'menu_id'     => $menuId,
-                        'booking_id'  => $booking->bookingID,
-                        'quantity'    => $quantity,
-                        'price'       => $itemPrice,
-                        'created_at'  => now(),
-                        'updated_at'  => now(),
-                        'bookingDate' => $booking->bookingstart,
-                        'status'      => 'Pending',
-                    ]);
-
-                    $createdOrders[] = $order;
-                }
+                $grandTotal += $itemPrice;
+                $createdOrders[] = $order;
             }
 
-            if (!empty($createdOrders)) {
-                $billing = BillingTable::where('bookingID', $booking->bookingID)->first();
-
-                if ($billing) {
-                    $billing->totalamount += $grandTotal;
-                    $billing->datebilled = now();
-                    $billing->status = 'Unpaid';
-                    $billing->guestID = $guest->guestID;
-                    $billing->save();
-                } else {
-                    BillingTable::create([
-                        'totalamount' => $grandTotal,
-                        'datebilled'  => now(),
-                        'status'      => 'Unpaid',
-                        'bookingID'   => $booking->bookingID,
-                        'orderID'     => null,
-                        'amenityID'   => null,
-                        'chargeID'    => null,
-                        'discountID'  => null,
-                        'guestID'     => $guest->guestID,
-                    ]);
-                }
+            if ($createdOrders) {
+                $billing = BillingTable::firstOrNew(['bookingID' => $booking->bookingID]);
+                $billing->totalamount = ($billing->totalamount ?? 0) + $grandTotal;
+                $billing->datebilled = now();
+                $billing->status = 'Unpaid';
+                $billing->guestID = $guest->guestID;
+                $billing->save();
             }
 
             DB::commit();
-
-            return redirect()->back()->with('success', 'Order updated successfully.');
+            return redirect()->back()->with('success', 'Order submitted successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to submit order: ' . $e->getMessage());
         }
     }
 

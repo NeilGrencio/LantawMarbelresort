@@ -11,6 +11,7 @@ class MenuController extends Controller
     public function index()
     {
         $menus = MenuTable::where('status', 'available')
+            ->where('itemtype', '!=', 'Services')
             ->get()
             ->map(function ($menu) {
                 $menu->image_url = $menu->image

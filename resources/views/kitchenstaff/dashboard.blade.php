@@ -388,6 +388,7 @@
                                 <th>Order Ticket</th>
                                 <th>Item Names</th>
                                 <th>Total Quantity</th>
+                                <th>Order Date & Time</th>
                                 <th>Order Total</th>
                                 <th>Order Status</th>
                                 <th>Action</th>
@@ -401,6 +402,7 @@
                                     <td>{{ $order->bookingTicket }}</td>
                                     <td>{{ $order->menuname }}</td>
                                     <td>{{ $order->quantity }}</td>
+                                    <td>{{ $order->orderdate }}</td>
                                     <td>₱{{ number_format($order->total, 2) }}</td>
                                     <td>
                                         @if (strtolower($order->status) === 'pending')

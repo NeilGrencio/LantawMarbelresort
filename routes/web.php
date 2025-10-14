@@ -412,7 +412,7 @@ Route::get('receptionist/sendsmtp', [ManageUserController::class, 'send']);
 Route::get('receptionist/guest_list', [ManageGuestController::class, 'guestListReceptionist'])->name('receptionist.guest_list');
 Route::get('receptionist/view_guest/{guestID}', [ManageGuestController::class, 'viewGuestReceptionist'])->name('receptionist.view_guest');
 Route::match(['get', 'post'], 'receptionist/add_guest', [ManageGuestController::class, 'addGuestReceptionist'])->name('receptionist.add_guest');
-Route::post('receptionist/edit_guest/{guestID}', [ManageGuestController::class, 'editGuest'])->name('receptionist.add_guest');
+Route::post('receptionist/edit_guest/{guestID}', [ManageGuestController::class, 'editGuest'])->name('receptionist.edit_guest');
 
 Route::get('receptionist/orderlist', [OrderController::class, 'orderList'])->name('receptionist.orderlist');
 

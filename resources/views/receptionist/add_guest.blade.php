@@ -13,7 +13,7 @@
         <div id="main-layout">
             <h1>Create Guest Information</h1>
 
-            <form method="POST" action="{{ route('receptionist.edit_guest') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('receptionist.add_guest') }}" enctype="multipart/form-data">
                 @csrf
                 <div id="add_user-container">
                     <div id="form-header-1">
