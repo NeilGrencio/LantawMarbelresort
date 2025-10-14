@@ -25,33 +25,55 @@ class QRCodeController extends Controller
     /**
      * Show a specific QR record
      */
-    public function show($id)
-    {
-        $qr = QRTable::with(['Amenity', 'Guest'])->find($id);
-
-        if (!$qr) {
-            return response()->json(['success' => false, 'message' => 'QR code not found'], 404);
-        }
-
-        return response()->json(['success' => true, 'data' => $qr]);
-    }
-public function showbyGuest($guestID)
+  public function show($id)
 {
     $qr = QRTable::with(['Amenity', 'Guest'])
-        ->where('guestID', $guestID)
-        ->latest('accessdate') // optional: get latest by date
-        ->first();
+        ->where('qrID', $id)
+        ->get()
+        ->map(function ($item) {
+            $item->qr_url = $item->qrcode
+                ? route('qr.code', basename($item->qrcode))
+                : null;
+            return $item;
+        });
 
-    if (!$qr) {
+    if ($qr->isEmpty()) {
         return response()->json([
             'success' => false,
-            'message' => 'No QR record found for this guest.'
+            'message' => 'QR code not found'
         ], 404);
     }
 
     return response()->json([
         'success' => true,
-        'data' => $qr
+        'data' => $qr->first()
+    ]);
+}
+
+
+public function showByGuest($guestID)
+{
+    $qrs = QRTable::with(['Amenity', 'Guest'])
+        ->where('guestID', $guestID)
+        ->orderByDesc('accessdate')
+        ->get()
+        ->map(function ($item) {
+            $item->qr_url = $item->qrcode
+                ? route('qr.code', basename($item->qrcode))
+                : null;
+            return $item;
+        });
+
+    if ($qrs->isEmpty()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'No QR records found for this guest.'
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $qrs
     ]);
 }
 
