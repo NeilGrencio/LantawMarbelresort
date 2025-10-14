@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\CottageController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ChatController;
 use App\Models\User;
+use App\Http\Controllers\Api\FeedbackController;
 
 
 /*
@@ -84,3 +85,5 @@ Route::apiResource('chats', ChatController::class);
 Route::post('/save-fcm-token', [ApiAuthController::class, 'saveFcmToken']);
 
 Route::get('chats/guest/{guestID}', [ChatController::class, 'getByGuest']);
+Route::post('/feedback', [FeedbackController::class, 'store']); // Add feedback
+Route::get('/feedback/{guestID}', [FeedbackController::class, 'index']);
