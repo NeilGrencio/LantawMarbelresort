@@ -15,6 +15,7 @@ class MenuBookingTable extends Model
         'booking_id',
         'quantity',
         'price',
+        'orderdate',
         'status',
         'bookingDate',
     ];

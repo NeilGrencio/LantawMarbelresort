@@ -109,6 +109,9 @@
                         </select>
                     </div>
 
+                    <label for="date">Date and time to Serve</label>
+                    <input type="datetime-local" id="date" name="date" min="1 week from now" max="length of booking" autocomplete="off" required>
+
                     <div id="bookingInputContainer"></div>
                     <div id="orderSummary">
                         <h3>Order Summary</h3>
@@ -512,198 +515,215 @@
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+        const dateInput = document.getElementById('date');
+        const guestSearch = document.getElementById('guestSearch');
+        const selectBox = document.getElementById('firstname');
+        const addContainer = document.getElementById('add-container');
+        const orderBtn = document.getElementById('orderBtn');
+        const btnClear = document.getElementById('btn-clear');
+        const modal = document.getElementById('orderModal');
+        const closeBtn = document.querySelector('.close');
+        const orderItemsContainer = document.getElementById('orderItems');
+        const orderTotalContainer = document.getElementById('orderTotal');
+        const bookingInputContainer = document.getElementById('bookingInputContainer');
 
-    document.getElementById('add-container').addEventListener('click', function() {
-        const targetUrl = this.getAttribute('data-url');
-        if (targetUrl) {
-            window.location.href = targetUrl;
+        let cart = {};
+        let guestBookings = {};
+
+        @foreach($guest as $g)
+            guestBookings["{{ $g->firstname }} {{ $g->lastname }}"] = {
+                start: new Date("{{ $g->bookingstart }}"),
+                end: new Date("{{ $g->bookingend }}")
+            };
+        @endforeach
+
+        function setDateLimits(guestName) {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            if (!guestBookings[guestName]) {
+                dateInput.value = '';
+                dateInput.min = today.toISOString().slice(0,16);
+                dateInput.max = '';
+                return;
+            }
+
+            const bookingStart = guestBookings[guestName].start;
+            const bookingEnd = guestBookings[guestName].end;
+
+            const minDate = bookingStart > today ? bookingStart : today;
+            const maxDate = new Date(bookingEnd);
+            maxDate.setHours(12,0,0,0); // last selectable time 12:00 PM on checkout day
+
+            dateInput.min = minDate.toISOString().slice(0,16);
+            dateInput.max = maxDate.toISOString().slice(0,16);
+
+            if (dateInput.value) {
+                const selected = new Date(dateInput.value);
+                if (selected < minDate) dateInput.value = minDate.toISOString().slice(0,16);
+                if (selected > maxDate) dateInput.value = maxDate.toISOString().slice(0,16);
+            }
+
+            dateInput.addEventListener('input', () => {
+                const selected = new Date(dateInput.value);
+                if (selected < minDate) dateInput.value = minDate.toISOString().slice(0,16);
+                if (selected > maxDate) dateInput.value = maxDate.toISOString().slice(0,16);
+            });
         }
-    });
 
-    const selectedItemsContainer = document.querySelector('.selected-items');
-    const addContainer = document.getElementById('add-container');
-    const orderBtn = document.getElementById('orderBtn');
-    const btnClear = document.getElementById('btn-clear');
-    const modal = document.getElementById('orderModal');
-    const closeBtn = document.querySelector('.close');
-    const orderForm = document.getElementById('orderForm');
-    const orderItemsContainer = document.getElementById('orderItems');
-    const orderTotalContainer = document.getElementById('orderTotal');
-    const bookingInputContainer = document.getElementById('bookingInputContainer');
-
-    let cart = {};
-
-    function updateReceipt() {
-        selectedItemsContainer.innerHTML = '';
-        if (Object.keys(cart).length === 0) {
-            selectedItemsContainer.innerHTML = '<p>No items selected</p>';
-            return;
-        }
-        let grandTotal = 0;
-        Object.values(cart).forEach(item => {
-            const subtotal = item.price * item.quantity;
-            grandTotal += subtotal;
-            const div = document.createElement('div');
-            div.classList.add('receipt-item');
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; width:100%;">
-                    <span><strong>${item.name}</strong></span>
-                    <span>x${item.quantity}</span>
-                    <span>₱${subtotal.toFixed(2)}</span>
-                </div>
-            `;
-            selectedItemsContainer.appendChild(div);
-        });
-        const totalDiv = document.createElement('div');
-        totalDiv.innerHTML = `
-            <hr>
-            <div style="display:flex; justify-content:space-between; font-weight:bold; width:100%;">
-                <span>Total:</span>
-                <span>₱${grandTotal.toFixed(2)}</span>
-            </div>
-        `;
-        selectedItemsContainer.appendChild(totalDiv);
-    }
-
-    document.querySelectorAll('.menu-card').forEach(card => {
-        const addBtn = card.querySelector('.amount-btn.add');
-        const subBtn = card.querySelector('.amount-btn.sub');
-        const counter = card.querySelector('.amount-wrapper h3');
-        const menuID = card.getAttribute('data-id');
-        const menuName = card.getAttribute('data-name');
-        const menuPrice = parseFloat(card.getAttribute('data-price'));
-        let count = 0;
-
-        addBtn.addEventListener('click', () => {
-            count++;
-            counter.textContent = count;
-            cart[menuID] = { id: menuID, name: menuName, price: menuPrice, quantity: count };
-            updateReceipt();
+        selectBox.addEventListener('change', () => {
+            const guestName = selectBox.value;
+            guestSearch.value = guestName;
+            selectBox.style.display = 'none';
+            setDateLimits(guestName);
         });
 
-        subBtn.addEventListener('click', () => {
-            if (count > 0) {
-                count--;
-                counter.textContent = count;
-                if (count === 0) {
-                    delete cart[menuID];
-                } else {
-                    cart[menuID].quantity = count;
-                }
-                updateReceipt();
+        guestSearch.addEventListener('input', () => {
+            const filter = guestSearch.value.toLowerCase();
+            let matchCount = 0;
+            for (let i = 0; i < selectBox.options.length; i++) {
+                const option = selectBox.options[i];
+                const text = option.text.toLowerCase();
+                const match = text.includes(filter);
+                option.style.display = match ? '' : 'none';
+                if (match) matchCount++;
+            }
+            selectBox.style.display = matchCount ? 'block' : 'none';
+            dateInput.value = '';
+            dateInput.min = new Date().toISOString().slice(0,16);
+            dateInput.max = '';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#guestSearch') && !e.target.closest('#firstname')) {
+                selectBox.style.display = 'none';
             }
         });
-    });
 
-    btnClear.addEventListener('click', () => {
-        cart = {};
-        document.querySelectorAll('.menu-card h3').forEach(h3 => h3.textContent = 0);
-        updateReceipt();
-    });
+        addContainer.addEventListener('click', () => {
+            const targetUrl = addContainer.getAttribute('data-url');
+            if (targetUrl) window.location.href = targetUrl;
+        });
 
-    orderBtn.addEventListener('click', () => {
-        orderItemsContainer.innerHTML = '';
-        orderTotalContainer.innerHTML = '';
-        bookingInputContainer.innerHTML = '';
-        if (Object.keys(cart).length === 0) {
-            orderItemsContainer.innerHTML = "<p>No items selected</p>";
-        } else {
+        function updateReceipt() {
+            const selectedItemsContainer = document.querySelector('.selected-items');
+            selectedItemsContainer.innerHTML = '';
+            if (!Object.keys(cart).length) {
+                selectedItemsContainer.innerHTML = '<p>No items selected</p>';
+                return;
+            }
             let grandTotal = 0;
             Object.values(cart).forEach(item => {
                 const subtotal = item.price * item.quantity;
                 grandTotal += subtotal;
                 const div = document.createElement('div');
-                div.classList.add('modal-order-item');
+                div.classList.add('receipt-item');
                 div.innerHTML = `
                     <div style="display:flex; justify-content:space-between; width:100%;">
-                        <span>${item.name} (x${item.quantity})</span>
+                        <span><strong>${item.name}</strong></span>
+                        <span>x${item.quantity}</span>
                         <span>₱${subtotal.toFixed(2)}</span>
-                    </div>
-                    <small>₱${item.price.toFixed(2)} each</small>
-                `;
-                orderItemsContainer.appendChild(div);
-
-                const hiddenId = document.createElement('input');
-                hiddenId.type = 'hidden';
-                hiddenId.name = 'order[]';
-                hiddenId.value = item.id;
-                bookingInputContainer.appendChild(hiddenId);
-
-                const hiddenQty = document.createElement('input');
-                hiddenQty.type = 'hidden';
-                hiddenQty.name = 'quantity[]';
-                hiddenQty.value = item.quantity;
-                bookingInputContainer.appendChild(hiddenQty);
+                    </div>`;
+                selectedItemsContainer.appendChild(div);
             });
-            orderTotalContainer.innerHTML = `
+            const totalDiv = document.createElement('div');
+            totalDiv.innerHTML = `
                 <hr>
                 <div style="display:flex; justify-content:space-between; font-weight:bold; width:100%;">
                     <span>Total:</span>
                     <span>₱${grandTotal.toFixed(2)}</span>
-                </div>
-            `;
+                </div>`;
+            selectedItemsContainer.appendChild(totalDiv);
         }
-        modal.style.display = 'flex';
-    });
 
-    closeBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
+        document.querySelectorAll('.menu-card').forEach(card => {
+            const addBtn = card.querySelector('.amount-btn.add');
+            const subBtn = card.querySelector('.amount-btn.sub');
+            const counter = card.querySelector('.amount-wrapper h3');
+            const menuID = card.getAttribute('data-id');
+            const menuName = card.getAttribute('data-name');
+            const menuPrice = parseFloat(card.getAttribute('data-price'));
+            let count = 0;
 
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
-    });
-    document.querySelectorAll('.navbar-item').forEach(navItem => {
-        navItem.addEventListener('click', () => {
-            const filter = navItem.getAttribute('data-filter');
+            addBtn.addEventListener('click', () => {
+                count++;
+                counter.textContent = count;
+                cart[menuID] = { id: menuID, name: menuName, price: menuPrice, quantity: count };
+                updateReceipt();
+            });
 
-            // highlight active navbar item
-            document.querySelectorAll('.navbar-item').forEach(item => item.classList.remove('active'));
-            navItem.classList.add('active');
-
-            // filter menu cards
-            document.querySelectorAll('.menu-card').forEach(card => {
-                const type = card.getAttribute('data-type');
-                if (filter === 'All' || filter === type) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
+            subBtn.addEventListener('click', () => {
+                if (count > 0) {
+                    count--;
+                    counter.textContent = count;
+                    if (count === 0) delete cart[menuID];
+                    else cart[menuID].quantity = count;
+                    updateReceipt();
                 }
             });
         });
+
+        btnClear.addEventListener('click', () => {
+            cart = {};
+            document.querySelectorAll('.menu-card h3').forEach(h3 => h3.textContent = 0);
+            updateReceipt();
+        });
+
+        orderBtn.addEventListener('click', () => {
+            orderItemsContainer.innerHTML = '';
+            orderTotalContainer.innerHTML = '';
+            bookingInputContainer.innerHTML = '';
+            if (!Object.keys(cart).length) {
+                orderItemsContainer.innerHTML = "<p>No items selected</p>";
+            } else {
+                let grandTotal = 0;
+                Object.values(cart).forEach(item => {
+                    const subtotal = item.price * item.quantity;
+                    grandTotal += subtotal;
+                    const div = document.createElement('div');
+                    div.classList.add('modal-order-item');
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; width:100%;">
+                            <span>${item.name} (x${item.quantity})</span>
+                            <span>₱${subtotal.toFixed(2)}</span>
+                        </div>
+                        <small>₱${item.price.toFixed(2)} each</small>`;
+                    orderItemsContainer.appendChild(div);
+
+                    const hiddenId = document.createElement('input');
+                    hiddenId.type = 'hidden';
+                    hiddenId.name = 'order[]';
+                    hiddenId.value = item.id;
+                    bookingInputContainer.appendChild(hiddenId);
+
+                    const hiddenQty = document.createElement('input');
+                    hiddenQty.type = 'hidden';
+                    hiddenQty.name = 'quantity[]';
+                    hiddenQty.value = item.quantity;
+                    bookingInputContainer.appendChild(hiddenQty);
+                });
+                orderTotalContainer.innerHTML = `
+                    <hr>
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; width:100%;">
+                        <span>Total:</span>
+                        <span>₱${grandTotal.toFixed(2)}</span>
+                    </div>`;
+            }
+            modal.style.display = 'flex';
+        });
+
+        closeBtn.addEventListener('click', () => modal.style.display = 'none');
+        window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+        document.querySelectorAll('.navbar-item').forEach(navItem => {
+            navItem.addEventListener('click', () => {
+                const filter = navItem.getAttribute('data-filter');
+                document.querySelectorAll('.navbar-item').forEach(item => item.classList.remove('active'));
+                navItem.classList.add('active');
+                document.querySelectorAll('.menu-card').forEach(card => {
+                    card.style.display = filter === 'All' || card.getAttribute('data-type') === filter ? 'flex' : 'none';
+                });
+            });
+        });
     });
-
-    const guestSearch = document.getElementById('guestSearch');
-    const selectBox = document.getElementById('firstname');
-
-    guestSearch.addEventListener('focus', () => {
-        selectBox.style.display = 'block';
-    });
-
-    guestSearch.addEventListener('input', () => {
-        const filter = guestSearch.value.toLowerCase();
-        const options = selectBox.options;
-        let matchCount = 0;
-
-        for (let i = 0; i < options.length; i++) {
-            const text = options[i].text.toLowerCase();
-            const match = text.includes(filter);
-            options[i].style.display = match ? '' : 'none';
-            if (match) matchCount++;
-        }
-
-        selectBox.style.display = matchCount ? 'block' : 'none';
-    });
-
-    selectBox.addEventListener('change', () => {
-        guestSearch.value = selectBox.value;
-        selectBox.style.display = 'none';
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('#guestSearch') && !e.target.closest('#firstname')) {
-            selectBox.style.display = 'none';
-        }
-    });
-});
 </script>

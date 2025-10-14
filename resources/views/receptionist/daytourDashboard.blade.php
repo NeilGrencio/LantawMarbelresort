@@ -341,7 +341,7 @@
                         </div>
                     @endforeach
                     <div class="qr-label"><h2>All QRCODES</h2></div>
-                    @foreach($qrcode as $qr)    
+                    @foreach($daytours as $qr)    
                         <div class="qr-card">
                             <img src="{{ route('qr.code', ['filename' => basename($qr->qrcode)]) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
                             <p><strong>Guest:</strong>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{ $qr->guest->firstname }} {{ $qr->guest->lastname }}</p>
@@ -362,11 +362,11 @@
                     @endforeach
                 </div>
             </div>
-            @if (session('success'))
-            <div class="alert-message">
-                <h2>{{ session('success') }}</h2>
-            </div>
-        @endif
+            @if(session('success'))
+                <div class="alert alert-success mt-4">
+                    {{ session('success') }}
+                </div>
+            @endif
         </div>
     </div>
 </div>

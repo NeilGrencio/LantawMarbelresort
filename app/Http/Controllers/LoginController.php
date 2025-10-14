@@ -208,7 +208,11 @@ class LoginController extends Controller
             $request->session()->put('user_id', $user->userID);
             $request->session()->put('username', $user->username);
             $request->session()->put('role', $staff->role);
-            $request->session()->put('avatar', $staff->avatar);
+            $avatarUrl = $staff->avatar
+                ? route('avatar.image', ['filename' => basename($staff->avatar)]) 
+                : asset('images/profile.jpg');
+
+            $request->session()->put('avatar', $avatarUrl);
             $request->session()->regenerate();
 
             // Log session
@@ -280,6 +284,13 @@ class LoginController extends Controller
             )
             ->where('users.userID', $userID)
             ->first(); 
+
+
+        if ($user) {
+            $user->image_url = $user->avatar
+                ? route('avatar.image', ['filename' => basename($user->avatar)])
+                : null;
+        }
 
         if (!$user) {
             return response('User not found.', 404);

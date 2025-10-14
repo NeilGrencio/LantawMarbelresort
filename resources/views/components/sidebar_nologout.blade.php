@@ -253,7 +253,7 @@
             </div>
         </div>
         <div id="profile-container">
-            <img src="{{ asset('storage/' . session('avatar')) }}" alt="Avatar" />
+            <img src="{{ session('avatar') }}" alt="Avatar" />
             <h2>{{ session('username') }}</h2>
             <i class="fas fa-chevron-down fa-lg"></i>
         </div>

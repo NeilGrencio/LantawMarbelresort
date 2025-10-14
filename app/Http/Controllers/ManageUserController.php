@@ -202,7 +202,8 @@ class ManageUserController extends Controller
         $user = UserTable::findOrFail($userID);
 
         if ($request->isMethod('get')) {
-            return view('manager.edit_user', compact('guest', 'staff', 'user'));
+            $isGuest = $guest ? true : false;
+            return view('manager.edit_user', compact('guest', 'staff', 'user', 'isGuest'));
         }
 
         $role = $request->input('role') ?? ($guest ? 'Guest' : 'Staff');

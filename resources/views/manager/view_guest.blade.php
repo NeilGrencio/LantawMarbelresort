@@ -151,7 +151,6 @@
     </div>
 </body>
 
-{{-- Same CSS as the “create” version --}}
 <style>
     #guest{color:orange;}
     body { overflow-y:auto; font-size:0.85rem; }
@@ -173,7 +172,7 @@
     .alert-message { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:fixed; right:50%; transform:translate(50%,0); bottom:1rem; height:fit-content; min-height:10rem; max-height:30rem; width:fit-content; min-width:20rem; max-width:90vw; background:white; z-index:1000; border-radius:1rem; box-shadow:0 0 1rem rgba(0,0,0,0.5); margin:auto; padding:1rem; flex-wrap:wrap; word-wrap:break-word; }
 </style>
 
-{{-- Same JS for dynamic validation --}}
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const password = document.getElementById('txtpassword');

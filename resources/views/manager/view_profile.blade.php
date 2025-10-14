@@ -19,7 +19,7 @@
         </div>
         <div class="profile-content">
             <div id="avatar-container">
-                <img src={{asset('images/profile.jpg')}}/>
+                <img src="{{ route('avatar.image', ['filename' => basename($user->avatar)]) }}" alt={{ $user->username }}/>
             </div>
 
             <div id="profile-info">
