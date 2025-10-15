@@ -41,59 +41,61 @@ class BookingController extends Controller
     }
 public function showForEdit($id)
 {
+    Log::info("➡️ showForEdit booking called", ['bookingID' => $id]);
     try {
         $booking = BookingTable::with([
             'guest',
             'amenity',
-            'rooms.room',          // assuming relationship roomBookTable->room
-            'cottages.cottage',    // cottageBookTable->cottage
-            'menus.menu',          // menuBookingTable->menu
-            'billing.payments',    // billingTable->payments
+            'roomBookings.room',
+            'cottageBookings.cottage',
+            'menuBookings.menu',
+            'billing.payments',
         ])->findOrFail($id);
 
-        // 🔄 Reconstruct original request-like structure
+        // 🧠 Reconstruct the structure expected by normalize()
         $response = [
-            'guestID'       => $booking->guestID,
-            'childGuest'    => $booking->childguest,
-            'adultGuest'    => $booking->adultguest,
-            'totalPrice'    => $booking->totalprice,
-            'bookingStart'  => $booking->bookingstart,
-            'bookingEnd'    => $booking->bookingend,
-            'status'        => $booking->status,
-            'amenity'       => $booking->amenity ? [
+            'guestID'      => $booking->guestID,
+            'childGuest'   => $booking->childguest,
+            'adultGuest'   => $booking->adultguest,
+            'totalPrice'   => $booking->totalprice,
+            'bookingStart' => $booking->bookingstart,
+            'bookingEnd'   => $booking->bookingend,
+            'status'       => $booking->status,
+            'amenity'      => $booking->amenity ? [
                 'amenityID'   => $booking->amenity->amenityID,
-                'amenityName' => $booking->amenity->name ?? null,
+                'amenityName' => $booking->amenity->amenityname ?? null,
+                'description' => $booking->amenity->description ?? null,
             ] : null,
 
-            // 🏠 Room bookings
-            'roomBookings' => $booking->rooms->map(function ($r) {
+            // 🏠 Rooms
+            'roomBookings' => $booking->roomBookings->map(function ($r) {
                 return [
                     'roomID'      => $r->roomID,
                     'bookingDate' => $r->bookingDate,
-                    'roomName'    => $r->room->roomName ?? null,
+                    'roomName'    => $r->room->roomname ?? null,
                 ];
-            }),
+            })->values(),
 
-            // 🏕 Cottage bookings
-            'cottageBookings' => $booking->cottages->map(function ($c) {
+            // 🏕 Cottages
+            'cottageBookings' => $booking->cottageBookings->map(function ($c) {
                 return [
                     'cottageID'   => $c->cottageID,
                     'bookingDate' => $c->bookingDate,
-                    'cottageName' => $c->cottage->cottageName ?? null,
+                    'cottageName' => $c->cottage->cottagename ?? null,
                 ];
-            }),
+            })->values(),
 
-            // 🍽 Menu bookings
-            'menuBookings' => $booking->menus->map(function ($m) {
+            // 🍽 Menus
+            'menuBookings' => $booking->menuBookings->map(function ($m) {
                 return [
                     'menuID'      => $m->menu_id,
                     'quantity'    => $m->quantity,
                     'bookingDate' => $m->bookingDate,
-                    'menuName'    => $m->menu->menuName ?? null,
+                    'menuName'    => $m->menu->menuname ?? null,
                 ];
-            }),
+            })->values(),
 
-            // 💳 Billing info
+            // 💳 Billing + Payments
             'billing' => $booking->billing ? [
                 'totalamount' => $booking->billing->totalamount,
                 'datebilled'  => $booking->billing->datebilled,
@@ -105,17 +107,22 @@ public function showForEdit($id)
                         'datepayment' => $p->datepayment,
                         'refNumber'   => $p->refNumber,
                     ];
-                }),
+                })->values(),
             ] : null,
         ];
 
-        return response()->json($response, 200);
+        Log::info("✅ showForEdit response built", ['bookingID' => $id]);
+        return response()->json($response, 200, [], JSON_UNESCAPED_UNICODE);
 
     } catch (\Exception $e) {
-        Log::error('❌ Failed to fetch booking', ['error' => $e->getMessage()]);
+        Log::error('❌ showForEdit failed', [
+            'bookingID' => $id,
+            'error'     => $e->getMessage(),
+        ]);
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
+
     // GET single booking
     public function show($id)
     {
