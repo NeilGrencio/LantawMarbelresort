@@ -39,89 +39,88 @@ class BookingController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-public function showForEdit($id)
-{
-    Log::info("➡️ showForEdit booking called", ['bookingID' => $id]);
-    try {
-        $booking = BookingTable::with([
-            'guest',
-            'amenity',
-            'roomBookings.room',
-            'cottageBookings.cottage',
-            'menuBookings.menu',
-            'billing.payments',
-        ])->findOrFail($id);
+    public function showForEdit($id)
+    {
+        Log::info("➡️ showForEdit booking called", ['bookingID' => $id]);
+        try {
+            $booking = BookingTable::with([
+                'guest',
+                'amenity',
+                'roomBookings.room',
+                'cottageBookings.cottage',
+                'menuBookings.menu',
+                'billing.payments',
+            ])->findOrFail($id);
 
-        // 🧠 Reconstruct the structure expected by normalize()
-        $response = [
-            'guestID'      => $booking->guestID,
-            'childGuest'   => $booking->childguest,
-            'adultGuest'   => $booking->adultguest,
-            'totalPrice'   => $booking->totalprice,
-            'bookingStart' => $booking->bookingstart,
-            'bookingEnd'   => $booking->bookingend,
-            'status'       => $booking->status,
-            'amenity'      => $booking->amenity ? [
-                'amenityID'   => $booking->amenity->amenityID,
-                'amenityName' => $booking->amenity->amenityname ?? null,
-                'description' => $booking->amenity->description ?? null,
-            ] : null,
+            // 🧠 Reconstruct the structure expected by normalize()
+            $response = [
+                'guestID'      => $booking->guestID,
+                'childGuest'   => $booking->childguest,
+                'adultGuest'   => $booking->adultguest,
+                'totalPrice'   => $booking->totalprice,
+                'bookingStart' => $booking->bookingstart,
+                'bookingEnd'   => $booking->bookingend,
+                'status'       => $booking->status,
+                'amenity'      => $booking->amenity ? [
+                    'amenityID'   => $booking->amenity->amenityID,
+                    'amenityName' => $booking->amenity->amenityname ?? null,
+                    'description' => $booking->amenity->description ?? null,
+                ] : null,
 
-            // 🏠 Rooms
-            'roomBookings' => $booking->roomBookings->map(function ($r) {
-                return [
-                    'roomID'      => $r->roomID,
-                    'bookingDate' => $r->bookingDate,
-                    'roomName'    => $r->room->roomname ?? null,
-                ];
-            })->values(),
-
-            // 🏕 Cottages
-            'cottageBookings' => $booking->cottageBookings->map(function ($c) {
-                return [
-                    'cottageID'   => $c->cottageID,
-                    'bookingDate' => $c->bookingDate,
-                    'cottageName' => $c->cottage->cottagename ?? null,
-                ];
-            })->values(),
-
-            // 🍽 Menus
-            'menuBookings' => $booking->menuBookings->map(function ($m) {
-                return [
-                    'menuID'      => $m->menu_id,
-                    'quantity'    => $m->quantity,
-                    'bookingDate' => $m->bookingDate,
-                    'menuName'    => $m->menu->menuname ?? null,
-                ];
-            })->values(),
-
-            // 💳 Billing + Payments
-            'billing' => $booking->billing ? [
-                'totalamount' => $booking->billing->totalamount,
-                'datebilled'  => $booking->billing->datebilled,
-                'status'      => $booking->billing->status,
-                'payments'    => $booking->billing->payments->map(function ($p) {
+                // 🏠 Rooms
+                'roomBookings' => $booking->roomBookings->map(function ($r) {
                     return [
-                        'totaltender' => $p->totaltender,
-                        'totalchange' => $p->totalchange,
-                        'datepayment' => $p->datepayment,
-                        'refNumber'   => $p->refNumber,
+                        'roomID'      => $r->roomID,
+                        'bookingDate' => $r->bookingDate,
+                        'roomName'    => $r->room->roomname ?? null,
                     ];
                 })->values(),
-            ] : null,
-        ];
 
-        Log::info("✅ showForEdit response built", ['bookingID' => $id]);
-        return response()->json($response, 200, [], JSON_UNESCAPED_UNICODE);
+                // 🏕 Cottages
+                'cottageBookings' => $booking->cottageBookings->map(function ($c) {
+                    return [
+                        'cottageID'   => $c->cottageID,
+                        'bookingDate' => $c->bookingDate,
+                        'cottageName' => $c->cottage->cottagename ?? null,
+                    ];
+                })->values(),
 
-    } catch (\Exception $e) {
-        Log::error('❌ showForEdit failed', [
-            'bookingID' => $id,
-            'error'     => $e->getMessage(),
-        ]);
-        return response()->json(['error' => $e->getMessage()], 500);
+                // 🍽 Menus
+                'menuBookings' => $booking->menuBookings->map(function ($m) {
+                    return [
+                        'menuID'      => $m->menu_id,
+                        'quantity'    => $m->quantity,
+                        'bookingDate' => $m->bookingDate,
+                        'menuName'    => $m->menu->menuname ?? null,
+                    ];
+                })->values(),
+
+                // 💳 Billing + Payments
+                'billing' => $booking->billing ? [
+                    'totalamount' => $booking->billing->totalamount,
+                    'datebilled'  => $booking->billing->datebilled,
+                    'status'      => $booking->billing->status,
+                    'payments'    => $booking->billing->payments->map(function ($p) {
+                        return [
+                            'totaltender' => $p->totaltender,
+                            'totalchange' => $p->totalchange,
+                            'datepayment' => $p->datepayment,
+                            'refNumber'   => $p->refNumber,
+                        ];
+                    })->values(),
+                ] : null,
+            ];
+
+            Log::info("✅ showForEdit response built", ['bookingID' => $id]);
+            return response()->json($response, 200, [], JSON_UNESCAPED_UNICODE);
+        } catch (\Exception $e) {
+            Log::error('❌ showForEdit failed', [
+                'bookingID' => $id,
+                'error'     => $e->getMessage(),
+            ]);
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
-}
 
     // GET single booking
     public function show($id)
@@ -326,14 +325,18 @@ public function showForEdit($id)
     {
         DB::beginTransaction();
         try {
-            // Log the raw request data
+            // Log the raw update request
             $rawData = $request->all();
             Log::info("📥 Raw booking update request", $rawData);
 
+            // Normalize data (same as in store)
             $data = $this->normalize($request);
             Log::info("🧹 Normalized booking update data", $data);
 
+            // ✅ Find existing booking
             $booking = BookingTable::findOrFail($id);
+
+            // ✅ Update booking main info
             $booking->update([
                 'guestamount'  => $data['guestamount'],
                 'childguest'   => $data['childguest'],
@@ -345,58 +348,59 @@ public function showForEdit($id)
                 'guestID'      => $data['guestID'],
                 'amenityID'    => $data['amenityID'],
             ]);
-            Log::info("📌 Booking updated", ['bookingID' => $booking->bookingID, 'data' => $booking->toArray()]);
+            Log::info("📌 Booking updated", ['bookingID' => $booking->bookingID]);
 
-            // Delete old related records and log deleted data
-            $deletedRooms = RoomBookTable::where('bookingID', $id)->pluck('roomID')->toArray();
-            $deletedCottages = CottageBookTable::where('bookingID', $id)->pluck('cottageID')->toArray();
-            $deletedMenus = MenuBookingTable::where('booking_id', $id)->pluck('menu_id')->toArray();
-            $deletedBilling = BillingTable::where('bookingID', $id)->pluck('billingID')->toArray();
-            $deletedPayments = PaymentTable::whereIn('billingID', $deletedBilling)->pluck('paymentID')->toArray();
-
+            // ✅ Delete old related records
             RoomBookTable::where('bookingID', $id)->delete();
             CottageBookTable::where('bookingID', $id)->delete();
             MenuBookingTable::where('booking_id', $id)->delete();
-            PaymentTable::whereIn('billingID', $deletedBilling)->delete();
+            PaymentTable::whereIn('billingID', BillingTable::where('bookingID', $id)->pluck('billingID'))->delete();
             BillingTable::where('bookingID', $id)->delete();
 
-            Log::info("🗑️ Deleted old related records", [
-                'rooms' => $deletedRooms,
-                'cottages' => $deletedCottages,
-                'menus' => $deletedMenus,
-                'billing' => $deletedBilling,
-                'payments' => $deletedPayments,
-            ]);
+            Log::info("🗑️ Old related records deleted", ['bookingID' => $booking->bookingID]);
 
-            // Recreate bookings (rooms, cottages, menus, billing, payments)
+            // ✅ Recreate room bookings
+            $roomIDs = [];
             foreach ($data['roomIDs'] as $index => $roomID) {
-                RoomBookTable::create([
+                $rb = RoomBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'roomID'      => $roomID,
                     'bookingDate' => $this->parseDate($data['roomDates'][$index] ?? now()),
                 ]);
+                $roomIDs[] = $roomID;
+                Log::info("📌 Room booked (updated)", ['bookingID' => $booking->bookingID, 'roomID' => $roomID, 'record' => $rb->toArray()]);
             }
 
+            // ✅ Recreate cottage bookings
+            $cottageIDs = [];
             foreach ($data['cottageIDs'] as $index => $cottageID) {
-                CottageBookTable::create([
+                $cb = CottageBookTable::create([
                     'bookingID'   => $booking->bookingID,
                     'cottageID'   => $cottageID,
                     'bookingDate' => $this->parseDate($data['cottageDates'][$index] ?? now()),
                 ]);
+                $cottageIDs[] = $cottageID;
+                Log::info("📌 Cottage booked (updated)", ['bookingID' => $booking->bookingID, 'cottageID' => $cottageID, 'record' => $cb->toArray()]);
             }
 
+            // ✅ Recreate menu bookings
+            $menuIDs = [];
             foreach ($data['menuIDs'] as $index => $menuID) {
-                MenuBookingTable::create([
+                $mb = MenuBookingTable::create([
                     'booking_id'  => $booking->bookingID,
                     'menu_id'     => $menuID,
                     'quantity'    => $data['menuQuantities'][$index] ?? 1,
                     'status'      => 'Pending',
                     'bookingDate' => $this->parseDate($data['menuDates'][$index] ?? now()),
                 ]);
+                $menuIDs[] = $menuID;
+                Log::info("📌 Menu booked (updated)", ['bookingID' => $booking->bookingID, 'menuID' => $menuID, 'record' => $mb->toArray()]);
             }
 
+            // ✅ Recreate billing and payments
             $billingID = null;
             $paymentIDs = [];
+
             if ($data['billing']) {
                 $billing = BillingTable::create([
                     'totalamount' => $data['billing']['totalamount'] ?? 0,
@@ -406,7 +410,7 @@ public function showForEdit($id)
                     'guestID'     => $booking->guestID,
                 ]);
                 $billingID = $billing->billingID;
-                Log::info("📌 Billing created", ['billing' => $billing->toArray()]);
+                Log::info("📌 Billing created (update)", ['billing' => $billing->toArray()]);
 
                 foreach ($data['payments'] as $payment) {
                     $p = PaymentTable::create([
@@ -418,7 +422,7 @@ public function showForEdit($id)
                         'refNumber'   => $payment['refNumber'] ?? null,
                     ]);
                     $paymentIDs[] = $p->paymentID;
-                    Log::info("📌 Payment created", ['payment' => $p->toArray()]);
+                    Log::info("📌 Payment created (update)", ['payment' => $p->toArray()]);
                 }
             }
 
@@ -426,7 +430,9 @@ public function showForEdit($id)
 
             Log::info("✅ Booking updated successfully", [
                 'bookingID'   => $booking->bookingID,
-
+                'roomIDs'     => $roomIDs,
+                'cottageIDs'  => $cottageIDs,
+                'menuIDs'     => $menuIDs,
                 'billingID'   => $billingID,
                 'paymentIDs'  => $paymentIDs,
             ]);
@@ -434,7 +440,11 @@ public function showForEdit($id)
             return response()->json(['bookingID' => $booking->bookingID], 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("❌ update booking failed", ['error' => $e->getMessage(), 'rawData' => $rawData]);
+            Log::error("❌ update booking failed", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'rawData' => $rawData,
+            ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
