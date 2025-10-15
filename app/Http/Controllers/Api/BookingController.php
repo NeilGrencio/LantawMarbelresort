@@ -267,6 +267,7 @@ class BookingController extends Controller
                     'menu_id'     => $menuID,
                     'quantity'    => $data['menuQuantities'][$index] ?? 1,
                     'status'      => 'Pending',
+                    'orderdate'=> $this->parseDate($data['menuDates'][$index] ?? now()),
                     'bookingDate' => $this->parseDate($data['menuDates'][$index] ?? now()),
                 ]);
                 $menuIDs[] = $menuID;
@@ -391,6 +392,7 @@ class BookingController extends Controller
                     'menu_id'     => $menuID,
                     'quantity'    => $data['menuQuantities'][$index] ?? 1,
                     'status'      => 'Pending',
+                    'orderdate'=> $this->parseDate($data['menuDates'][$index] ?? now()),
                     'bookingDate' => $this->parseDate($data['menuDates'][$index] ?? now()),
                 ]);
                 $menuIDs[] = $menuID;
