@@ -98,6 +98,6 @@ Route::get('/qrcode/{id}', [QRCodeController::class, 'show']);
 Route::get('/qrcodeByGuest/{id}', [QRCodeController::class, 'showbyGuest']);
 // Create a new QR code
 Route::post('/qrcode', [QRCodeController::class, 'store']);
-
+Route::get('/bookingsForEdit/{id}', [BookingController::class, 'showForEdit']);
 // (Optional) Delete a QR code
 Route::delete('/qrcode/{id}', [QRCodeController::class, 'destroy']);

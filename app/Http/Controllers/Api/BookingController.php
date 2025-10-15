@@ -39,7 +39,83 @@ class BookingController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+public function showForEdit($id)
+{
+    try {
+        $booking = BookingTable::with([
+            'guest',
+            'amenity',
+            'rooms.room',          // assuming relationship roomBookTable->room
+            'cottages.cottage',    // cottageBookTable->cottage
+            'menus.menu',          // menuBookingTable->menu
+            'billing.payments',    // billingTable->payments
+        ])->findOrFail($id);
 
+        // 🔄 Reconstruct original request-like structure
+        $response = [
+            'guestID'       => $booking->guestID,
+            'childGuest'    => $booking->childguest,
+            'adultGuest'    => $booking->adultguest,
+            'totalPrice'    => $booking->totalprice,
+            'bookingStart'  => $booking->bookingstart,
+            'bookingEnd'    => $booking->bookingend,
+            'status'        => $booking->status,
+            'amenity'       => $booking->amenity ? [
+                'amenityID'   => $booking->amenity->amenityID,
+                'amenityName' => $booking->amenity->name ?? null,
+            ] : null,
+
+            // 🏠 Room bookings
+            'roomBookings' => $booking->rooms->map(function ($r) {
+                return [
+                    'roomID'      => $r->roomID,
+                    'bookingDate' => $r->bookingDate,
+                    'roomName'    => $r->room->roomName ?? null,
+                ];
+            }),
+
+            // 🏕 Cottage bookings
+            'cottageBookings' => $booking->cottages->map(function ($c) {
+                return [
+                    'cottageID'   => $c->cottageID,
+                    'bookingDate' => $c->bookingDate,
+                    'cottageName' => $c->cottage->cottageName ?? null,
+                ];
+            }),
+
+            // 🍽 Menu bookings
+            'menuBookings' => $booking->menus->map(function ($m) {
+                return [
+                    'menuID'      => $m->menu_id,
+                    'quantity'    => $m->quantity,
+                    'bookingDate' => $m->bookingDate,
+                    'menuName'    => $m->menu->menuName ?? null,
+                ];
+            }),
+
+            // 💳 Billing info
+            'billing' => $booking->billing ? [
+                'totalamount' => $booking->billing->totalamount,
+                'datebilled'  => $booking->billing->datebilled,
+                'status'      => $booking->billing->status,
+                'payments'    => $booking->billing->payments->map(function ($p) {
+                    return [
+                        'totaltender' => $p->totaltender,
+                        'totalchange' => $p->totalchange,
+                        'datepayment' => $p->datepayment,
+                        'refNumber'   => $p->refNumber,
+                    ];
+                }),
+            ] : null,
+        ];
+
+        return response()->json($response, 200);
+
+    } catch (\Exception $e) {
+        Log::error('❌ Failed to fetch booking', ['error' => $e->getMessage()]);
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
     // GET single booking
     public function show($id)
     {
@@ -343,7 +419,7 @@ class BookingController extends Controller
 
             Log::info("✅ Booking updated successfully", [
                 'bookingID'   => $booking->bookingID,
-                
+
                 'billingID'   => $billingID,
                 'paymentIDs'  => $paymentIDs,
             ]);
