@@ -55,6 +55,7 @@ class BookingController extends Controller
             // 🧠 Reconstruct the structure expected by normalize()
             $response = [
                 'guestID'      => $booking->guestID,
+                'bokingID'=>$id,
                 'childGuest'   => $booking->childguest,
                 'adultGuest'   => $booking->adultguest,
                 'totalPrice'   => $booking->totalprice,
