@@ -126,6 +126,7 @@ Route::get('/qr-code/{filename}', function ($filename) {
         'Content-Type' => $mimeType
     ]);
 })->name('qr.code');
+
 Route::get('/avatars/{filename}', function ($filename) {
     $path = storage_path('app/public/avatars/' . $filename);
 
