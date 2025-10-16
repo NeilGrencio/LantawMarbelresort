@@ -323,43 +323,49 @@
             <div class="main-container">
                 <div class="qr-container">
                     <div class="amenity-container">
-                        @foreach($amenity as $a)
-                        <div class="amenity-card">
-                            <small>{{$a->amenityname}} is currently <strong>{{$a->status}}</strong></small>
-                        </div>
-                        @endforeach
+                        @forelse($amenity as $a)
+                            <div class="amenity-card">
+                                <small>{{ $a->amenityname }} is currently <strong>{{ $a->status }}</strong></small>
+                            </div>
+                        @empty
+                            <p>No amenities found.</p>
+                        @endforelse
                     </div>
 
                     <div class="qr-label"><h2>Today</h2></div>
-                    @foreach($recent as $rec)
+                    @forelse($recent as $rec)
                         <div class="qr-card">
                             <img src="{{ route('qr.code', ['filename' => basename($rec->qrcode)]) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
-                            <p><strong>Guest:</strong>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{ $rec->guest->firstname }} {{ $rec->guest->lastname }}</p>
-                            <p><strong>Amenity:</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       {{ $rec->amenity->amenityname }}</p>
-                            <p><strong>Access Date:</strong> &nbsp;&nbsp;&nbsp;&nbsp;{{ $rec->accessdate }}</p>
-                            
+                            <p><strong>Guest:</strong> {{ $rec->guest->firstname }} {{ $rec->guest->lastname }}</p>
+                            <p><strong>Amenity:</strong> {{ $rec->amenity->amenityname }}</p>
+                            <p><strong>Access Date:</strong> {{ $rec->accessdate }}</p>
                         </div>
-                    @endforeach
+                    @empty
+                        <p style="padding:1rem;">No day tours for today.</p>
+                    @endforelse
                     <div class="qr-label"><h2>All QRCODES</h2></div>
-                    @foreach($daytours as $qr)    
+                    @forelse($qrcode as $qr)
                         <div class="qr-card">
                             <img src="{{ route('qr.code', ['filename' => basename($qr->qrcode)]) }}" alt="QR Code" class="w-48 h-48 mt-2 object-contain">
-                            <p><strong>Guest:</strong>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{ $qr->guest->firstname }} {{ $qr->guest->lastname }}</p>
-                            <p><strong>Amenity:</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       {{ $qr->amenity->amenityname }}</p>
-                            <p><strong>Access Date:</strong> &nbsp;&nbsp;&nbsp;&nbsp;{{ $qr->accessdate }}</p>
-                            
+                            <p><strong>Guest:</strong> {{ $qr->guest->firstname }} {{ $qr->guest->lastname }}</p>
+                            <p><strong>Amenity:</strong> {{ $qr->amenity->amenityname }}</p>
+                            <p><strong>Access Date:</strong> {{ $qr->accessdate }}</p>
                         </div>
-                    @endforeach
+                    @empty
+                        <p style="padding:1rem;">No QR codes available.</p>
+                    @endforelse
+
                 </div>
                 <div class="capacity-container">
                     <h3>Amenities Capacity Overview (Today)</h3>
-
-                    @foreach($differentAmenities as $amenitynames)
+                    @forelse($differentAmenities as $amenitynames)
                         <div style="margin-bottom: 40px;">
                             <h4>{{ $amenitynames }}</h4>
                             <canvas id="chart-{{ Str::slug($amenitynames) }}" width="400" height="200"></canvas>
                         </div>
-                    @endforeach
+                    @empty
+                        <p>No available amenities for chart display.</p>
+                    @endforelse
                 </div>
             </div>
             @if(session('success'))

@@ -25,7 +25,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('landingpage');
+    return view('maintenance');
 })->name('landingpage');
 
 Route::get('/room-image/{filename}', function ($filename) {

@@ -44,7 +44,8 @@
                     @foreach($menu as $menuitem)
                         <div class="menu-card" data-id="{{ $menuitem->menuID }}" data-type="{{ $menuitem->itemtype }}" data-price="{{ $menuitem->price }}" data-name="{{ $menuitem->menuname }}">
                             <div id="img-container">
-                                <img src="{{asset('storage/' . $menuitem->image)}}">
+                                <img src="{{ $menuitem->image_url }}" 
+                                     alt="{{ $menuitem->menuname }}" >
                             </div>
                             <div id="menu-details">
                                 <h2>Name: {{$menuitem->menuname}}</h2>
@@ -139,127 +140,139 @@
     </div>
 </body>
 <style>
-    #menu{color:#F78A21;}   
-    #layout{
-        display: flex;
-        flex-direction: row;
-        height:100vh;
-    }
-    #main-layout{
-        display:flex;
-        flex-direction: column;
-        padding:1rem;
-        width:100%;
-        transition: width 0.3s ease-in-out;
-        margin-left:12rem;
-    }
-     #layout-header {
+    * {
+            box-sizing: border-box;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+        #layout {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+        #main-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            margin-left: 12rem;
+            width: calc(100% - 12rem);
+            overflow: hidden;
+        }
+        #layout-header {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: .5;
+            padding-left:1rem;
+            padding-right:1rem;
+            background: white;
+            border-radius: .7rem;
+            border: 1px solid black;
+            box-shadow: .1rem .1rem 0 black;
+            font-size: .8rem;
+            flex-shrink: 0;
+        }
+        .button-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        #add-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+        #add-container:hover {
+            color: #F78A21;
+        }
+        #add-text {
+            margin-left: 0.5rem;
+        }
+        .search-container {
+            display: flex;
+            align-items: center;
+        }
+        .search-container form {
+            display: flex;
+            align-items: center;
+        }
+        .search-container input[type="text"] {
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 25px 0 0 25px;
+            outline: none;
+            width: 250px;
+            font-size: 14px;
+        }
+        .search-container button {
+            padding: 10px 15px;
+            border-left: none;
+            background-color: #000;
+            color: white;
+            border-radius: 0 25px 25px 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .search-container button:hover {
+            background-color: #F78A21;
+        }
+        .search-container .reset-btn {
+            padding: 10px 15px;
+            background-color: #e53935;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+        }
+        .search-container .reset-btn:hover {
+            background-color: #b71c1c;
+        }
+    .navbar {
         display: flex;
         flex-direction: row;
         align-items: center;
-        justify-content: space-between;
+        height: 4rem;
+        gap: 1rem;
+        padding: 1rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
         width: 100%;
-        height: 8%;
-        padding: 1rem 3rem 1rem 2rem;
-        background: white;
-        border-radius: .7rem;
-        font-size: .6rem;
-        border: 1px solid black;
-        box-shadow: .1rem .1rem 0 black;
-        gap: 1rem;
+        justify-content: flex-start;
+        box-sizing: border-box;
+        flex-shrink: 0;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0,0,0,0.3) transparent;
     }
-    .search-container .reset-btn {
-        padding: 10px 15px;
-        background-color: #e53935;
-        color: white;
-        text-decoration: none;
-        border-radius: 25px;
-        margin-left: 10px;
-        transition: background-color 0.3s ease;
-        font-size: 14px;
+    .navbar::-webkit-scrollbar {
+        height: 6px;
     }
-
-    .search-container .reset-btn:hover {
-        background-color: #b71c1c;
-    }
-
-    .button-group {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    #add-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        color: #333;
-        transition: color 0.3s ease;
-        font-size:.8rem;
-    }
-    #add-container:hover {
-        color: #F78A21;
-    }
-    #add-text {
-        opacity: 1;
-        visibility: visible;
-        width: auto;
-        margin-left: 0.5rem;
-    }
-
-    .search-container {
-        display: flex;
-        justify-content: center;
-        align-content: center;
-        margin: 15px 0;
-    }
-
-    .search-container form {
-        display: flex;
-        align-items: center;
-    }
-
-    .search-container input[type="text"] {
-        padding: 10px 15px;
-        border: 1px solid #ccc;
-        border-radius: 25px 0 0 25px;
-        outline: none;
-        width: 250px;
-        font-size: 14px;
-    }
-
-    .search-container button {
-        padding: 10px 15px;
-        border-left: none;
-        background-color: #000000;
-        color: white;
-        border-radius: 0 25px 25px 0;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-    .search-container button:hover {
-        background-color: #F78A21;
-        border: 1px solid #F78A21;
-    }
-    .navbar{
-        display:flex;
-        flex-direction: row;
-        width:100%;
-        height: 3rem;
-        gap:1rem;
-        padding:1rem;
-        justify-content:center;
-        align-items:center;
-        -webkit-overflow-scrolling: touch;
+    .navbar::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.3);
+        border-radius: 3px;
     }
 
     .navbar-item{
         display: flex;
         height:2rem;    
-        width:5rem;
+        width:auto;
+        padding:.5rem;
         background:#ffffff;
         border-radius:.4rem;
         border:1px solid black;
@@ -275,13 +288,15 @@
         cursor:pointer;
     }
     .menu-contianer{
-        display:flex;
-        flex-direction:row;
-        gap:.5rem;
-        width:100%;
-        height: 100%;
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1rem;
+        width: 100%;
         overflow-y: auto;
-        justify-content:center;
+        justify-content: center;
+        box-sizing: border-box;
     }
     .menu-wrapper{
         display:flex;
@@ -289,7 +304,7 @@
         flex-wrap: wrap;
         gap:1rem;
         padding:1rem;
-        width:100%;
+        width:70%;
         height:100%;
         overflow-y:auto;
         justify-content:center;
@@ -353,11 +368,11 @@
         border:solid 1px black;
     }
     .menu-card img{
-        height:40%;
-        width:100%;
-        border-top-right-radius:1rem;
-        border-top-left-radius:1rem;
-        object-fit:cover;
+        height:5rem;
+        width: 100%;
+        border-top-right-radius: 1rem;
+        border-top-left-radius: 1rem;
+        object-fit: cover;
     }
     .drop-down{
         display:none;

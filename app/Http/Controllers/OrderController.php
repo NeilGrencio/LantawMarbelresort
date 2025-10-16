@@ -44,6 +44,13 @@ class OrderController extends Controller
         $menu = MenuTable::where("status", 'Available')
         ->where("itemtype", '!=', 'services')
         ->get();
+        
+        foreach ($menu as $item) {
+            $item->image_url = $item->image
+                ? route('menu.image', ['filename' => basename($item->image)])
+                : asset('images/no-image.png');
+        }
+        
         $uniqueMenuTypes = $menu->pluck('itemtype')->unique();
         $guest = BookingTable::join('guest', 'booking.guestID', 'guest.guestID')
             ->whereDate('bookingstart', Carbon::today())

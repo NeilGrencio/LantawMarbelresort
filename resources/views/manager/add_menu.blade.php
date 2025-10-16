@@ -23,13 +23,29 @@
                     <label for="itemtype">Item Type</label>
                     <select id="itemtype" name="itemtype">
                         <option value="" {{ old('itemtype') == '' ? 'selected' : '' }}>Select Menu Type</option>
-                        <option value="Breakfast" {{ old('itemtype') == 'Breakfast' ? 'selected' : '' }}>Breakfast</option>
-                        <option value="Meal" {{ old('itemtype') == 'Meal' ? 'selected' : '' }}>Meal</option>
-                        <option value="Main Course" {{ old('itemtype') == 'Main Course' ? 'selected' : '' }}>Main Course</option>
-                        <option value="Dinner" {{ old('itemtype') == 'Dinner' ? 'selected' : '' }}>Dinner</option>
-                        <option value="Drinks" {{ old('itemtype') == 'Drinks' ? 'selected' : '' }}>Drinks</option>
-                        <option value="Dessert" {{ old('itemtype') == 'Dessert' ? 'selected' : '' }}>Dessert</option>
-                        <option value="Appetizer" {{ old('itemtype') == 'Appetizer' ? 'selected' : '' }}>Appetizer</option>
+                        <option value="Starter" {{ old('itemtype') == 'Starter' ? 'selected' : '' }}>Starter</option>
+                        <option value="Pork" {{ old('itemtype') == 'Pork' ? 'selected' : '' }}>Pork</option>
+                        <option value="Vegetables" {{ old('itemtype') == 'Vegetables' ? 'selected' : '' }}>Vegetables</option>
+                        <option value="Sea Food" {{ old('itemtype') == 'Sea Food' ? 'selected' : '' }}>Sea Food</option>
+                        <option value="Chicken" {{ old('itemtype') == 'Chicken' ? 'selected' : '' }}>Chicken</option>
+                        <option value="Soup" {{ old('itemtype') == 'Soup' ? 'selected' : '' }}>Soup</option>
+                        <option value="Noodles" {{ old('itemtype') == 'Noodles' ? 'selected' : '' }}>Noodles</option>
+                        <option value="Beef" {{ old('itemtype') == 'Beef' ? 'selected' : '' }}>Beef</option>
+                        <option value="Rice" {{ old('itemtype') == 'Rice' ? 'selected' : '' }}>Rice</option>
+                        <option value="Pizza" {{ old('itemtype') == 'Pizza' ? 'selected' : '' }}>Pizza</option>
+                        <option value="Salad" {{ old('itemtype') == 'Salad' ? 'selected' : '' }}>Salad</option>
+                        <option value="Quenchers" {{ old('itemtype') == 'Quenchers' ? 'selected' : '' }}>Quenchers</option>
+                        <option value="Canned Juices" {{ old('itemtype') == 'Canned Juices' ? 'selected' : '' }}>Canned Juices</option>
+                        <option value="Smoothies" {{ old('itemtype') == 'Smoothies' ? 'selected' : '' }}>Smoothies</option>
+                        <option value="Frappucino" {{ old('itemtype') == 'Frappucino' ? 'selected' : '' }}>Frappucino</option>
+                        <option value="Fruit Tea" {{ old('itemtype') == 'Fruit Tea' ? 'selected' : '' }}>Fruit Tea</option>
+                        <option value="Beer" {{ old('itemtype') == 'Beer' ? 'selected' : '' }}>Beer</option>
+                        <option value="Rum" {{ old('itemtype') == 'Rum' ? 'selected' : '' }}>Rum</option>
+                        <option value="Brandy" {{ old('itemtype') == 'Brandy' ? 'selected' : '' }}>Brandy</option>
+                        <option value="White Wine" {{ old('itemtype') == 'White Wine' ? 'selected' : '' }}>White Wine</option>
+                        <option value="Red Wine" {{ old('itemtype') == 'Red Wine' ? 'selected' : '' }}>Red Wine</option>
+                        <option value="Gin" {{ old('itemtype') == 'Gin' ? 'selected' : '' }}>Gin</option>
+                        <option value="Whisky" {{ old('itemtype') == 'Whisky' ? 'selected' : '' }}>Whisky</option>
                     </select>
 
                     <label class="image" for="image">Select Menu image

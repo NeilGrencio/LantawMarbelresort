@@ -18,20 +18,30 @@
                 @csrf
                 <div id="form-container">
                     <label for="menuname">Menu Name</label>
-                    <input id="menuname" name="menuname" type="text" placeholder="Sinigang" value="{{ old('menuname', $menu->menuname ?? '') }}" required/>
-
+                    <input id="menuname" name="menuname" type="text" placeholder="Sinigang"
+                           value="{{ old('menuname', $menu->menuname ?? '') }}" required/>
+                    
                     <label for="itemtype">Item Type</label>
-                    <select id="itemtype" name="itemtype">
+                    <select id="itemtype" name="itemtype" required>
                         <option value="">Select Menu Type</option>
-                        <option value="Breakfast" {{ old('itemtype', $menu->itemtype ?? '') == 'Breakfast' ? 'selected' : '' }}>Breakfast</option>
-                        <option value="Meal" {{ old('itemtype', $menu->itemtype ?? '') == 'Meal' ? 'selected' : '' }}>Meal</option>
-                        <option value="Main Course" {{ old('itemtype', $menu->itemtype ?? '') == 'Main Course' ? 'selected' : '' }}>Main Course</option>
-                        <option value="Dinner" {{ old('itemtype', $menu->itemtype ?? '') == 'Dinner' ? 'selected' : '' }}>Dinner</option>
-                        <option value="Drinks" {{ old('itemtype', $menu->itemtype ?? '') == 'Drinks' ? 'selected' : '' }}>Drinks</option>
-                        <option value="Dessert" {{ old('itemtype', $menu->itemtype ?? '') == 'Dessert' ? 'selected' : '' }}>Dessert</option>
-                        <option value="Appetizer" {{ old('itemtype', $menu->itemtype ?? '') == 'Appetizer' ? 'selected' : '' }}>Appetizer</option>
+                    
+                        @php
+                            $types = [
+                                'Starter', 'Pork', 'Vegetables', 'Sea Food', 'Chicken', 'Soup', 'Noodles',
+                                'Beef', 'Rice', 'Pizza', 'Salad', 'Quenchers', 'Canned Juices', 'Smoothies',
+                                'Frappucino', 'Fruit Tea', 'Beer', 'Rum', 'Brandy', 'White Wine', 'Red Wine',
+                                'Gin', 'Whisky'
+                            ];
+                            $selectedType = old('itemtype', $menu->itemtype ?? '');
+                        @endphp
+                    
+                        @foreach($types as $type)
+                            <option value="{{ $type }}" {{ $selectedType === $type ? 'selected' : '' }}>
+                                {{ $type }}
+                            </option>
+                        @endforeach
                     </select>
-
+                        
                     <label class="image" for="image">Select Menu image
                     <img class="image" id="image-preview"  src="{{ isset($menu->image) ? asset('storage/' . $menu->image) : asset('images/placeholder.png') }}""/>
                     </label>

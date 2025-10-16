@@ -6,41 +6,310 @@
     <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
     <title>Lantaw-Marbel Resort</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+        #layout {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+        #main-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            margin-left: 12rem;
+            width: calc(100% - 12rem);
+            overflow: hidden;
+        }
+        #layout-header {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: .5;
+            padding-left:1rem;
+            padding-right:1rem;
+            background: white;
+            border-radius: .7rem;
+            border: 1px solid black;
+            box-shadow: .1rem .1rem 0 black;
+            font-size: .8rem;
+            flex-shrink: 0;
+        }
+        .button-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        #add-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+        #add-container:hover {
+            color: #F78A21;
+        }
+        #add-text {
+            margin-left: 0.5rem;
+        }
+        .search-container {
+            display: flex;
+            align-items: center;
+        }
+        .search-container form {
+            display: flex;
+            align-items: center;
+        }
+        .search-container input[type="text"] {
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 25px 0 0 25px;
+            outline: none;
+            width: 250px;
+            font-size: 14px;
+        }
+        .search-container button {
+            padding: 10px 15px;
+            border-left: none;
+            background-color: #000;
+            color: white;
+            border-radius: 0 25px 25px 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .search-container button:hover {
+            background-color: #F78A21;
+        }
+        .search-container .reset-btn {
+            padding: 10px 15px;
+            background-color: #e53935;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+        }
+        .search-container .reset-btn:hover {
+            background-color: #b71c1c;
+        }
+        .navbar {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            height: 4rem;
+            gap: 1rem;
+            padding: 1rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            width: 100%;
+            justify-content: flex-start;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,0,0,0.3) transparent;
+        }
+        .navbar::-webkit-scrollbar {
+            height: 6px;
+        }
+        .navbar::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.3);
+            border-radius: 3px;
+        }
+        .navbar-item {
+            display: inline-flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            height: 3rem;
+            width: 7rem;
+            background: #ffffff;
+            border-radius: .5rem;
+            font-size: .7rem;
+            box-shadow: .1rem .2rem 0 rgba(0,0,0,0.2);
+            transition: all .3s ease;
+        }
+        .navbar-item:hover {
+            background: rgb(53, 53, 53);
+            color: white;
+            cursor: pointer;
+        }
+        .navbar-item.active {
+            background-color: rgb(150, 55, 0);
+            color: white;
+        }
+        .menu-contianer {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1rem;
+            width: 100%;
+            overflow-y: auto;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .menu-card {
+            position: relative;
+            width: 15rem;
+            min-height:auto;
+            max-height: 23rem;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: .5rem;
+            padding: .5rem;
+            font-size: .7rem;
+            box-shadow: .1rem .3rem 0 rgba(0,0,0,0.2);
+        }
+        .menu-card img {
+            height: 10rem;
+            width: 100%;
+            border-top-right-radius: 1rem;
+            border-top-left-radius: 1rem;
+            object-fit: cover;
+        }
+        .menu-card.unavailable {
+            opacity: 0.5;
+        }
+        .unavailable-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10rem;
+            background: rgba(72, 72, 72, 0.6);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+            text-transform: uppercase;
+            pointer-events: none; 
+        }
+        #manage-container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: 3rem;
+            justify-content: space-evenly;
+            margin-top: auto;
+        }
+        #manage-button {
+            border: none;
+            display:flex;
+            justify-content: space-evenly;
+            align-items: center;
+            border-radius: .5rem;
+            background: black;
+            color: white;
+            padding: 0.5rem 1rem;
+            transition: all .2s ease;
+        }
+        #manage-button:hover {
+            background: orange;
+            color: black;
+            cursor: pointer;
+        }
+        .drop-down {
+            display: none;
+            flex-direction: column;
+            width: 10rem;
+            position: absolute;
+            background: rgb(182, 182, 182);
+            padding: .5rem;
+            z-index: 1;
+            gap: .5rem;
+            border-radius: .5rem;
+            align-items: center;
+            justify-content: center;
+            margin-left: 4rem;
+        }
+        .drop-down div {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            align-items: center;
+            justify-content: space-evenly;
+            background: white;
+            border-radius: .5rem;
+            cursor: pointer;
+            transition: all .3s ease;
+        }
+        .drop-down div:hover {
+            background: grey;
+            color: white;
+        }
+        .alert-message {
+            display: flex;
+            justify-content: center;
+            text-align: center;
+            position: fixed;
+            right: 50%;
+            transform: translate(50%, 0);
+            bottom: 1rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 0 1rem rgba(0,0,0,0.5);
+            padding: 1rem 2rem;
+            z-index: 1000;
+        }
+    </style>
 </head>
 <body>
     <div id="layout">
         @include('components.sidebar')
         <div id="main-layout">
             <div id="layout-header">
-                <h1 id="h2">Menu Items</h1>
+                <h1>Menu Items</h1>
                 <div class="button-group">
-                        <div id="add-container" data-url="{{ url('manager/add_menu') }}">
-                            <h2 id="add-text">Add Menu</h2>
-                            <i id="add-user" class="fas fa-plus-circle fa-3x"  style="cursor:pointer;"></i>
-                        </div>
+                    <div id="add-container" data-url="{{ url('manager/add_menu') }}">
+                        <h2 id="add-text">Add Menu</h2>
+                        <i class="fas fa-plus-circle fa-3x"></i>
+                    </div>
                     <div class="search-container">
                         <form action="{{ route('manager.search_menu') }}" method="GET">
                             <input type="text" name="search" placeholder="Search.." value="{{ request('search') }}">
-                            <button type="submit">
-                                <i class="fa fa-search"></i>
-                            </button>
+                            <button type="submit"><i class="fa fa-search"></i></button>
                             @if(request()->has('search') && request('search') !== '')
-                                <a href="{{ route('manager.search_menu') }}" class="reset-btn">Clear Search</a>
+                                <a href="{{ route('manager.search_menu') }}" class="reset-btn">Clear</a>
                             @endif
                         </form>
                     </div>
-                    
-                    </div>
+                </div>
             </div>
+
             <div class="navbar">
                 <div class="navbar-item" data-filter="All"><h3>All</h3></div>
                 @foreach($uniqueMenuTypes as $menutypes)
-                    <div class="navbar-item" data-filter="{{ $menutypes}}">
-                        <h3>{{$menutypes}}</h3>
+                    <div class="navbar-item" data-filter="{{ $menutypes }}">
+                        <h3>{{ $menutypes }}</h3>
                     </div>
                 @endforeach
             </div>
-            <div class='menu-contianer'>
+
+            <div class="menu-contianer">
                 @foreach($menu as $menuitem)
                     <div class="menu-card {{ $menuitem->status !== 'Available' ? 'unavailable' : '' }}" 
                         data-type="{{ $menuitem->itemtype }}">
@@ -58,7 +327,7 @@
                             <hr/>
                             <div id="manage-container">
                                 <h2>Status: {{$menuitem->status}}</h2>
-                                <button id="manage-button">Manage&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down fa-lg"></i></button>
+                                <button id="manage-button">Manage <i class="fas fa-chevron-down fa-lg"></i></button>
                             </div>
                             <div class="drop-down">
                                 <div data-url="{{url('manager/edit_menu/' . $menuitem->menuID)}}">
@@ -81,307 +350,28 @@
                     </div>
                 @endforeach
             </div>
-            @if(session('success'))
-            <div class="alert-message">
-                <h2>{{ session('success') }}</h2>
-            </div>
-        @endif
 
-        @if (session('error'))
-            <div class="alert-message">
-                <h2>{{ session('error') }}</h2>
-           </div>
-        @endif
+            @if(session('success'))
+                <div class="alert-message"><h2>{{ session('success') }}</h2></div>
+            @endif
+            @if(session('error'))
+                <div class="alert-message"><h2>{{ session('error') }}</h2></div>
+            @endif
         </div>
     </div>
-</body>
-<style>
-    #menu{color:#F78A21;}   
-    #layout{
-        display: flex;
-        flex-direction: row;
-        height:100vh;
-    }
-    #main-layout{
-        display:flex;
-        flex-direction: column;
-        padding:1rem;
-        width:100%;
-        transition: width 0.3s ease-in-out;
-        margin-left:12rem;
-    }
-    #layout-header {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        height: 8%;
-        padding: 1rem 3rem 1rem 2rem;
-        background: white;
-        border-radius: .7rem;
-        font-size: .6rem;
-        border: 1px solid black;
-        box-shadow: .1rem .1rem 0 black;
-        gap: 1rem;
-    }
 
-    .search-container .reset-btn {
-        padding: 10px 15px;
-        background-color: #e53935;
-        color: white;
-        text-decoration: none;
-        border-radius: 25px;
-        margin-left: 10px;
-        transition: background-color 0.3s ease;
-        font-size: 14px;
-    }
-
-    .search-container .reset-btn:hover {
-        background-color: #b71c1c;
-    }
-    .button-group {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    #add-container {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        color: #333;
-        transition: color 0.3s ease;
-    }
-    #add-container:hover {
-        color: #F78A21;
-    }
-    #add-text {
-        opacity: 1;
-        visibility: visible;
-        width: auto;
-        margin-left: 0.5rem;
-    }
-
-    .search-container {
-        display: flex;
-        justify-content: center;
-        align-content: center;
-        margin: 15px 0;
-    }
-
-    .search-container form {
-        display: flex;
-        align-items: center;
-    }
-
-    .search-container input[type="text"] {
-        padding: 10px 15px;
-        border: 1px solid #ccc;
-        border-radius: 25px 0 0 25px;
-        outline: none;
-        width: 250px;
-        font-size: 14px;
-    }
-
-    .search-container button {
-        padding: 10px 15px;
-        border-left: none;
-        background-color: #000000;
-        color: white;
-        border-radius: 0 25px 25px 0;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-    .search-container button:hover {
-        background-color: #F78A21;
-        border: 1px solid #F78A21;
-    }
-    .navbar{
-        display:flex;
-        flex-direction: row;
-        width:100%;
-        height: 4rem;
-        gap:1rem;
-        padding:1rem;
-        justify-content:center;
-        align-items:center;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .navbar-item{
-        display: flex;
-        height:3rem;    
-        width:7rem;
-        background:#ffffff;
-        border-radius:.5rem;
-        font-size:.7rem;
-        align-items:center;
-        justify-content:center;
-        box-shadow:.1rem .2rem 0 rgba(0,0,0,0.2);
-        transition:all .3s ease;
-    }
-    .navbar-item:hover{
-        background:rgb(53, 53, 53);
-        color:white;
-        cursor:pointer;
-    }
-    .menu-contianer{
-        display:flex;
-        flex-direction:row;
-        flex-wrap: wrap;
-        gap:1rem;
-        padding:1rem;
-        width:100%;
-        height: 100%;
-        overflow-y: auto;
-        justify-content:center;
-    }
-    #manage-container{
-        display:flex;
-        flex-direction:row;
-        width:100%;
-        height:3rem;
-        justify-content: space-evenly;
-        margin-top:auto;
-        bottom:1;
-    }
-    #manage-button{
-        height:100%;
-        margin-left:auto;
-        right:1;
-        border-radius:.5rem;
-        background:black;
-        color:white;
-        align-items:center;
-        justify-content: space-evenly;
-        transition:all .2s ease;
-        border:none;
-        box-shadow: .2rem .2rem 0 rgba(0,0,0,0.2);
-        position: relative;
-    } 
-    #manage-button:hover{
-        background:orange;
-        color:black;
-        cursor:pointer;
-    }
-    .menu-card{
-        height:22rem;
-        width:15rem;
-        display:flex;
-        flex-direction:column;
-        background:white;
-        border-radius:.5rem;
-        padding: .5rem;
-        font-size:.7rem;
-        box-shadow: .1rem .3rem 0 rgba(0,0,0,0.2);
-    }
-    .menu-card img{
-        height:10rem;
-        width:100%;
-        border-top-right-radius:1rem;
-        border-top-left-radius:1rem;
-        object-fit:cover;
-    }
-    .menu-card.unavailable {
-        opacity: 0.5;
-        position: relative;
-    }
-    .unavailable-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 10rem;
-        background: rgba(72, 72, 72, 0.6);
-        color: white;
-        font-weight: bold;
-        font-size: 1.2rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-top-left-radius: 1rem;
-        border-top-right-radius: 1rem;
-        text-transform: uppercase;
-        pointer-events: none; 
-    }
-    .drop-down{
-        display:none;
-        flex-direction:column;
-        width:10rem;
-        position: absolute;
-        background:rgb(182, 182, 182);
-        padding:.5rem;
-        z-index: 1;
-        gap:.5rem;
-        border-radius:.5rem;
-        align-items: center;
-        justify-content: center;
-        margin-left:4rem;
-    }
-    .drop-down div{
-        display: flex;
-        flex-direction: row;
-        width:100%;
-        align-items: center;
-        justify-content: space-evenly;
-        background: white;
-        border-radius:.5rem;
-        cursor:pointer;
-        transition:all .3s ease;
-    }
-    .drop-down div:hover{
-        background:grey;
-        color:white;
-    }
-    .navbar-item.active {
-    background-color: rgb(150, 55, 0); 
-    color: white;
-    }
-.alert-message{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        position: fixed;
-        right: 50%;
-        transform: translate(50%, 0);
-        bottom: 1rem;
-        height: fit-content;
-        min-height: 10rem;
-        max-height: 30rem;
-        width: fit-content;
-        min-width: 20rem;
-        max-width: 90vw;
-        background: rgb(255, 255, 255);
-        z-index: 1000;
-        border-radius: 1rem;
-        box-shadow: 0 0 1rem rgba(0,0,0,0.5);
-        margin: auto;
-        padding: 1rem;
-        flex-wrap: wrap;
-        word-wrap: break-word;
-    }
-</style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const filterButtons = Array.from(document.querySelectorAll('.navbar-item'));
-    const menuCards = Array.from(document.querySelectorAll('.menu-card'));
+    const filterButtons = document.querySelectorAll('.navbar-item');
+    const menuCards = document.querySelectorAll('.menu-card');
     const message = document.querySelector('.alert-message');
     const addMenu = document.getElementById('add-container');
 
-    if (message) {
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 2500);
-        }
-        
+    if (message) setTimeout(() => message.remove(), 2500);
+
     if (addMenu) {
-        addMenu.addEventListener('click', function () {
-            const url = this.dataset.url;
+        addMenu.addEventListener('click', () => {
+            const url = addMenu.dataset.url;
             if (url) window.location.href = url;
         });
     }
@@ -393,60 +383,35 @@ document.addEventListener('DOMContentLoaded', function () {
     function applyFilter(filter) {
         const f = normalize(filter);
         menuCards.forEach(card => {
-            const rawType = card.dataset.type || card.getAttribute('data-type') || '';
-            const types = rawType.split(',').map(t => normalize(t));
-            const matches = (f === 'all') || types.includes(f);
-            card.style.display = matches ? '' : 'none';
+            const type = normalize(card.dataset.type);
+            card.style.display = (f === 'all' || f === type) ? '' : 'none';
         });
-    }
-
-    if (filterButtons.length) {
-        const allBtn = filterButtons.find(b => normalize(b.dataset.filter) === 'all') || filterButtons[0];
-        filterButtons.forEach(b => b.classList.remove('active'));
-        if (allBtn) {
-            allBtn.classList.add('active');
-            applyFilter(allBtn.dataset.filter || allBtn.textContent);
-        }
     }
 
     filterButtons.forEach(button => {
         button.addEventListener('click', function () {
             filterButtons.forEach(b => b.classList.remove('active'));
             button.classList.add('active');
-            const filter = button.dataset.filter || button.textContent || 'All';
-            applyFilter(filter);
+            applyFilter(button.dataset.filter || 'All');
         });
     });
+
+    const allButton = document.querySelector('.navbar-item[data-filter="All"]');
+    if (allButton) allButton.click();
 
     document.querySelectorAll('#manage-button').forEach(button => {
         button.addEventListener('click', function (event) {
             event.stopPropagation();
-            const menuCard = this.closest('.menu-card');
-            const dropdown = menuCard.querySelector('.drop-down');
-            document.querySelectorAll('.drop-down').forEach(dd => {
-                if (dd !== dropdown) dd.style.display = 'none';
-            });
-            dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
+            const dropdown = this.closest('.menu-card').querySelector('.drop-down');
+            document.querySelectorAll('.drop-down').forEach(d => d.style.display = 'none');
+            dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
         });
     });
 
-    document.addEventListener('click', function () {
-        document.querySelectorAll('.drop-down').forEach(dropdown => {
-            dropdown.style.display = 'none';
-        });
-    });
-
-    document.querySelectorAll('.drop-down').forEach(dropdown => {
-        dropdown.querySelectorAll('div[data-url]').forEach(item => {
-            item.addEventListener('click', function (ev) {
-                ev.stopPropagation();
-                const url = this.dataset.url;
-                if (url) window.location.href = url;
-            });
-        });
-        dropdown.addEventListener('click', function (ev) {
-            ev.stopPropagation();
-        });
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.drop-down').forEach(d => d.style.display = 'none');
     });
 });
 </script>
+</body>
+</html>

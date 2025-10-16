@@ -234,7 +234,7 @@
         <img src="{{asset('images/logo.png')}}"/>
         <h3>Lantaw Marbel</h3>
         <div class="spacer"></div>
-        <button id="downloadbutton" data-url="https://lantawmarbelresort.site/app-debug.apk">
+        <button id="downloadbutton" data-url="https://lantawmarbelresort.site/lantaw-marbel mobile app.apk">
             <span>Download App</span>
         </button>
         <button id="loginbutton" data-url="{{url('auth/login')}}">
@@ -268,10 +268,10 @@
                     <p>
                         Rooms: We offer a variety of comfortable and well-appointed rooms to suit your needs. Each room is designed with modern amenities to ensure a pleasant stay.
                     </p>
-                    <img id="room-img" src="{{asset('images/rooms.jpg')}}"/><br/>
+                    <img id="room-img" src="{{asset('images/landing_page_rooms_img.jpg')}}"/><br/>
                 </div>
                 <div id="card">
-                    <img id="amenities-img" src="{{asset('images/amenities.jpg')}}"/>
+                    <img id="amenities-img" src="{{asset('images/landing_page_amenity_img.jpg')}}"/>
                     <p>
                         Amenities: Our resort features a range of amenities including a swimming pool, fitness center, spa services, and recreational areas to enhance your experience.
                     </p>
@@ -281,7 +281,7 @@
                     <p>
                         Dining: Enjoy a variety of dining options at our on-site restaurants and cafes.
                     </p>
-                    <img id="dining-img" src="{{asset('images/dining.jpg')}}"/>
+                    <img id="dining-img" src="{{asset('images/landing_page_dining_img.jpg')}}"/>
                 </div>
 
                 <br/>
