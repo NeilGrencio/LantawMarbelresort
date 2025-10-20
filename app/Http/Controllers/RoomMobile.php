@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Log;
 use App\Models\RoomTable;
 
 class RoomMobile extends Controller
@@ -26,24 +26,38 @@ class RoomMobile extends Controller
         $date = $request->input('date');
 
         if (!$date) {
+            Log::warning('availableRoomsByDate called without date parameter.');
             return response()->json(['error' => 'Date parameter is required.'], 400);
         }
 
-        // Get all room IDs that are already booked for the given date
-        $bookedRoomIds = \App\Models\RoomBookTable::whereDate('bookingDate', $date)
-            ->pluck('roomID')
-            ->toArray();
+        Log::info('Checking available rooms for date: ' . $date);
 
-        // Get all available rooms that are NOT in the booked list
-        $availableRooms = \App\Models\RoomTable::whereNotIn('roomID', $bookedRoomIds)
-            ->where('status', 'available')
-            ->get();
+        try {
+            // Get all room IDs that are already booked for the given date
+            $bookedRoomIds = \App\Models\RoomBookTable::whereDate('bookingDate', $date)
+                ->pluck('roomID')
+                ->toArray();
 
-        // Attach image URLs like in your original function
-        foreach ($availableRooms as $room) {
-            $room->image_url = route('room.image', ['filename' => basename($room->image)]);
+            Log::info('Booked Room IDs for ' . $date . ':', $bookedRoomIds);
+
+            // Get all available rooms that are NOT in the booked list
+            $availableRooms = \App\Models\RoomTable::whereNotIn('roomID', $bookedRoomIds)
+                ->where('status', 'available')
+                ->get();
+
+            Log::info('Found ' . $availableRooms->count() . ' available rooms for ' . $date);
+
+            // Attach image URLs
+            foreach ($availableRooms as $room) {
+                $room->image_url = route('room.image', ['filename' => basename($room->image)]);
+            }
+
+            return response()->json($availableRooms);
+        } catch (\Exception $e) {
+            Log::error('Error in availableRoomsByDate: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Internal server error'], 500);
         }
-
-        return response()->json($availableRooms);
     }
 }
