@@ -6,453 +6,333 @@
     <link rel="icon" href="{{ asset('favico.ico') }}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
     <title>Lantaw-Marbel Resort - Edit Booking</title>
+
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- Flatpickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <style>
-        #booking {
-            color: orange;
-        }
-
-        #layout {
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: #f4f6f8;
             display: flex;
-            flex-direction: row;
-            height: 100vh;
         }
 
+        /* Sidebar inclusion */
         #main-layout {
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            width: 85%;
-            transition: width 0.3s ease-in-out;
-            margin-left: 12rem;
-            margin-right: .7rem;
-            overflow-y: hidden;
-            overflow-x: hidden;
-        }
-
-        #layout-header {
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            height: 4rem;
-            padding: 1rem;
-            background: white;
-            border-radius: .7rem;
-            border: 1px solid black;
-            box-shadow: .1rem .1rem 0 black;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            font-size: .9rem;
-        }
-
-        #form-container {
-            display: flex;
-            flex-direction: column;
-            height: 80vh;
-            width: 100%;
-            padding: 1rem;
-            margin-top: .5rem;
-            border-radius: .7rem;
-            background: white;
+            flex: 1;
+            padding: 2rem;
             overflow-y: auto;
-            overflow-x: hidden;
-            gap: .5rem;
-            border: 1px solid black;
-            box-shadow: .1rem .2rem 0 black;
+            margin-left:15rem;
         }
 
-        .label-container {
-            display: flex;
-            flex-direction: row;
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
             margin-bottom: 1rem;
-            background: black;
-            width: 100%;
-            height: 3rem;
-            justify-content: space-between;
-            align-items: center;
-            padding: .5rem;
-            font-size: .7rem;
-            color: white;
-            border-radius: .7rem;
         }
 
-        .room,
-        .cottage,
-        .amenity {
-            display: flex;
-            flex-direction: column;
-            gap: .5rem;
-            margin-bottom: .5rem;
+        .section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
         }
 
-        #room-name,
-        #cottage-name,
-        #amenity-name {
-            font-size: .9rem;
-            color: black;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .room-card,
-        .cottage-card,
-        .amenity-card {
-            display: flex;
-            flex-direction: column;
-            width: 15rem;
-            height: 10rem;
-            border-radius: .7rem;
-            box-shadow: .1rem .1rem 0 rgb(0, 0, 0);
-            border: solid 1px black;
-            background: white;
-            padding: .5rem;
-            gap: .5rem;
-            cursor: pointer;
-            align-content: center;
-            justify-content: center;
-            transition: all .2s ease;
-        }
-
-        .room-card img,
-        .cottage-card img,
-        .amenity-card img {
-            width: 100%;
-            height: 70%;
-            object-fit: cover;
-            margin-top: 1rem;
-        }
-
-        .room-card:hover,
-        .cottage-card:hover,
-        .amenity-card:hover {
-            background: orange;
-            transform: translateY(-.5rem);
-        }
-
-        .room-card.active,
-        .cottage-card.active,
-        .amenity-card.active {
-            background: rgb(0, 86, 0);
-            color: white;
-            scale: .9;
-        }
-
-        .room-selection-wrapper,
-        #cottage-content,
-        #amenity-content {
-            position: relative;
-            display: flex;
-            width: 100%;
-            height: 13rem;
-        }
-
-        #room-selection,
-        #cottage-selection,
-        #amenity-selection {
-            display: flex;
-            flex-direction: row;
-            gap: .5rem;
-            overflow-x: auto;
-            scroll-behavior: smooth;
-        }
-
-        .scroll-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            z-index: 10;
+        .section h2 {
             font-size: 1.2rem;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: rgb(174, 174, 174);
-            width: 2.5rem;
-            height: 2.5rem;
-            color: black;
-            border: 1px solid black;
-            border-radius: 100%;
-            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.5rem;
         }
 
-        .scroll-btn:hover {
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            scale: 1.1;
-        }
-
-        .left-btn {
-            left: 0.5rem;
-        }
-
-        .right-btn {
-            right: 0.5rem;
-        }
-
-        .guest-info-container {
+        .scroll-container {
             display: flex;
-            flex-direction: column;
             gap: 1rem;
-            width: 100%;
-            flex-wrap: wrap;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
         }
 
-        #label {
+        .card {
+            flex: 0 0 200px;
+            border-radius: 12px;
+            background: #fff;
+            border: 1px solid #ddd;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.2s ease;
             display: flex;
-            width: 100%;
             flex-direction: column;
+            align-items: center;
+            padding: 0.5rem;
+            text-align: center;
         }
 
-        .input {
+        .card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            margin: 0.25rem 0;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .card input[type="checkbox"] {
+            display: none;
+        }
+
+        .card.selected {
+            border: 2px solid #007bff;
+            background: #e7f1ff;
+            box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
+        }
+
+        .form-group {
             display: flex;
-            width: 100%;
-            background: white;
-            border: 1px solid black;
-            border-radius: .5rem;
-            padding: .5rem;
-            font-size: .8rem;
+            flex-direction: column;
+            margin-bottom: 1rem;
         }
 
-        #checkin,
-        #checkout {
-            width: 100%;
-            padding: .5rem;
-            border: solid 1px black;
-            background: white;
-            border-radius: .5rem;
-            font-size: .8rem;
+        label {
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+        }
+
+        input,
+        select {
+            padding: 0.6rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 0.9rem;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #007bff;
         }
 
         .button-container {
             display: flex;
-            flex-direction: row;
-            margin-top: 1rem;
+            gap: 1rem;
+            justify-content: flex-end;
         }
 
-        .form-button {
-            background: rgb(255, 255, 255);
-            color: rgb(0, 0, 0);
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
             border: none;
-            padding: .5rem 1rem;
-            border-radius: .5rem;
             cursor: pointer;
-            font-size: .8rem;
-            margin-right: .5rem;
-            transition: all .2s ease-in-out;
-            border: rgb(0, 0, 0) solid 1px;
-            box-shadow: .1rem .1rem 0 rgb(0, 0, 0);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        /* Scroll buttons */
+        .scroll-btn {
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .scroll-btn:hover {
+            background: #007bff;
+            color: white;
+        }
+
+        .alert {
+            padding: 1rem;
+            background: #ffe5e5;
+            color: #d10000;
+            border-radius: 6px;
             margin-bottom: 1rem;
         }
 
-        .form-button:hover {
-            background: orange;
-            color: black;
-            transform: translateY(-.1rem);
-        }
+        @media(max-width: 768px) {
+            .scroll-container {
+                gap: 0.5rem;
+            }
 
-        .text-danger {
-            color: red;
-            font-style: italic;
-        }
-
-        .alert-message {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            position: fixed;
-            right: 50%;
-            transform: translate(50%, 0);
-            bottom: 1rem;
-            height: fit-content;
-            min-height: 10rem;
-            max-height: 30rem;
-            width: fit-content;
-            min-width: 20rem;
-            max-width: 90vw;
-            background: rgb(255, 255, 255);
-            z-index: 1000;
-            border-radius: 1rem;
-            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.5);
-            margin: auto;
-            padding: 1rem;
-            flex-wrap: wrap;
-            word-wrap: break-word;
-        }
-
-        .toggle-header {
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .toggle-icon {
-            transition: transform 0.3s ease;
-        }
-
-        .toggle-icon.rotate {
-            transform: rotate(180deg);
+            .card {
+                flex: 0 0 150px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div id="layout">
-        @include('components.receptionist_sidebar')
+    @include('components.receptionist_sidebar')
 
-        <div id="main-layout">
-            <div id="layout-header">
-                <h1>Edit Booking #{{ $bookingData->bookingID }}</h1>
+    <div id="main-layout">
+        <h1>Edit Booking #{{ $bookingData->bookingID }}</h1>
+
+        @if(session('success'))
+        <div class="alert">{{ session('success') }}</div>
+        @endif
+
+        <form action="{{ url('receptionist/update_booking/' . $bookingData->bookingID) }}" method="POST">
+            @csrf
+
+            <!-- Booking Info -->
+            <div class="section">
+                <h2>Booking Information</h2>
+                <div class="form-group">
+                    <label>Check-in</label>
+                    <input id="checkin" type="date" name="checkin"
+                        value="{{ old('checkin', \Carbon\Carbon::parse($bookingData->checkin)->format('Y-m-d')) }}"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label>Check-out</label>
+                    <input id="checkout" type="date" name="checkout"
+                        value="{{ old('checkout', \Carbon\Carbon::parse($bookingData->checkout)->format('Y-m-d')) }}"
+                        required>
+                </div>
+                 <div class="form-group">
+                    <label>Total Guests</label>
+                    <input type="number" name="guestamount" value="{{ old('guestamount', $bookingData->guestamount) }}"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label>Adults</label>
+                    <input type="number" name="adultguest" value="{{ old('adultguest', $bookingData->adultguest) }}"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label>Children</label>
+                    <input type="number" name="childguest" value="{{ old('childguest', $bookingData->childguest) }}"
+                        required>
+                </div>
             </div>
 
-            @if (session('success'))
-                <div class="alert-message">{{ session('success') }}</div>
-            @endif
-
-            <form action="{{ url('receptionist/update_booking/' . $bookingData->bookingID) }}" method="POST">
-                @csrf
-                <div id="form-container">
-
-                    <!-- Room Selection -->
-                    <div class="label-container toggle-header" data-target="room-content">
-                        <h2>Room Selection</h2>
-                        <i class="fas fa-chevron-up toggle-icon fa-2x"></i>
-                    </div>
-                    <div id="room-content" class="room-selection-wrapper active">
-                        <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                        <div id="room-selection">
-                            @foreach ($rooms as $room)
-                                @php $selectedRooms = $bookingData->rooms; @endphp
-                                <div class="room">
-                                    <label id="room-name" for="room-{{ $room->roomID }}">
-                                        Room {{ $room->roomnum }}
-                                        <input type="checkbox" id="room-{{ $room->roomID }}" name="room[]"
-                                            value="{{ $room->roomID }}"
-                                            {{ in_array($room->roomID, $selectedRooms) ? 'checked' : '' }}>
-                                        <div
-                                            class="room-card {{ in_array($room->roomID, $selectedRooms) ? 'active' : '' }}">
-                                            <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image">
-                                            <p>Price: ₱{{ $room->price }}</p>
-                                        </div>
-                                    </label>
-                                </div>
+            <!-- Rooms -->
+            <div class="section">
+                <h2>Rooms</h2>
+                <div class="scroll-container">
+                    @foreach($rooms as $room)
+                    <label class="card {{ in_array($room->roomID, $bookingData->rooms) ? 'selected' : '' }}">
+                        <input type="checkbox" name="room[]" value="{{ $room->roomID }}"
+                            {{ in_array($room->roomID, $bookingData->rooms) ? 'checked' : '' }}>
+                        <img src="{{ asset('storage/' . $room->image) }}" alt="Room {{ $room->roomnum }}">
+                        <p>Room {{ $room->roomnum }}</p>
+                        <p>₱{{ number_format($room->price, 2) }}</p>
+                        @if(isset($inclusionsByRoom[$room->roomnum]) && $inclusionsByRoom[$room->roomnum]->count())
+                        <p><strong>Inclusions:</strong></p>
+                        <ul style="padding-left:1rem;">
+                            @foreach($inclusionsByRoom[$room->roomnum] as $inc)
+                            <li>{{ $inc }}</li>
                             @endforeach
-                        </div>
-                        <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                    </div>
-
-                    <!-- Cottage Selection -->
-                    <div class="label-container toggle-header" data-target="cottage-content">
-                        <h2>Cottage Selection</h2>
-                        <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
-                    </div>
-                    <div id="cottage-content" class="room-selection-wrapper">
-                        <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                        <div id="cottage-selection">
-                            @foreach ($cottages as $cottage)
-                                @php $selectedCottages = $bookingData->cottages; @endphp
-                                <div class="cottage">
-                                    <label id="cottage-name" for="cottage-{{ $cottage->cottageID }}">
-                                        {{ $cottage->cottagename }}
-                                        <input type="checkbox" id="cottage-{{ $cottage->cottageID }}"
-                                            name="cottage[]" value="{{ $cottage->cottageID }}"
-                                            {{ in_array($cottage->cottageID, $selectedCottages) ? 'checked' : '' }}>
-                                        <div
-                                            class="cottage-card {{ in_array($cottage->cottageID, $selectedCottages) ? 'active' : '' }}">
-                                            <img src="{{ asset('storage/' . $cottage->image) }}" alt="Cottage Image">
-                                            <p>Price: ₱{{ $cottage->price }}</p>
-                                        </div>
-                                    </label>
-                                </div>
-                            @endforeach
-                        </div>
-                        <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                    </div>
-
-                    <!-- Amenity Selection -->
-                    <div class="label-container toggle-header" data-target="amenity-content">
-                        <h2>Amenity Selection</h2>
-                        <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
-                    </div>
-                    <div id="amenity-content" class="room-selection-wrapper">
-                        <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                        <div id="amenity-selection">
-                            @foreach ($amenities as $amenity)
-                                @php $selectedAmenities = $bookingData->amenities; @endphp
-                                <div class="amenity">
-                                    <label id="amenity-name" for="amenity-{{ $amenity->amenityID }}">
-                                        {{ $amenity->amenityname }}
-                                        <input type="checkbox" id="amenity-{{ $amenity->amenityID }}"
-                                            name="amenity[]" value="{{ $amenity->amenityID }}"
-                                            {{ in_array($amenity->amenityID, $selectedAmenities) ? 'checked' : '' }}>
-                                        <div
-                                            class="amenity-card {{ in_array($amenity->amenityID, $selectedAmenities) ? 'active' : '' }}">
-                                            <img src="{{ asset('storage/' . $amenity->image) }}" alt="Amenity Image">
-                                            <p>Adult Price: ₱{{ $amenity->adultprice }}<br>
-                                                Child Price: ₱{{ $amenity->childprice }}</p>
-                                        </div>
-                                    </label>
-                                </div>
-                            @endforeach
-                        </div>
-                        <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                    </div>
-
-                    <!-- Booking Info -->
-                    <div class="label-container">
-                        <h2>Booking Information</h2>
-                    </div>
-                    <label>Check-in:
-                        <input type="date" name="checkin"
-                            value="{{ old('checkin', \Carbon\Carbon::parse($bookingData->checkin)->format('Y-m-d')) }}"
-                            required>
+                        </ul>
+                        @endif
                     </label>
-                    <label>Check-out:
-                        <input type="date" name="checkout"
-                            value="{{ old('checkout', \Carbon\Carbon::parse($bookingData->checkout)->format('Y-m-d')) }}"
-                            required>
-                    </label>
-
-                    <!-- Guest Info -->
-                    <div class="label-container">
-                        <h2>Guest Information</h2>
-                    </div>
-                    <label>Firstname:
-                        <input type="text" name="firstname" value="{{ old('firstname', $bookingData->firstname) }}"
-                            required>
-                    </label>
-                    <label>Lastname:
-                        <input type="text" name="lastname" value="{{ old('lastname', $bookingData->lastname) }}"
-                            required>
-                    </label>
-                    <label>Total Guests:
-                        <input type="number" name="guestamount"
-                            value="{{ old('guestamount', $bookingData->guestamount) }}" required>
-                    </label>
-                    <label>Adults:
-                        <input type="number" name="adultguest"
-                            value="{{ old('adultguest', $bookingData->adultguest) }}" required>
-                    </label>
-                    <label>Children:
-                        <input type="number" name="childguest"
-                            value="{{ old('childguest', $bookingData->childguest) }}" required>
-                    </label>
-
+                    @endforeach
                 </div>
+            </div>
 
-                <div class="button-container">
-                    <button type="button" class="form-button" onclick="window.history.back()">Go Back</button>
-                    <button type="submit" class="form-button">Update Booking</button>
+            <!-- Cottages -->
+            <div class="section">
+                <h2>Cottages</h2>
+                <div class="scroll-container">
+                    @foreach($cottages as $cottage)
+                    <label class="card {{ in_array($cottage->cottageID, $bookingData->cottages) ? 'selected' : '' }}">
+                        <input type="checkbox" name="cottage[]" value="{{ $cottage->cottageID }}"
+                            {{ in_array($cottage->cottageID, $bookingData->cottages) ? 'checked' : '' }}>
+                        <img src="{{ asset('storage/' . $cottage->image) }}" alt="{{ $cottage->cottagename }}">
+                        <p>{{ $cottage->cottagename }}</p>
+                        <p>₱{{ number_format($cottage->price, 2) }}</p>
+                    </label>
+                    @endforeach
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Amenities -->
+            <div class="section">
+                <h2>Extras</h2>
+                <div class="scroll-container">
+                    @foreach($amenities as $amenity)
+                    <label class="card {{ in_array($amenity->amenityID, $bookingData->amenities) ? 'selected' : '' }}">
+                        <input type="checkbox" name="amenity[]" value="{{ $amenity->amenityID }}"
+                            {{ in_array($amenity->amenityID, $bookingData->amenities) ? 'checked' : '' }}>
+                        <img src="{{ asset('storage/' . $amenity->image) }}" alt="{{ $amenity->amenityname }}">
+                        <p>{{ $amenity->amenityname }}</p>
+                        <p>Adult: ₱{{ $amenity->adultprice }}<br>Child: ₱{{ $amenity->childprice }}</p>
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+
+            
+
+            <!-- Guest Info -->
+            <div class="section">
+                <h2>Guest Information</h2>
+                <div class="form-group">
+                    <label>Firstname</label>
+                    <input type="text" name="firstname" value="{{ old('firstname', $bookingData->firstname) }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Lastname</label>
+                    <input type="text" name="lastname" value="{{ old('lastname', $bookingData->lastname) }}" required>
+                </div>
+               
+            </div>
+
+            <div class="button-container">
+                <button type="button" class="btn btn-secondary" onclick="window.history.back()">Go Back</button>
+                <button type="submit" class="btn btn-primary">Update Booking</button>
+            </div>
+
+        </form>
     </div>
+
+    <script>
+        // Highlight selected cards
+        document.querySelectorAll('.card input[type="checkbox"]').forEach(input => {
+            input.addEventListener('change', e => {
+                const card = e.target.closest('.card');
+                if (e.target.checked) card.classList.add('selected');
+                else card.classList.remove('selected');
+            });
+        });
+    </script>
+</body>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -467,6 +347,85 @@
                     icon.classList.toggle('fa-chevron-down');
                 });
             });
+
+            // ====== Date Validation ======
+            const checkinInput = document.getElementById('checkin');
+            const checkoutInput = document.getElementById('checkout');
+            function validateDates() {
+                const checkin = new Date(checkinInput.value);
+                const checkout = new Date(checkoutInput.value);
+                if (checkout <= checkin) {
+                    alert('Checkout date must be after check-in date.');
+                    checkoutInput.value = '';
+                }
+            }
+            checkinInput?.addEventListener('change', validateDates);
+            checkoutInput?.addEventListener('change', validateDates);
+
+            // ====== Flatpickr Setup for Check-in and Check-out ======
+            flatpickr("#checkin", {
+                altInput: true,
+                altFormat: "F j, Y",        // Example: "October 18, 2025"
+                dateFormat: "Y-m-d",        // Database-friendly format: YYYY/MM/DD
+                minDate: new Date().fp_incr(1), // Tomorrow
+                maxDate: new Date().fp_incr(31), // 1 month ahead
+                onChange: function (selectedDates) {
+                    const checkinDate = selectedDates[0];
+                    if (checkinDate) {
+                        const checkoutPicker = flatpickr("#checkout", {
+                            altInput: true,
+                            altFormat: "F j, Y",
+                            dateFormat: "Y-m-d",
+                            minDate: new Date(checkinDate).fp_incr(1), // 1 day after checkin
+                            maxDate: new Date(checkinDate).fp_incr(31),
+                        });
+                        // Auto-open checkout when checkin selected
+                        checkoutPicker.open();
+                    }
+                }
+            });
+
+            // Checkout initialized (default state)
+            flatpickr("#checkout", {
+                altInput: true,
+                altFormat: "F j, Y",
+                dateFormat: "Y-m-d",         // Database-friendly format: YYYY/MM/DD
+                minDate: new Date().fp_incr(2), // At least 2 days from today by default
+                maxDate: new Date().fp_incr(32),
+            });
+
+            // ====== Availability Check ======
+            async function checkAvailability() {
+                const checkin = checkinInput.value;
+                const checkout = checkoutInput.value;
+                if (!checkin || !checkout) return;
+
+                try {
+                    const response = await fetch(`{{ route('receptionist.checkAvailability') }}?checkin=${checkin}&checkout=${checkout}`);
+                    const data = await response.json();
+
+                    hideBookedItems('.card', data.bookedRooms, 'room[]');
+                    hideBookedItems('.card', data.bookedCottages, 'cottage[]');
+                } catch (err) {
+                    console.error('Error checking availability:', err);
+                }
+            }
+
+            function hideBookedItems(selector, bookedIDs, checkboxName) {
+                document.querySelectorAll(selector).forEach(container => {
+                    const checkbox = container.querySelector(`input[name="${checkboxName}"]`);
+                    if (checkbox) {
+                        const itemID = parseInt(checkbox.value);
+                        if (bookedIDs.includes(itemID)) {
+                            container.style.opacity = '0.4';
+                            container.style.pointerEvents = 'none';
+                        } else {
+                            container.style.opacity = '1';
+                            container.style.pointerEvents = 'auto';
+                        }
+                    }
+                });
+            }
 
             const scrollAmount = 300;
 

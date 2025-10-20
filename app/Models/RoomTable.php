@@ -14,6 +14,10 @@ class RoomTable extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'roomnum', 'description', 'roomtype', 'roomcapacity', 'price', 'image', 'status'
+         'roomnum', 'status', 'roomtypeID'
     ];
+
+    public function roomtype(){
+        return $this->belongsTo(RoomTypeTable::class, 'romtypeID');
+    }
 }

@@ -16,7 +16,7 @@
             <h1><i class="fa-solid fa-bed"></i> Add Room</h1>
         </div>
 
-        <form action="{{ url('manager/save_room') }}" method="POST" enctype="multipart/form-data" class="edit-room-form">
+        <form action="{{ url('manager/add_roomtype') }}" method="POST" enctype="multipart/form-data" class="edit-room-form">
             @csrf
 
             <section class="card preview-card">
@@ -40,32 +40,10 @@
                 <h3><i class="fa-solid fa-pen-to-square"></i> Room Details</h3>
 
                 <div class="form-grid">
-                    <div class="form-group {{ $errors->has('roomnum') ? 'error-field' : '' }}">
-                        <label for="roomnum">Room Number</label>
-                        <input type="text" id="roomnum" name="roomnum" placeholder="101" value="{{ old('roomnum') }}">
-                    </div>
 
-                    <div class="form-group {{ $errors->has('roomtypeID') ? 'error-field' : '' }}">
+                    <div class="form-group">
                         <label for="roomtype">Room Type</label>
-                        <select id="roomtype" name="roomtypeID">
-                            <option value="" selected disabled>Select Room Type</option>
-                            @foreach ($roomType as $type)
-                                <option value="{{ $type->roomtypeID }}"
-                                    data-basecapacity="{{ $type->basecapacity }}"
-                                    data-maxcapacity="{{ $type->maxcapacity }}"
-                                    data-price="{{ $type->price }}"
-                                    data-extra="{{ $type->extra }}"
-                                    data-description="{{ $type->description }}"
-                                    data-discount-name="{{ $type->discount_name ?? '' }}"
-                                    data-discount-amount="{{ $type->discount_amount ?? '' }}"
-                                    {{ old('roomtypeID') == $type->roomtypeID ? 'selected' : '' }}>
-                                    {{ $type->roomtype }}
-                                    @if ($type->discount_name)
-                                        — {{ $type->discount_name }} (₱{{ number_format($type->discount_amount, 2) }})
-                                    @endif
-                                </option>
-                            @endforeach
-                        </select>
+                        <input type="text" id="roomtype" name="roomtype" value="{{ old('roomtype') }}" required>
                     </div>
 
                     <div class="form-group {{ $errors->has('basecapacity') ? 'error-field' : '' }}">
@@ -101,19 +79,14 @@
                         </select>
                     </div>
 
-                    <div class="form-group {{ $errors->has('status') ? 'error-field' : '' }}">
-                        <label for="status">Room Status</label>
-                        <select id="status" name="status">
-                            <option value="" disabled {{ old('status') ? '' : 'selected' }}>Select Status</option>
-                            <option value="Available" {{ old('status') == 'Available' ? 'selected' : '' }}>Available</option>
-                            <option value="Unavailable" {{ old('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
-                            <option value="Maintenance" {{ old('status') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
-                        </select>
-                    </div>
-
                     <div class="form-group full-width {{ $errors->has('description') ? 'error-field' : '' }}">
                         <label for="description">Description</label>
                         <textarea id="description" name="description" rows="4" placeholder="Enter room description...">{{ old('description') }}</textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="image">Room Image</label>
+                        <input type="file" id="image" name="image" accept="image/*">
                     </div>
 
                     <section class="form-group full-width">

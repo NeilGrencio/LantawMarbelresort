@@ -23,7 +23,7 @@
         padding:1rem;
         width:100%;
         transition: width 0.3s ease-in-out;
-        margin-left:12rem;
+        margin-left:15rem;
     } 
     #layout-header {
         display: flex;

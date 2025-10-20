@@ -1,248 +1,352 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
-    <title>Lantaw-Marbel Resort</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-</head>
-<body>
-    <div id="layout">
-        @include ('components.sidebar')
-        <div id="main-layout">
-            <div id="title-header">
-                <h1>Add Menu Item</h1>
-            </div>
-            <form action="{{url('manager/add_menu')}}" method="post" enctype="multipart/form-data">
-                @csrf
-                <div id="form-container">
-                    <label for="menuname">Menu Name</label>
-                    <input id="menuname" name="menuname" type="text" placeholder="Sinigang" value="{{ old('menuname') }}" required/>
-
-                    <label for="itemtype">Item Type</label>
-                    <select id="itemtype" name="itemtype">
-                        <option value="" {{ old('itemtype') == '' ? 'selected' : '' }}>Select Menu Type</option>
-                        <option value="Starter" {{ old('itemtype') == 'Starter' ? 'selected' : '' }}>Starter</option>
-                        <option value="Pork" {{ old('itemtype') == 'Pork' ? 'selected' : '' }}>Pork</option>
-                        <option value="Vegetables" {{ old('itemtype') == 'Vegetables' ? 'selected' : '' }}>Vegetables</option>
-                        <option value="Sea Food" {{ old('itemtype') == 'Sea Food' ? 'selected' : '' }}>Sea Food</option>
-                        <option value="Chicken" {{ old('itemtype') == 'Chicken' ? 'selected' : '' }}>Chicken</option>
-                        <option value="Soup" {{ old('itemtype') == 'Soup' ? 'selected' : '' }}>Soup</option>
-                        <option value="Noodles" {{ old('itemtype') == 'Noodles' ? 'selected' : '' }}>Noodles</option>
-                        <option value="Beef" {{ old('itemtype') == 'Beef' ? 'selected' : '' }}>Beef</option>
-                        <option value="Rice" {{ old('itemtype') == 'Rice' ? 'selected' : '' }}>Rice</option>
-                        <option value="Pizza" {{ old('itemtype') == 'Pizza' ? 'selected' : '' }}>Pizza</option>
-                        <option value="Salad" {{ old('itemtype') == 'Salad' ? 'selected' : '' }}>Salad</option>
-                        <option value="Quenchers" {{ old('itemtype') == 'Quenchers' ? 'selected' : '' }}>Quenchers</option>
-                        <option value="Canned Juices" {{ old('itemtype') == 'Canned Juices' ? 'selected' : '' }}>Canned Juices</option>
-                        <option value="Smoothies" {{ old('itemtype') == 'Smoothies' ? 'selected' : '' }}>Smoothies</option>
-                        <option value="Frappucino" {{ old('itemtype') == 'Frappucino' ? 'selected' : '' }}>Frappucino</option>
-                        <option value="Fruit Tea" {{ old('itemtype') == 'Fruit Tea' ? 'selected' : '' }}>Fruit Tea</option>
-                        <option value="Beer" {{ old('itemtype') == 'Beer' ? 'selected' : '' }}>Beer</option>
-                        <option value="Rum" {{ old('itemtype') == 'Rum' ? 'selected' : '' }}>Rum</option>
-                        <option value="Brandy" {{ old('itemtype') == 'Brandy' ? 'selected' : '' }}>Brandy</option>
-                        <option value="White Wine" {{ old('itemtype') == 'White Wine' ? 'selected' : '' }}>White Wine</option>
-                        <option value="Red Wine" {{ old('itemtype') == 'Red Wine' ? 'selected' : '' }}>Red Wine</option>
-                        <option value="Gin" {{ old('itemtype') == 'Gin' ? 'selected' : '' }}>Gin</option>
-                        <option value="Whisky" {{ old('itemtype') == 'Whisky' ? 'selected' : '' }}>Whisky</option>
-                    </select>
-
-                    <label class="image" for="image">Select Menu image
-                    <img class="image" id="image-preview" src="{{ asset('images/photo.png') }}"/>
-                    </label>
-                    <input id="image" name="image" type="file" accept="image/webp, image/png, image/jpeg, image/jpg"/>
-
-                    <label for="price">Menu Price</label>
-                    <input id="price" name="price" placeholder="75.00" type="text" value="{{ old('price') }}" required/>
-
-                    <label for="status">Menu Status</label>
-                    <select id="status" name="status">
-                        <option value="Available" {{ old('status') == 'Available' ? 'selected' : '' }}>Available</option>
-                        <option value="Unavailable" {{ old('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
-                    </select>
-                </div>
-                <div id="button-container">
-                    <button id="cancel" type="button" data-url={{url('manager/menu_list')}}>Cancel</button>
-                    <button type="submit">Save</button>
-                </div>
-            </form>
-            @if (session('error'))
-                <div class="alert-message">
-                    <h2>{{ session('error') }}</h2>
-                </div>
-            @endif
-        </div>
-    </div>
-</body>
-<style>
-    body{overflow-y:auto;}
-    #menu { color: #F78A21;}
-    #layout{
-        display: flex;
-        flex-direction: row;
-        height:100vh;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon" />
+  <link rel="shortcut icon" href="{{ asset('favico.ico') }}" />
+  <title>Lantaw-Marbel Resort</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #e7e7e7;
+      margin: 0;
+      padding: 0;
+      color: #222;
+      overflow-x: hidden;
     }
-    #main-layout{
-        width:100%;
-        height: auto;
-        padding:1rem;
-        margin-left:12rem;
+
+    #layout {
+      min-height: 100vh;
+      width: 100%;
     }
-    #title-header{
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        max-height:5rem;
-        padding:1rem;
-        border-radius: .7rem;
-        align-content: center;
-        align-items: center;
-        justify-content: center;
-        font-size: .8rem;
-        margin-bottom:-1rem;
+
+    #main-layout {
+      margin-left: 15rem;
+      margin-top: -4.5rem;
+      width: calc(100% - 15rem);
+      padding: 2rem;
+      overflow-y: auto;
+      background: #e7e7e7;
     }
+
+    #title-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
     #title-header h1 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    form {
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 2rem;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    #form-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.3rem;
+    }
+
+    input, select {
+      font-size: 1rem;
+      padding: 0.7rem;
+      border: 1px solid #ccc;
+      border-radius: 0.6rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    input:focus, select:focus {
+      border-color: #f78a21;
+      box-shadow: 0 0 0 3px rgba(247,138,33,0.2);
+    }
+
+    /* Image upload */
+    .image {
+      width: 14rem;
+      height: 14rem;
+      border-radius: 0.7rem;
+      object-fit: cover;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 1rem;
+    }
+
+    .image:hover {
+      transform: scale(1.02);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+
+    #button-container {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    #button-container button {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 0.6rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #cancel {
+      background: #ccc;
+      color: #333;
+    }
+
+    #cancel:hover {
+      background: #999;
+      color: white;
+    }
+
+    #button-container button[type="submit"] {
+      background: #f78a21;
+      color: white;
+    }
+
+    #button-container button[type="submit"]:hover {
+      background: #e67d1d;
+    }
+
+    /* Alert Message */
+    .alert-message {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 1rem 2rem;
+      border-radius: 0.7rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      color: #333;
+      animation: fadeOut 2.5s forwards;
+      z-index: 1000;
+    }
+
+    @keyframes fadeOut {
+      0%, 90% { opacity: 1; }
+      100% { opacity: 0; display: none; }
+    }
+
+    .custom-dropdown {
+        position: relative;
         display: flex;
-        align-items: center;
-    }
-    #form-container{
-        display:flex;
-        flex-direction:column;
-        background:white;
-        width:100%;
-        padding:2rem;
-        gap:.5rem;
-        border-radius:.7rem;
-        box-shadow:.1rem .1rem 0 black;
-        border:1px solid black;
-    }
-    #form-container label{
-        font-size:17px;
-        font-weight: bold;
-    }
-    #form-container input, select{
-        font-size:15px;
-        padding:.5rem;
-        border-radius:.7rem;
-        display:flex;   
-    }
-    .image{
-        height:15rem;
-        width:15rem;
-        object-fit:cover;
-        border-radius:.7rem;
-        display:flex;
         flex-direction: column;
-        align-content: flex-start;
-        margin-bottom:1rem;
+        width: 100%;
     }
-    #image-preview{
-        box-shadow:.2rem .3rem 0 rgba(0,0,0,0.5);
+
+    .custom-dropdown input {
+        border: 1px solid #ccc;
+        padding: .5rem .7rem;
+        border-radius: .7rem;
+        font-size: 15px;
+        outline: none;
+        transition: all 0.2s ease;
     }
-    #button-container{
-        display: flex;
-        gap:1rem;
-        padding:1rem;
+
+    .custom-dropdown input:focus {
+        border-color: #F78A21;
+        box-shadow: 0 0 5px rgba(247, 138, 33, 0.5);
     }
-    #button-container button{
-        height: 4rem;
-        width:7rem;
-        border-radius:.7rem;
-        border:none;
-        box-shadow:.1rem .2rem 0 rgba(0,0,0,0.5);
-        transition:all .3s ease;
+
+    .dropdown-list {
+        position: absolute;
+        top: 110%;
+        left: 0;
+        right: 0;
+        max-height: 200px;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: .7rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        overflow-y: auto;
+        display: none;
+        z-index: 10;
     }
-    #button-container button:hover{
-        background:#F78A21;
-        color:white;
-        cursor:pointer;
+
+    .dropdown-list div {
+        padding: .5rem;
+        cursor: pointer;
+        transition: background 0.2s ease;
     }
-    .alert-message{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        position: fixed;
-        right: 50%;
-        transform: translate(50%, 0);
-        bottom: 1rem;
-        height: fit-content;
-        min-height: 10rem;
-        max-height: 30rem;
-        width: fit-content;
-        min-width: 20rem;
-        max-width: 90vw;
-        background: rgb(255, 255, 255);
-        z-index: 1000;
-        border-radius: 1rem;
-        box-shadow: 0 0 1rem rgba(0,0,0,0.5);
-        margin: auto;
-        padding: 1rem;
-        flex-wrap: wrap;
-        word-wrap: break-word;
+
+    .dropdown-list div:hover {
+        background: #F78A21;
+        color: white;
     }
-</style>
+
+  </style>
+</head>
+
+<body>
+<div id="layout">
+  @include('components.sidebar')
+
+  <div id="main-layout">
+    <div id="title-header">
+      <h1>Add Menu Item</h1>
+    </div>
+
+    <form action="{{ url('manager/add_menu') }}" method="post" enctype="multipart/form-data">
+      @csrf
+      <div id="form-container">
+        <label for="menuname">Menu Name</label>
+        <input id="menuname" name="menuname" type="text" placeholder="Sinigang" value="{{ old('menuname') }}" required/>
+
+        <label for="itemtype">Item Type</label>
+        <div class="custom-dropdown">
+            <input type="text" id="itemtype" name="itemtype" placeholder="Select or type menu type" 
+                value="{{ old('itemtype') }}" autocomplete="off" />
+            <div class="dropdown-list" id="itemtype-list">
+                <div>Starter</div>
+                <div>Pork</div>
+                <div>Vegetables</div>
+                <div>Sea Food</div>
+                <div>Chicken</div>
+                <div>Soup</div>
+                <div>Noodles</div>
+                <div>Beef</div>
+                <div>Rice</div>
+                <div>Pizza</div>
+                <div>Salad</div>
+                <div>Quenchers</div>
+                <div>Canned Juices</div>
+                <div>Smoothies</div>
+                <div>Frappucino</div>
+                <div>Fruit Tea</div>
+                <div>Beer</div>
+                <div>Rum</div>
+                <div>Brandy</div>
+                <div>White Wine</div>
+                <div>Red Wine</div>
+                <div>Gin</div>
+                <div>Whisky</div>
+                <div>Breakfast</div>
+            </div>
+        </div>
+
+        <label for="image">Select Menu Image</label>
+        <img id="image-preview" class="image" src="{{ asset('images/photo.png') }}" alt="Preview">
+        <input id="image" name="image" type="file" accept="image/webp,image/png,image/jpeg,image/jpg"/>
+
+        <label for="price">Menu Price</label>
+        <input id="price" name="price" placeholder="75.00" type="text" value="{{ old('price') }}" required/>
+
+        <label for="status">Menu Status</label>
+        <select id="status" name="status">
+          <option value="Available" {{ old('status') == 'Available' ? 'selected' : '' }}>Available</option>
+          <option value="Unavailable" {{ old('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
+        </select>
+      </div>
+
+      <div id="button-container">
+        <button id="cancel" type="button" data-url="{{ url('manager/menu_list') }}">Cancel</button>
+        <button type="submit">Save</button>
+      </div>
+    </form>
+
+    @if (session('error'))
+      <div class="alert-message"><h2>{{ session('error') }}</h2></div>
+    @endif
+  </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const priceInput = document.getElementById('price');
-    const imageInput = document.getElementById('image');
-    const imagePreview = document.getElementById('image-preview');
-    const cancelbtn = document.getElementById('cancel');
-    const message = document.querySelector('.alert-message');
+document.addEventListener('DOMContentLoaded', () => {
+  const priceInput = document.getElementById('price');
+  const imageInput = document.getElementById('image');
+  const imagePreview = document.getElementById('image-preview');
+  const cancelBtn = document.getElementById('cancel');
+    const itemInput = document.getElementById('itemtype');
+    const dropdownList = document.getElementById('itemtype-list');
+    const allItems = Array.from(dropdownList.querySelectorAll('div'));
+  const message = document.querySelector('.alert-message');
 
-    if (message) {
-        setTimeout(() => {
-            message.style.display = 'none';
-        }, 2500);
-    }
+  if (message) setTimeout(() => (message.style.display = 'none'), 2500);
 
-    if (cancelbtn) {
-        cancelbtn.addEventListener('click', function () {
-            const url = this.dataset.url;
-            if (url) {
-                window.location.href = url;
+  // Cancel button
+  cancelBtn?.addEventListener('click', () => {
+    window.location.href = cancelBtn.dataset.url;
+  });
+
+  // Image preview
+  imageInput?.addEventListener('change', () => {
+    const file = imageInput.files[0];
+    imagePreview.src = file ? URL.createObjectURL(file) : '{{ asset("images/photo.png") }}';
+  });
+
+  // Price input restriction
+  priceInput.addEventListener('input', () => {
+    priceInput.value = priceInput.value.replace(/[^0-9.]/g, '');
+    const parts = priceInput.value.split('.');
+    if (parts.length > 2) priceInput.value = parts[0] + '.' + parts[1];
+  });
+
+  priceInput.addEventListener('blur', () => {
+    if (priceInput.value) priceInput.value = parseFloat(priceInput.value).toFixed(2);
+  });
+
+  itemInput.addEventListener('focus', () => {
+        dropdownList.style.display = 'block';
+        filterDropdown('');
+    });
+
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.custom-dropdown')) {
+            dropdownList.style.display = 'none';
+        }
+    });
+
+    // Filter as you type
+    itemInput.addEventListener('input', function () {
+        const value = this.value.trim().toLowerCase();
+        filterDropdown(value);
+    });
+
+    // When selecting from dropdown
+    dropdownList.addEventListener('click', function (e) {
+        if (e.target.tagName === 'DIV') {
+            itemInput.value = e.target.textContent;
+            dropdownList.style.display = 'none';
+        }
+    });
+
+    // Function to filter dropdown items
+    function filterDropdown(query) {
+        let visibleCount = 0;
+        allItems.forEach(item => {
+            if (item.textContent.toLowerCase().includes(query)) {
+                item.style.display = 'block';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
             }
         });
+        dropdownList.style.display = visibleCount > 0 ? 'block' : 'none';
     }
-
-    imageInput.addEventListener('change', function () {
-        const file = this.files[0];
-
-        if (file) {
-            const reader = new FileReader();
-
-            reader.onload = function (e) {
-                imagePreview.src = e.target.result;
-            };
-
-            reader.readAsDataURL(file);
-        } else {
-            // Reset to default placeholder if no file selected
-            imagePreview.src = '{{ asset("images/photo.png") }}';
-        }
-    });
-
-    // Restrict non-numeric input (allows decimal)
-    priceInput.addEventListener('input', function () {
-        this.value = this.value.replace(/[^0-9.]/g, '');
-
-        // Prevent multiple dots
-        const parts = this.value.split('.');
-        if (parts.length > 2) {
-            this.value = parts[0] + '.' + parts[1];
-        }
-    });
-
-    // Format on blur (add .00 if needed)
-    priceInput.addEventListener('blur', function () {
-        let val = this.value;
-
-        if (val !== '') {
-            let floatVal = parseFloat(val);
-            this.value = floatVal.toFixed(2);
-        }
-    });
 });
 </script>
+</body>
+</html>

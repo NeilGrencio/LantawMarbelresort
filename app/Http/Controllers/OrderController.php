@@ -86,7 +86,7 @@ class OrderController extends Controller
             $uniqueMenuTypes = $menu->pluck('itemtype')->unique();
 
             $guest = BookingTable::join('guest', 'booking.guestID', '=', 'guest.guestID')
-                ->whereDate('bookingstart', Carbon::today())
+                ->where('booking.status', 'Ongoing')
                 ->select('booking.*', 'guest.firstname', 'guest.lastname')
                 ->get();
 
@@ -287,6 +287,7 @@ class OrderController extends Controller
 
             $today = Carbon::today();
             $booking = BookingTable::where('guestID', $guest->guestID)
+                ->orWhere('status', 'ongoing')
                 ->whereDate('bookingstart', '<=', $today)
                 ->whereDate('bookingend', '>=', $today)
                 ->firstOrFail();

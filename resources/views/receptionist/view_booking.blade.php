@@ -1,579 +1,415 @@
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="{{ asset('favico.ico') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
     <title>Lantaw-Marbel Resort - View Booking</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <style>
-        #booking {
-            color: orange;
-        }
-
-        #layout {
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f3f4f6;
+            margin: 0;
             display: flex;
-            flex-direction: row;
-            height: 100vh;
         }
-
-        #main-layout {
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            width: 100%;
-            transition: width 0.3s ease-in-out;
-            margin-left: 12rem;
-            margin-right: .7rem;
-            overflow-y: hidden;
-            overflow-x: hidden;
-        }
-
-        #layout-header {
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            height: 4rem;
-            padding: 1rem;
-            background: white;
-            border-radius: .7rem;
-            border: 1px solid black;
-            box-shadow: .1rem .1rem 0 black;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            font-size: .9rem;
-        }
-
-        #form-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            padding: 1rem;
-            margin-top: .5rem;
-            border-radius: .7rem;
-            background: white;
+        main {
+            flex: 1;
+            padding: 2rem;
             overflow-y: auto;
-            overflow-x: hidden;
-            gap: .5rem;
-            border: 1px solid black;
-            box-shadow: .1rem .2rem 0 black;
         }
-
-        .label-container {
-            display: flex;
-            flex-direction: row;
+        .booking-page {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .form-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
             margin-bottom: 1rem;
-            background: black;
-            width: 100%;
-            height: 3rem;
-            justify-content: space-between;
-            align-items: center;
-            padding: .5rem;
-            font-size: .7rem;
-            color: white;
-            border-radius: .7rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: .5rem;
         }
-
-        .room,
-        .cottage,
-        .amenity {
+        .scroll-container {
             display: flex;
-            flex-direction: column;
-            gap: .5rem;
-            margin-bottom: .5rem;
-        }
-
-        #room-name,
-        #cottage-name,
-        #amenity-name {
-            font-size: .9rem;
-            color: black;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .room-card,
-        .cottage-card,
-        .amenity-card {
-            display: flex;
-            flex-direction: column;
-            width: 15rem;
-            height: 10rem;
-            border-radius: .7rem;
-            box-shadow: .1rem .1rem 0 rgb(0, 0, 0);
-            border: solid 1px black;
-            background: white;
-            padding: .5rem;
-            gap: .5rem;
-            cursor: pointer;
-            align-content: center;
-            justify-content: center;
-            transition: all .2s ease;
-        }
-
-        .room-card img,
-        .cottage-card img,
-        .amenity-card img {
-            width: 100%;
-            height: 70%;
-            object-fit: cover;
-            margin-top: 1rem;
-        }
-
-        .room-card:hover,
-        .cottage-card:hover,
-        .amenity-card:hover {
-            background: orange;
-            transform: translateY(-.5rem);
-        }
-
-        .room-card.active,
-        .cottage-card.active,
-        .amenity-card.active {
-            background: rgb(0, 86, 0);
-            color: white;
-            scale: .9;
-        }
-
-        .room-selection-wrapper,
-        #cottage-content,
-        #amenity-content {
-            position: relative;
-            display: flex;
-            width: 100%;
-            height: 13rem;
-        }
-
-        #room-selection,
-        #cottage-selection,
-        #amenity-selection {
-            display: flex;
-            flex-direction: row;
-            gap: .5rem;
             overflow-x: auto;
-            scroll-behavior: smooth;
-        }
-
-        .scroll-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            z-index: 10;
-            font-size: 1.2rem;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: rgb(174, 174, 174);
-            width: 2.5rem;
-            height: 2.5rem;
-            color: black;
-            border: 1px solid black;
-            border-radius: 100%;
-            transition: all 0.2s ease;
-        }
-
-        .scroll-btn:hover {
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            scale: 1.1;
-        }
-
-        .left-btn {
-            left: 0.5rem;
-        }
-
-        .right-btn {
-            right: 0.5rem;
-        }
-
-        .guest-info-container {
-            display: flex;
-            flex-direction: column;
             gap: 1rem;
-            width: 100%;
-            flex-wrap: wrap;
+            padding-bottom: 0.5rem;
         }
-
-        .guest-info-container div {
-            display: flex;
-            flex-direction: column;
-            gap: .5rem;
-            width: 100%;
-        }
-
-        #label {
-            display: flex;
-            width: 100%;
-            flex-direction: column;
-        }
-
-        .input {
-            display: flex;
-            width: 100%;
-            background: white;
-            border: 1px solid black;
-            border-radius: .5rem;
-            padding: .5rem;
-            font-size: .8rem;
-        }
-
-        #checkin,
-        #checkout {
-            width: 100%;
-            padding: .5rem;
-            border: solid 1px black;
-            background: white;
-            border-radius: .5rem;
-            font-size: .8rem;
-        }
-
-        .button-container {
-            display: flex;
-            flex-direction: row;
-            margin-top: 1rem;
-        }
-
-        .form-button {
-            background: rgb(255, 255, 255);
-            color: rgb(0, 0, 0);
-            border: none;
-            padding: .5rem 1rem;
-            border-radius: .5rem;
-            cursor: pointer;
-            font-size: .8rem;
-            margin-right: .5rem;
-            transition: all .2s ease-in-out;
-            border: rgb(0, 0, 0) solid 1px;
-            box-shadow: .1rem .1rem 0 rgb(0, 0, 0);
-            margin-bottom: 1rem;
-        }
-
-        .form-button:hover {
-            background: orange;
-            color: black;
-            transform: translateY(-.1rem);
-        }
-
-        .text-danger {
-            color: red;
-            font-style: italic;
-        }
-
-        .alert-message {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        .card-item {
+            flex: 0 0 auto;
+            width: 180px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 0.5rem;
+            background: #fff;
             text-align: center;
-            position: fixed;
-            right: 50%;
-            transform: translate(50%, 0);
-            bottom: 1rem;
-            height: fit-content;
-            min-height: 10rem;
-            max-height: 30rem;
-            width: fit-content;
-            min-width: 20rem;
-            max-width: 90vw;
-            background: rgb(255, 255, 255);
-            z-index: 1000;
-            border-radius: 1rem;
-            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.5);
-            margin: auto;
-            padding: 1rem;
-            flex-wrap: wrap;
-            word-wrap: break-word;
         }
-
-        .toggle-header {
-            cursor: pointer;
+        .card-item img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        .card-item h3 {
+            font-size: 1rem;
+            margin: 0.25rem 0;
+        }
+        .card-item p {
+            font-size: 0.9rem;
+            color: #555;
+            margin: 0.25rem 0;
+        }
+        .inclusions {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            background: #f0f0f0;
+            border-radius: 6px;
+            padding: 0.5rem;
+        }
+        .info-group {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            gap: 2rem;
+            flex-wrap: wrap;
         }
-
-        .toggle-icon {
-            transition: transform 0.3s ease;
+        .info-group p {
+            font-weight: 500;
+            margin: 0.3rem 0;
         }
+        .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
 
-        .toggle-icon.rotate {
-            transform: rotate(180deg);
-        }
-    </style>
+    .action-buttons button {
+        padding: 0.6rem 1.4rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        color: #fff;
+    }
 
-</head>
+    .action-buttons button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
 
-<body>
-    <div id="layout">
+    .btn-back {
+        background: #6c757d;
+        color: #fff;
+    }
+
+    .btn-approve {
+        background: #007bff;
+    }
+
+    .btn-decline {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .btn-extend {
+        background: #2c2c2c;
+        color: #000;
+    }
+
+    .btn-cancel {
+        background: #dc3545;
+    }
+    .modal {
+        display: none; 
+        position: fixed; 
+        z-index: 1000; 
+        left: 0; top: 0; width: 100%; height: 100%; 
+        overflow: auto; 
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover { color: black; }
+
+    .btn-confirm {
+        padding: 0.5rem 1rem;
+        background: #F78A21;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+        </style>
+    </head>
+    <body>
         @include('components.receptionist_sidebar')
-        <div id="main-layout">
-            <div id="layout-header">
-                <h1>View Booking #{{ $bookingData->bookingID }}</h1>
-            </div>
-            <div id="form-container">
 
-                <!-- Room Selection -->
-                <div class="label-container toggle-header" data-target="room-content">
-                    <h2>Room Selection</h2>
-                    <i class="fas fa-chevron-up toggle-icon fa-2x"></i>
-                </div>
-                <div id="room-content" class="room-selection-wrapper active">
-                    <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                    <div id="room-selection">
-                        @foreach ($rooms as $room)
-                            @php
-                                $selectedRooms = $bookingData->rooms ?? [];
-                            @endphp
-                            <div class="room">
-                                <label id="room-name" for="room-{{ $room->roomID }}">
-                                    Room {{ $room->roomnum }}
-                                    <input type="checkbox" id="room-{{ $room->roomID }}" name="room[]"
-                                        value="{{ $room->roomID }}" class="room-checkbox"
-                                        {{ in_array($room->roomID, $selectedRooms) ? 'checked' : '' }} disabled>
-                                    <div
-                                        class="room-card {{ in_array($room->roomID, $selectedRooms) ? 'active' : '' }}">
-                                        <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image">
-                                        <div class="room-details">
-                                            <p>Price: ₱ {{ $room->price }}</p>
-                                        </div>
-                                    </div>
-                                </label>
+        <main style="margin-left:15rem;">
+            <div class="booking-page">
+                <h2>Booking #{{ $bookingData->bookingID }}</h2>
+
+                {{-- Booking Information --}}
+                <section class="form-section">
+                    <h3 class="section-title">Booking Information</h3>
+                    <div class="info-group">
+                        <p><strong>Check-in:</strong> {{ \Carbon\Carbon::parse($bookingData->checkin)->format('M d, Y') }}</p>
+                        <p><strong>Check-out:</strong> {{ \Carbon\Carbon::parse($bookingData->checkout)->format('M d, Y') }}</p>
+                        <p><strong>Guest Name:</strong> {{ $bookingData->firstname }} {{ $bookingData->lastname }}</p>
+                        <p><strong>Total Guests:</strong> {{ $bookingData->guestamount }} (Adults: {{ $bookingData->adultguest }}, Children: {{ $bookingData->childguest }})</p>
+                    </div>
+                </section>
+
+                {{-- Rooms --}}
+                <section class="form-section">
+                    <h3 class="section-title">Rooms</h3>
+                    <div class="scroll-container">
+                        @foreach($rooms as $room)
+                            @if(in_array((int)$room->roomID, array_map('intval', $bookingData->rooms)))
+                            <div class="card-item">
+                                <img src="{{ asset('storage/' . $room->image) }}" alt="Room {{ $room->roomnum }}">
+                                <h3>Room {{ $room->roomnum }}</h3>
+                                <p>₱{{ number_format($room->price, 2) }}</p>
+                                <div class="inclusions">
+                                    <strong>Inclusions:</strong>
+                                    @if(isset($inclusionsByRoom[$room->roomnum]) && $inclusionsByRoom[$room->roomnum]->count())
+                                        <ul style="padding-left:1rem; margin:0;">
+                                            @foreach($inclusionsByRoom[$room->roomnum] as $inc)
+                                                <li>{{ $inc }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <p>No inclusions</p>
+                                    @endif
+                                </div>
                             </div>
+                            @endif
                         @endforeach
                     </div>
-                    <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                </div>
+                </section>
 
-                <!-- Cottage Selection -->
-                <div class="label-container toggle-header" data-target="cottage-content">
-                    <h2>Cottage Selection</h2>
-                    <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
-                </div>
-                <div id="cottage-content" class="room-selection-wrapper">
-                    <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                    <div id="cottage-selection">
-                        @foreach ($cottages as $cottage)
-                            @php
-                                $selectedCottages = $bookingData->cottages ?? [];
-                            @endphp
-                            <div class="cottage">
-                                <label id="cottage-name" for="cottage-{{ $cottage->cottageID }}">
-                                    {{ $cottage->cottagename }}
-                                    <input type="checkbox" id="cottage-{{ $cottage->cottageID }}" name="cottage[]"
-                                        value="{{ $cottage->cottageID }}" class="cottage-checkbox"
-                                        {{ in_array($cottage->cottageID, $selectedCottages) ? 'checked' : '' }}
-                                        disabled>
-                                    <div
-                                        class="cottage-card {{ in_array($cottage->cottageID, $selectedCottages) ? 'active' : '' }}">
-                                        <img src="{{ asset('storage/' . $cottage->image) }}" alt="Cottage Image">
-                                        <div class="cottage-details">
-                                            <p>Price: ₱ {{ $cottage->price }}</p>
-                                        </div>
-                                    </div>
-                                </label>
+                {{-- Cottages --}}
+                <section class="form-section">
+                    <h3 class="section-title">Cottages</h3>
+                    <div class="scroll-container">
+                        @foreach($cottages as $cottage)
+                            @if(in_array((int)$cottage->cottageID, array_map('intval', $bookingData->cottages)))
+                            <div class="card-item">
+                                <img src="{{ asset('storage/' . $cottage->image) }}" alt="{{ $cottage->cottagename }}">
+                                <h3>{{ $cottage->cottagename }}</h3>
+                                <p>₱{{ number_format($cottage->price, 2) }}</p>
                             </div>
+                            @endif
                         @endforeach
                     </div>
-                    <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                </div>
+                </section>
 
-                <!-- Amenity Selection -->
-                <div class="label-container toggle-header" data-target="amenity-content">
-                    <h2>Amenity Selection</h2>
-                    <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
-                </div>
-                <div id="amenity-content" class="room-selection-wrapper">
-                    <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                    <div id="amenity-selection">
-                        @foreach ($amenities as $amenity)
-                            @php
-                                $selectedAmenities = $bookingData->amenities ?? [];
-                            @endphp
-                            <div class="amenity">
-                                <label id="amenity-name" for="amenity-{{ $amenity->amenityID }}">
-                                    {{ $amenity->amenityname }}
-                                    <input type="checkbox" id="amenity-{{ $amenity->amenityID }}" name="amenity[]"
-                                        value="{{ $amenity->amenityID }}" class="amenity-checkbox"
-                                        {{ in_array($amenity->amenityID, $selectedAmenities) ? 'checked' : '' }}
-                                        disabled>
-                                    <div
-                                        class="amenity-card {{ in_array($amenity->amenityID, $selectedAmenities) ? 'active' : '' }}">
-                                        <img src="{{ asset('storage/' . $amenity->image) }}" alt="Amenity Image">
-                                        <div class="amenity-details">
-                                            <p>Adult Price: ₱ {{ $amenity->adultprice }}<br />
-                                                Child Price: ₱ {{ $amenity->childprice }}</p>
-                                        </div>
-                                    </div>
-                                </label>
+
+                {{-- Amenities --}}
+                <section class="form-section">
+                    <h3 class="section-title">Amenities</h3>
+                    <div class="scroll-container">
+                        @foreach($amenities as $amenity)
+                            @if(in_array($amenity->amenityID, $bookingData->amenities))
+                            <div class="card-item">
+                                <img src="{{ asset('storage/' . $amenity->image) }}" alt="{{ $amenity->amenityname }}">
+                                <h3>{{ $amenity->amenityname }}</h3>
+                                <p>Adult ₱{{ number_format($amenity->adultprice,2) }} / Child ₱{{ number_format($amenity->childprice,2) }}</p>
                             </div>
+                            @endif
                         @endforeach
                     </div>
-                    <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                </div>
+                </section>
 
-                <!-- Booking Information -->
-                <div class="label-container">
-                    <h2>Booking Information</h2>
-                </div>
-                <label>Check-in:
-                    <input type="date" value="{{ \Carbon\Carbon::parse($bookingData->checkin)->format('Y-m-d') }}"
-                        disabled>
-                </label>
-                <label>Check-out:
-                    <input type="date" value="{{ \Carbon\Carbon::parse($bookingData->checkout)->format('Y-m-d') }}"
-                        disabled>
-                </label>
+                <div class="action-buttons">
+                    <button type="button" class="btn-back" onclick="window.history.back()">Go Back</button>
 
-                <!-- Guest Information -->
-                <div class="label-container">
-                    <h2>Guest Information</h2>
-                </div>
-                <p><strong>Firstname:</strong> {{ $bookingData->firstname }}</p>
-                <p><strong>Lastname:</strong> {{ $bookingData->lastname }}</p>
-                <p><strong>Total Guests:</strong> {{ $bookingData->guestamount }}</p>
-                <p><strong>Adults:</strong> {{ $bookingData->adultguest }}</p>
-                <p><strong>Children:</strong> {{ $bookingData->childguest }}</p>
-
-                <!-- Menu Orders -->
-                @if ($bookingData->menuOrders->count())
-                    <div class="label-container">
-                        <h2>Menu Orders</h2>
-                    </div>
-                    <ul>
-                        @foreach ($bookingData->menuOrders as $menuOrder)
-                            <li>{{ $menuOrder->Menu->name ?? 'Menu Item' }} - Quantity: {{ $menuOrder->quantity }}
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
-
-                <!-- Billing & Payments -->
-                @if ($bookingData->billing)
-                    <div class="label-container">
-                        <h2>Billing & Payments</h2>
-                    </div>
-
-                    @if ($bookingData->payments->count())
-                        <h3>Payments</h3>
-                        <ul>
-                            @foreach ($bookingData->payments as $payment)
-                                <li>{{ \Carbon\Carbon::parse($payment->created_at)->format('M d, Y') }} -
-                                    ₱{{ $payment->totaltender }} - {{ $payment->refNumber }}</li>
-                            @endforeach
-                        </ul>
+                    @if($bookingData->status === 'Pending')
+                        <button type="button" class="btn-approve" onclick="approveBooking({{ $bookingData->bookingID }})">Approve</button>
+                        <button type="button" class="btn-decline" onclick="declineBooking({{ $bookingData->bookingID }})">Decline</button>
                     @endif
-                @endif
-                <div class="button-container">
-                    <button type="button" class="form-button" onclick="window.history.back()">Go Back</button>
-                    <button type="button" class="form-button"
-                        onclick="approveBooking({{ $bookingData->bookingID }})">Approve</button>
-                    <button type="button" class="form-button"
-                        onclick="declineBooking({{ $bookingData->bookingID }})">Decline</button>
+                    
+                    <button type="button" class="btn-extend" id="btn-extend">Extend</button>
 
-                    <button type="button" class="form-button"
-                        onclick="cancelBooking({{ $bookingData->bookingID }})">Cancel</button>
-
+                    <button type="button" class="btn-cancel" onclick="cancelBooking({{ $bookingData->bookingID }})">Cancel</button>
                 </div>
 
-            </div>
-        </div>
-    </div>
+                <!-- Extend Modal -->
+            <div id="extend-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeExtendModal()">&times;</span>
+                    <h3>Extend Booking</h3>
+                    <p>Current End Date: <strong>{{ $bookingData->checkout }}</strong></p>
 
+                    <form method="POST" action="{{ url('receptionist/bookings_extend/' . $bookingData->bookingID) }}">
+                        @csrf
+                        <label for="extra_nights">Number of Nights to Extend:</label>
+                        <input type="number" id="extra_nights" name="extra_nights" min="1" value="1" required>
+
+                        <p>New Total: ₱<span id="new-total">{{ $bookingData->total }}</span></p>
+
+                        <button type="submit" class="btn-confirm">Confirm</button>
+                    </form>
+                </div>
+            </div>
+
+            </div>
+            @if (session('success'))
+                <div class="fixed bottom-5 right-5 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg">
+                    <p>{{ session('success') }}</p>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="fixed bottom-5 right-5 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg">
+                    <p>{{ session('error') }}</p>
+                </div>
+            @endif
+
+        </div>
+    </main>
 
     <script>
-        function approveBooking(id) {
-            if (!confirm("Are you sure you want to APPROVE this booking?")) return;
+document.addEventListener('DOMContentLoaded', function () {
 
-            fetch("{{ url('receptionist/approve_booking') }}/" + id, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                        "Content-Type": "application/json"
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    alert(data.message);
-                    location.reload(); // refresh to show updated status
-                });
+    // -----------------------------
+    // Extend Booking Modal
+    // -----------------------------
+    const extendModal = document.getElementById('extend-modal');
+    const nightsInput = document.getElementById('nights-extend');
+    const newTotalSpan = document.getElementById('new-total');
+
+    document.getElementById('btn-extend').addEventListener('click', () => {
+        extendModal.style.display = 'block';
+    });
+
+
+    // Base values from server
+    const baseTotal = {{ $bookingData->total ?? 0 }};
+    const pricePerNight = {{ $bookingData->price ?? 0 }};
+
+    function openExtendModal() {
+        extendModal.style.display = 'block';
+    }
+
+    function closeExtendModal() {
+        extendModal.style.display = 'none';
+    }
+
+    function updateExtendTotal() {
+        const extraNights = parseInt(nightsInput.value) || 0;
+        const newTotal = baseTotal + (extraNights * pricePerNight);
+        newTotalSpan.textContent = newTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    nightsInput.addEventListener('input', updateExtendTotal);
+    updateExtendTotal();
+
+    window.openExtendModal = openExtendModal;
+    window.closeExtendModal = closeExtendModal;
+
+    function confirmExtend(bookingID) {
+        const extraNights = parseInt(nightsInput.value);
+
+        if (isNaN(extraNights) || extraNights < 1) {
+            alert('Please enter a valid number of nights.');
+            return;
         }
 
-        function declineBooking(id) {
-            if (!confirm("Are you sure you want to DECLINE this booking?")) return;
-
-            fetch("{{ url('receptionist/decline_booking') }}/" + id, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                        "Content-Type": "application/json"
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    alert(data.message);
-                    location.reload();
-                });
-        }
-
-        function cancelBooking(id) {
-            if (!confirm("Are you sure you want to CANCEL this booking?")) return;
-
-            fetch("{{ url('receptionist/cancel_booking') }}/" + id, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                        "Content-Type": "application/json"
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    alert(data.message);
-                    location.reload();
-                });
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            // Toggle sections
-            document.querySelectorAll('.toggle-header').forEach(header => {
-                header.addEventListener('click', () => {
-                    const targetId = header.getAttribute('data-target');
-                    const content = document.getElementById(targetId);
-                    const icon = header.querySelector('.toggle-icon');
-                    content.classList.toggle('active');
-                    icon.classList.toggle('fa-chevron-up');
-                    icon.classList.toggle('fa-chevron-down');
-                });
-            });
-
-            const scrollAmount = 300;
-
-            function updateScrollButtons(wrapper) {
-                const container = wrapper.querySelector('div[id$="-selection"]');
-                const leftBtn = wrapper.querySelector('.left-btn');
-                const rightBtn = wrapper.querySelector('.right-btn');
-                if (!container || !leftBtn || !rightBtn) return;
-                const isScrollable = container.scrollWidth > container.clientWidth;
-                leftBtn.style.display = isScrollable ? 'flex' : 'none';
-                rightBtn.style.display = isScrollable ? 'flex' : 'none';
-                leftBtn.onclick = () => container.scrollBy({
-                    left: -scrollAmount,
-                    behavior: 'smooth'
-                });
-                rightBtn.onclick = () => container.scrollBy({
-                    left: scrollAmount,
-                    behavior: 'smooth'
-                });
+        fetch(`/receptionist/bookings_extend/${bookingID}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ extra_nights: extraNights })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Network response was not OK");
+            return res.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                alert(`Booking extended successfully!\nNew total: ₱${data.newTotal}`);
+                location.reload(); // refresh to show new checkout and total
+            } else {
+                alert(data.message || 'Failed to extend booking.');
             }
-            document.querySelectorAll('.room-selection-wrapper').forEach(updateScrollButtons);
-            window.addEventListener('resize', () => document.querySelectorAll('.room-selection-wrapper').forEach(
-                updateScrollButtons));
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Something went wrong!');
         });
-    </script>
+    }
+    window.confirmExtend = confirmExtend;
+
+    // -----------------------------
+    // Booking Action Buttons
+    // -----------------------------
+    function bookingAction(url, confirmMessage) {
+        if (!confirm(confirmMessage)) return;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message || 'Action completed.');
+            location.reload();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Something went wrong.');
+        });
+    }
+
+    window.approveBooking = (id) => bookingAction("{{ url('receptionist/approve_booking') }}/" + id, "Are you sure you want to APPROVE this booking?");
+    window.declineBooking = (id) => bookingAction("{{ url('receptionist/decline_booking') }}/" + id, "Are you sure you want to DECLINE this booking?");
+    window.cancelBooking = (id) => bookingAction("{{ url('receptionist/cancel_booking') }}/" + id, "Are you sure you want to CANCEL this booking?");
+
+    // -----------------------------
+    // Close modal if clicked outside
+    // -----------------------------
+    window.addEventListener('click', function(event) {
+        if(event.target === extendModal) {
+            closeExtendModal();
+        }
+    });
+
+});
+</script>
+
+
 </body>
 
 </html>

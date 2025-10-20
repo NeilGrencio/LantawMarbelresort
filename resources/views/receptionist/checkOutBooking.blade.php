@@ -1,415 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lantaw-Marbel Resort</title>
-    <link rel="icon" href="{{ asset('favico.ico') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-    #check{color:orange;}
-    #layout{
-        display: flex;
-        flex-direction: row;
-        height:100vh;
-    }
-    #main-layout{
-        display:flex;
-        flex-direction: column;
-        padding:1rem;
-        width:100%;
-        height:98vh;
-        gap:.5rem;
-        transition: width 0.3s ease-in-out;
-        margin-left:12rem;
-        margin-right:.7rem;
-        overflow-y: hidden;
-        overflow-x: hidden;
-    } 
-    #layout-header{
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        height:4rem;
-        padding:1rem;
-        background:white;
-        border-radius: .7rem;
-        border:1px solid black;
-        box-shadow:.1rem .1rem 0 black;
-        align-items: center;
-        justify-content: space-between; 
-        gap: 1rem;
-        font-size: .7rem;
-    }
-    .content-wrapper{
-        display:flex;
-        flex-direction: row;
-        width:100%;
-        height:100%;
-        gap:1rem;
-    }
-    .receipt-container{
-        display:flex;
-        flex-direction: column;
-        background:white;
-        border:black;
-        border-radius:.5rem;
-        box-shadow:.1rem .1rem 0 black;
-        font-size:.8rem;
-        padding:1rem;
-        width:35%;
-        height:96%;
-        overflow:hidden;
-        transition:all .3s ease;
-    }
-    .receipt-container:hover{
-        overflow-y:auto;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lantaw-Marbel Resort</title>
+<link rel="icon" href="{{ asset('favico.ico') }}" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans">
 
-    .receipt-container img{
-        object-fit: center;
-        height:4rem;
-        width:8rem;
-        align-self:center;
-    }
-    .bill-information{
-        margin-bottom:-.5rem;
-    }
-    li{
-        margin-top:.5rem;
-    }
-    .bill-information.logo{
-        align-self: center;
-    }
-    #room,
-    #cottage, 
-    #amenity,
-    #total{
-        display:flex;
-        justify-content: space-between;
-    }
-    hr {
-        margin: 1rem 0rem 0 0rem ;
-        border: none;
-        border-top: 1px solid black;
-        width: 100%;
-    }
+@include('components.receptionist_sidebar')
 
-    .payment-container{
-        display:flex;
-        flex-direction: column;
-        background:white;
-        border-radius:.5rem;
-        border:1px solid black;
-        box-shadow:.1rem .1rem 0 black;
-        padding:1rem;
-        width:65%;
-        height:96%;
-    }
-    .payment-selection{
-        display:flex;
-        height:5rem;
-        width:7rem;
-        border-radius:.7rem;
-        justify-content:center;
-        align-items:center;
-        border:1px solid black;
-        box-shadow:.1rem .1rem 0 black;
-        gap:.5rem;
-        cursor:pointer;
-        transition:all .2s ease;
-    }
-    .payment-label{
-        width:100%;
-        color:white;
-        background:black;
-        border-radius:.5rem;
-        padding-left:.5rem;
-        font-size:.7rem;
-        margin-bottom:1rem;
-    }
-    .payment-selection:hover{
-        background:orange;
-        color:white;
-        scale:1.1;
-    }
+<div id="main-layout" class="min-h-screen ml-[15rem] p-8 transition-all" style="width: calc(100vw - 15rem);">
 
-    #payment-content{
-        display: flex;
-        flex-direction: row;
-        gap:1rem;
-    }
-    .no-charge-btn {
-        background: none;
-        color: white;
-        border: none;
-        font-size: .8rem;
-        cursor: pointer;
-        font-style: italic;
-        transition: all .2s ease;
-    }
+    <!-- HEADER -->
+    <div class="bg-white border border-gray-200 shadow-md rounded-xl p-5 mb-6 flex items-center justify-between">
+        <h1 class="text-2xl font-bold tracking-wide text-gray-800 uppercase">Check-Out {{ $booking->guestname }}</h1>
+    </div>
 
-    .no-charge-btn:hover {
-        color: rgb(255, 169, 64);
-        scale: 1.05;
-    }
-    .form-button{
-        height:2rem;
-        border-radius:.5rem;
-        border:solid 1px black;
-        box-shadow:.1rem .1rem 0 black;
-        cursor:pointer;
-        transition:all .2s ease;
-        font-size:.8rem;
-        padding:.3rem 1rem;
-        background: white;
-        margin-top:1rem;
-    }
-    .form-button:hover{
-        background: orange;
-        color:white;
-        scale:1.05;
-    }
+    <div class="flex flex-col lg:flex-row gap-8">
 
+        <!-- LEFT: Receipt -->
+        <div class="flex-1 bg-white border border-gray-200 rounded-2xl shadow-lg p-6 overflow-y-auto max-h-[80vh]">
+            <img src="{{ asset('images/logo.png') }}" alt="Logo" class="mx-auto h-14 mb-4">
 
-    .alert-message{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        position: fixed;
-        right: 50%;
-        transform: translate(50%, 0);
-        bottom: 1rem;
-        height: fit-content;
-        min-height: 10rem;
-        max-height: 30rem;
-        width: fit-content;
-        min-width: 20rem;
-        max-width: 90vw;
-        background: rgb(255, 255, 255);
-        z-index: 1000;
-        border-radius: 1rem;
-        box-shadow: 0 0 1rem rgba(0,0,0,0.5);
-        margin: auto;
-        padding: 1rem;
-        flex-wrap: wrap;
-        word-wrap: break-word;
-    }   
-</style>
-<body>
-    <div id="layout">
-        @include('components.receptionist_sidebar')
+            <h2 class="text-lg font-semibold mb-3 text-gray-800 uppercase tracking-wide">Booking Summary</h2>
 
-        <div id="main-layout">
-            <div id="layout-header">
-                <h1>Check-Out {{$booking->guestname}}</h1>
+            <div class="space-y-2 text-sm text-gray-700">
+                <p><span class="font-semibold">Date:</span> {{ $today }}</p>
+                <p><span class="font-semibold">Guest:</span> {{ $booking->guestname }}</p>
+                <p><span class="font-semibold">Guest Count:</span> {{ $booking->guestamount }}</p>
+                <p><span class="font-semibold">Adult:</span> {{ $booking->adultguest }}</p>
+                <p><span class="font-semibold">Children:</span> {{ $booking->childguest }}</p>
             </div>
-            <div class="content-wrapper">
-                <div class="receipt-container">
-                    <img src="{{asset('images/logo.png')}}" alt="logo"/>
-                    <h5 class="bill-information logo">Lantaw Marbel Resort Booking</h5>
-                    <hr/>
-                    <h5 class="bill-information">Date: <strong id="date">{{$today}}</strong></h5>
-                    <h5 class="bill-information">Guest: <strong id="guest">{{$booking->guestname}}</strong></h5>
-                    <h5 class="bill-information">Guest Count: <strong id="date">{{$booking->guestamount}}</strong></h5>
-                    <h5 class="bill-information">Adult Count: <strong id="date">{{$booking->adultguest}}</strong></h5>
-                    <h5 class="bill-information">Children Count: <strong id="date">{{$booking->childguest}}</strong></h5>
-                    <hr/>
-                    <h5 class="bill-information">Booking:</h5>
 
-                    <!-- ROOM -->
-                    @if($room->isNotEmpty())
-                        <h5 class="bill-information"><strong>Room * {{$room->count()}}</strong></h5>
-                        @foreach($room as $rooms)
-                            <li id="room">{{ $rooms->roomnum }}: <strong>₱ {{ $rooms->price }}</strong></li>
-                        @endforeach
-                    @else
-                        <h5 class="bill-information"><strong>No rooms</strong></h5>
-                    @endif
+            <hr class="my-4 border-gray-300"/>
 
-                    <!-- COTTAGE -->
-                    @if($cottage->isNotEmpty())
-                        <h5 class="bill-information"><strong>Cottage * {{$cottage->count()}}</strong></h5>
-                        @foreach($cottage as $cottages)
-                            <li id="cottage">{{ $cottages->cottagename }}: <strong>₱ {{$cottages->price}}</strong></li>
-                        @endforeach
-                    @else
-                        <h5 class="bill-information"><strong>No cottages</strong></h5>
-                    @endif
+            <!-- Rooms -->
+            @if($room->isNotEmpty())
+                <h3 class="font-semibold text-sm uppercase text-gray-700 mb-1">Rooms ({{ $room->count() }})</h3>
+                <ul class="list-disc list-inside text-sm text-gray-600 mb-4">
+                    @foreach($room as $r)
+                        <li>{{ $r->roomnum }} - {{ $r->roomtype }}: ₱ {{ number_format($r->price, 2) }}</li>
+                    @endforeach
+                </ul>
+            @else
+                <h3 class="font-semibold text-sm text-gray-700">No rooms</h3>
+            @endif
 
-                    <!-- AMENITY -->
-                    @if($booking->amenityID)
-                        <h5 class="bill-information"><strong>Amenity: {{ $booking->amenityname }}</strong></h5>
-                        <li id="amenity">Adult Price: <strong>₱ {{$booking->adultprice}}</strong></li>
-                        <li id="amenity">Children Price: <strong>₱ {{$booking->childprice}}</strong></li>
-                    @else
-                        <h5 class="bill-information"><strong>No amenity</strong></h5>
-                    @endif
-                    <hr/>
+            <!-- Cottages -->
+            @if($cottage->isNotEmpty())
+                <h3 class="font-semibold text-sm uppercase text-gray-700 mb-1">Cottages ({{ $cottage->count() }})</h3>
+                <ul class="list-disc list-inside text-sm text-gray-600 mb-4">
+                    @foreach($cottage as $c)
+                        <li>{{ $c->cottagename }}: ₱ {{ number_format($c->price, 2) }}</li>
+                    @endforeach
+                </ul>
+            @else
+                <h3 class="font-semibold text-sm text-gray-700">No cottages</h3>
+            @endif
 
-                    @php
-                        $roomtotal = $room->sum('price') ?? 0;
-                        $cottagetotal = $cottage->sum('price') ?? 0;
-                        $adulttotal = $booking->adultprice * $booking->adultguest ?? 0;
-                        $childtotal = $booking->childprice * $booking->childguest ?? 0;
+            <!-- Amenities -->
+            @if($booking->amenityID)
+                <h3 class="font-semibold text-sm uppercase text-gray-700 mb-1">Amenity</h3>
+                <ul class="list-disc list-inside text-sm text-gray-600 mb-4">
+                    <li>{{ $booking->amenityname }} - Adult: ₱ {{ $booking->adultprice }}, Children: ₱ {{ $booking->childprice }}</li>
+                </ul>
+            @else
+                <h3 class="font-semibold text-sm text-gray-700">No amenities</h3>
+            @endif
 
-                        $subtotal = $roomtotal + $cottagetotal + $adulttotal + $childtotal;
-                        $discount = $billing->amount * 100;
-                        $totalafterdiscount = ($discount && $discount != 0) ? $subtotal / $discount : $subtotal;
+            <hr class="my-4 border-gray-300"/>
 
-                        $amountpaid = $payment->totaltender;
-                        $remainingbalance = $billing->totalamount;
+            @php
+                $now = \Carbon\Carbon::now();
+                $bookingStart = \Carbon\Carbon::parse($booking->bookingstart);
+                $bookingEnd = \Carbon\Carbon::parse($booking->bookingend);
 
-                    @endphp
+                $nights = $bookingStart->diffInDays($bookingEnd);
 
-                    <h5 class="bill-information" id="total">Room Total: <strong>₱ {{ number_format($roomtotal, 2) }}</strong></h5>
-                    <h5 class="bill-information" id="total">Cottage Total: <strong>₱ {{ number_format($cottagetotal, 2) }}</strong></h5>
-                    <h5 class="bill-information" id="total">Adult Total: <strong>₱ {{ number_format($adulttotal, 2) }}</strong></h5>
-                    <h5 class="bill-information" id="total">Child Total: <strong>₱ {{ number_format($childtotal, 2) }}</strong></h5>
-                    <hr/>
+                $roomTotal = $room->sum(fn($r) => ($r->price ?? 0) * ($r->quantity ?? 1));
+                $cottageTotal = $cottage->sum(fn($c) => $c->price ?? 0);
+                $amenityTotal = ($booking->adultprice ?? 0) * ($booking->adultguest ?? 0)
+                              + ($booking->childprice ?? 0) * ($booking->childguest ?? 0);
 
-                    <h5 class="bill-information" id="total">Subtotal: <strong>₱ {{ number_format($subtotal, 2) }}</strong></h5>
-                    <h5 class="bill-information" id="total">Discount: <strong>{{$discount}} %</strong></h5>
-                    <h5 class="bill-information" id="total">Total after discount: <strong>₱ {{ number_format($totalafterdiscount, 2) }}</strong></h5>
-                    <hr/>
+                $subtotal = $roomTotal + $cottageTotal + $amenityTotal;
 
-                    <h5 class="bill-information" id="total">Amount Paid: <strong>₱ {{ number_format($amountpaid, 2) }}</strong></h5>
-                    <h5 class="bill-information" id="total">Remaining Balance: <strong>₱ {{ number_format($remainingbalance, 2) }}</strong></h5>
+                $discountAmount = $billing->flatamount ?? 0;
+                if(!$discountAmount && $billing->percentamount) {
+                    $discountAmount = $subtotal * ($billing->percentamount / 100);
+                }
 
-                    <h5 class="bill-information" id="total">Additonal Charge: <strong id="add-charge">₱ 0.00</strong></h5>
-                    <hr/>
-                    <h5 class="bill-information" id="total">Total: <span id="totalaftercharge"><strong>₱ 0.00</strong></span></h5>
+                $totalAfterDiscount = $subtotal - $discountAmount;
+                $amountPaid = $payment->totaltender ?? 0;
+                $remainingBalance = $billing->totalamount ?? max(0, $totalAfterDiscount - $amountPaid);
+            @endphp
+
+            <div class="space-y-2 text-sm text-gray-700">
+                <p><span class="font-semibold">Check-in:</span> {{ $booking->bookingstart }}</p>
+                <p><span class="font-semibold">Check-out:</span> {{ $booking->bookingend }}</p>
+
+                <hr class="border-gray-300 my-2">
+
+                <p><span class="font-semibold">Room Total:</span> ₱ {{ number_format($roomTotal, 2) }}</p>
+                <p><span class="font-semibold">Cottage Total:</span> ₱ {{ number_format($cottageTotal, 2) }}</p>
+                <p><span class="font-semibold">Amenity Total:</span> ₱ {{ number_format($amenityTotal, 2) }}</p>
+
+                @if($earlyCheckInFee > 0)
+                    <p class="font-semibold">Early Check-in Fee Breakdown:</p>
+                    <ul class="list-disc list-inside text-gray-600 mb-2">
+                        <li>{{ $earlyCheckInHours }} hour{{ $earlyCheckInHours > 1 ? 's' : '' }} × ₱{{ number_format($earlyCheckInRate,2) }} = ₱{{ number_format($earlyCheckInFee,2) }}</li>
+                    </ul>
+                @endif
+
+                <hr class="border-gray-300 my-2">
+
+                <p><span class="font-semibold">Subtotal:</span> ₱ <span id="subtotal">{{ number_format($subtotal, 2) }}</span></p>
+                <p><span class="font-semibold">Discount:</span> ₱ {{ number_format($discountAmount, 2) }}</p>
+                <p><span class="font-semibold">Additional Charge:</span> ₱ <span id="add-charge">0.00</span></p>
+
+                <hr class="border-gray-300 my-2">
+
+                <p class="font-semibold text-lg">Total Amount: ₱ <span id="total-after-charge">{{ number_format($totalAfterDiscount, 2) }}</span></p>
+                <p class="font-semibold text-lg">Amount Paid: ₱ {{ number_format($amountPaid, 2) }}</p>
+                <p class="font-semibold text-lg text-red-600">Remaining Balance: ₱ <span id="remaining-balance">{{ number_format($remainingBalance, 2) }}</span></p>
+            </div>
+        </div>
+
+        <!-- RIGHT: Payment -->
+        <form method="POST" action="{{ url('receptionist/checkout/' . $booking->bookingID) }}" class="bg-white border border-gray-200 shadow-lg rounded-2xl p-6 w-full lg:w-[28rem] flex flex-col justify-between">
+            @csrf
+            <div class="flex flex-col space-y-6">
+                <div>
+                    <h2 class="text-lg font-semibold mb-3 text-gray-800 uppercase tracking-wide">Additional Charges</h2>
+                    <label class="block mb-2">Charge Amount:
+                        <input type="number" id="addcharge-input" name="addcharge" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-gray-600 focus:border-gray-600" step="0.01">
+                    </label>
+                    <label class="block mb-2">Description:
+                        <input type="text" name="chargedesc" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-gray-600 focus:border-gray-600">
+                    </label>
                 </div>
 
-                <div class="payment-container">
-                    <form action="{{url('receptionist/checkout/' . $booking->bookingID)}}" method="post">
-                        @csrf
-                        <div class="payment-label" style="display: flex; justify-content: space-between; align-items: center;">
-                            <h2>Additional Charges <i style="font-size:.7rem;align-item:center;color:grey;">Optional</i></h2>
-                            <button type="button" id="no-charge-btn" class="no-charge-btn">No Additional Charge</button>
-                        </div> 
-                        <div class="charge-wrapper">
-                            <label for="addcharge">Charge Amount:
-                                <input type="number" id="addcharge" name="addcharge">
-                            </label>
-                            <label for="chargedesc">Charge Description:
-                                <input type="text" id="chargedesc" name="chargedesc">
-                            </label>
-                        </div>
-
-                        <div class="payment-label">
-                            <h2>Select Payment Method</h2>
-                        </div> 
-                    
-                        <div id="payment-content">
-                        <label for="cash">
-                            Cash:
-                            <div class="payment-selection"><i class="fas fa-money-bill-wave fa-2x"></i></div>
-                            <input class="radio" type="radio" id="cash" name="payment" value="cash">
+                <div>
+                    <h2 class="text-lg font-semibold mb-3 text-gray-800 uppercase tracking-wide">Payment Method</h2>
+                    <div class="flex flex-col gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="payment" value="cash" class="text-black focus:ring-gray-600" required>
+                            <span>Cash</span>
                         </label>
-
-                        <label for="gcash">
-                            Gcash:
-                            <div class="payment-selection"><i class="fas fa-mobile-alt fa-2x"></i></div>
-                            <input class="radio" type="radio" id="gcash" name="payment" value="gcash">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="payment" value="gcash" class="text-black focus:ring-gray-600" required>
+                            <span>GCash</span>
                         </label>
                     </div>
-                        <div id="cash-amount-input" style="display: none; margin-top: 1rem;">
-                                <label for="amount_paid">Amount Paid:</label>
-                                <input type="number" id="amount_paid" name="amount_paid" class="form-control" min="0" step="0.01" required>
-                        </div>
-                        <div class="button-container">
-                            <button class="form-button" id="cancel-button" type="button" data-url="{{url('receptionist/check-in-out')}}">Cancel</button>
-                            <button class="form-button" type="submit">Submit</button>
-                        </div>
-                    </form >
+                </div>
 
+                <div id="cash-amount-wrapper" class="hidden">
+                    <label for="amount_paid" class="block text-sm font-medium text-gray-700 mb-1">Amount Paid</label>
+                    <input type="number" name="amount_paid" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-gray-600 focus:border-gray-600" min="0" step="0.01" placeholder="Enter amount">
                 </div>
             </div>
-            @if (session('success'))
-                <div class="alert-message">
-                    <h2>{{ session('success') }}</h2>
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="alert-message">
-                    <h2>{{ session('error') }}</h2>
-                </div>
-            @endif
-        </div>
-</body>
+
+            <div class="flex justify-between items-center mt-8">
+                <button type="button" id="cancel-button" class="border border-gray-700 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-800 hover:text-white transition">Cancel</button>
+                <button type="submit" class="bg-black text-white px-5 py-2 rounded-lg hover:bg-gray-900 transition">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    @if(session('success'))
+        <div class="fixed bottom-5 right-5 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="fixed bottom-5 right-5 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg">{{ session('error') }}</div>
+    @endif
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const message = document.querySelector('.alert-message');
+document.addEventListener('DOMContentLoaded', function () {
+    const cashRadio = document.querySelector('input[value="cash"]');
+    const gcashRadio = document.querySelector('input[value="gcash"]');
+    const cashWrapper = document.getElementById('cash-amount-wrapper');
+    const cancelButton = document.getElementById('cancel-button');
 
-        // Hide alert message after 3.5 seconds
-        if (message) {
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 3500);
-        }
+    const addChargeInput = document.getElementById('addcharge-input');
+    const addChargeDisplay = document.getElementById('add-charge');
+    const totalAfterCharge = document.getElementById('total-after-charge');
+    const remainingBalanceDisplay = document.getElementById('remaining-balance');
+    const subtotalDisplay = parseFloat(document.getElementById('subtotal').textContent.replace(/,/g, ''));
+    const baseRemainingBalance = parseFloat(remainingBalanceDisplay.textContent.replace(/,/g, ''));
 
-        const noChargeBtn = document.getElementById('no-charge-btn');
-        const chargeDescInput = document.getElementById('chargedesc');
+    function toggleCashInput() {
+        cashWrapper.classList.toggle('hidden', !cashRadio.checked);
+    }
 
-        noChargeBtn.addEventListener('click', function () {
-            addChargeInput.value = 0;
-            chargeDescInput.value = 'N/A';
-            updateCharges();
-        });
+    cashRadio.addEventListener('change', toggleCashInput);
+    gcashRadio.addEventListener('change', toggleCashInput);
 
-        const cashRadio = document.getElementById('cash');
-        const gcashRadio = document.getElementById('gcash');
-        const amountInputDiv = document.getElementById('cash-amount-input');
-        const cancelButton = document.getElementById('cancel-button');
+    cancelButton.addEventListener('click', () => window.history.back());
 
-        if('cancelButton'){
-            let url = cancelButton.dataset.url;
-            cancelButton.addEventListener('click', function(){
-                window.location.href = url;
-            });
-        };
+    // Update charge dynamically
+    addChargeInput.addEventListener('input', function(){
+        const charge = parseFloat(this.value) || 0;
 
-        function toggleAmountInput() {
-            if (cashRadio.checked) {
-                amountInputDiv.style.display = 'block';
-            } else {
-                amountInputDiv.style.display = 'none';
-            }
-        }
+        // Update additional charge display
+        addChargeDisplay.textContent = charge.toFixed(2);
 
-        cashRadio.addEventListener('change', toggleAmountInput);
-        gcashRadio.addEventListener('change', toggleAmountInput);
+        // Update total amount
+        totalAfterCharge.textContent = (subtotalDisplay + charge).toFixed(2);
 
-        toggleAmountInput();
-
-        const addChargeInput = document.getElementById('addcharge');
-        const addChargeDisplay = document.getElementById('add-charge');
-        const totalDisplay = document.getElementById('totalaftercharge');
-
-        // Base amount from server calculation
-        let baseTotal = {{ $totalafterdiscount ?? 0 }};
-
-        function updateCharges() {
-            let addCharge = parseFloat(addChargeInput.value) || 0;
-
-            // Update the additional charge display
-            addChargeDisplay.textContent = `₱ ${addCharge.toFixed(2)}`;
-
-            // Update total display
-            const newTotal = baseTotal + addCharge;
-            totalDisplay.innerHTML = `<strong>₱ ${newTotal.toFixed(2)}</strong>`;
-        }
-
-        // Add event listener
-        addChargeInput.addEventListener('input', updateCharges);
-
-        // Initialize on page load
-        updateCharges();
-
+        // Update remaining balance
+        remainingBalanceDisplay.textContent = (baseRemainingBalance + charge).toFixed(2);
     });
+});
+
 </script>
+
+</body>
+</html>

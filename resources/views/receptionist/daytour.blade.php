@@ -296,7 +296,7 @@
         display:grid;
         grid-template-columns: 80% 20%;
         gap:.5rem;
-        width:(100vw - 12rem);
+        width:(100vw - 15rem);
         position:relative;
         overflow-y:auto;
         overflow-x:none;
@@ -490,7 +490,7 @@
         width:100%;
         height:100vh;
         transition: width 0.3s ease-in-out;
-        margin-left:12rem;
+        margin-left:15rem;
         margin-right:.7rem;
         overflow-y: auto;
         overflow-x: hidden;

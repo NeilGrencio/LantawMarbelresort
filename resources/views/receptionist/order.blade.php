@@ -163,8 +163,8 @@
             display: flex;
             flex-direction: column;
             padding: 1rem;
-            margin-left: 12rem;
-            width: calc(100% - 12rem);
+            margin-left: 15rem;
+            width: calc(100% - 20rem);
             overflow: hidden;
         }
         #layout-header {
@@ -568,26 +568,37 @@
                 return;
             }
 
-            const bookingStart = guestBookings[guestName].start;
-            const bookingEnd = guestBookings[guestName].end;
+            const bookingStart = new Date(guestBookings[guestName].start);
+            const bookingEnd = new Date(guestBookings[guestName].end);
 
+            // Ensure min is today or booking start, whichever is later
             const minDate = bookingStart > today ? bookingStart : today;
+
+            // Last day should allow up to 12 PM local time
             const maxDate = new Date(bookingEnd);
-            maxDate.setHours(12,0,0,0); // last selectable time 12:00 PM on checkout day
+            maxDate.setHours(12,0,0,0); // 12:00 PM (noon)
 
-            dateInput.min = minDate.toISOString().slice(0,16);
-            dateInput.max = maxDate.toISOString().slice(0,16);
+            // Convert to local ISO string for datetime-local input
+            function toLocalDateTimeString(date) {
+                const off = date.getTimezoneOffset();
+                const localDate = new Date(date.getTime() - off * 60 * 1000);
+                return localDate.toISOString().slice(0,16);
+            }
 
+            dateInput.min = toLocalDateTimeString(minDate);
+            dateInput.max = toLocalDateTimeString(maxDate);
+
+            // Clamp current value
             if (dateInput.value) {
                 const selected = new Date(dateInput.value);
-                if (selected < minDate) dateInput.value = minDate.toISOString().slice(0,16);
-                if (selected > maxDate) dateInput.value = maxDate.toISOString().slice(0,16);
+                if (selected < minDate) dateInput.value = toLocalDateTimeString(minDate);
+                if (selected > maxDate) dateInput.value = toLocalDateTimeString(maxDate);
             }
 
             dateInput.addEventListener('input', () => {
                 const selected = new Date(dateInput.value);
-                if (selected < minDate) dateInput.value = minDate.toISOString().slice(0,16);
-                if (selected > maxDate) dateInput.value = maxDate.toISOString().slice(0,16);
+                if (selected < minDate) dateInput.value = toLocalDateTimeString(minDate);
+                if (selected > maxDate) dateInput.value = toLocalDateTimeString(maxDate);
             });
         }
 

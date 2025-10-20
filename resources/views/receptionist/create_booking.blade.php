@@ -7,1156 +7,731 @@
     <title>Lantaw-Marbel Resort</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-</head>
-<body>
-    <div id="layout">
-        @include('components.receptionist_sidebar')
-    <div id="main-layout">
-        <div id="layout-header">
-            <h1>Booking</h1>
-        </div>
-            <form action="{{ url('receptionist/submit_booking') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div id="form-container">
-                    <div class="input-container">
-
-                        <div class="label-container">
-                            <h2>Booking Information</h2>
-                        </div>
-                        <label for="checkin">Check-in Date:
-                            <input type="date" id="checkin" name="checkin" value="{{ old('checkin') }}" required>
-                        </label>
-
-                        <label for="checkout">Check-out Date:
-                            <input class="input" type="date" id="checkout" name="checkout" value="{{ old('checkout') }}" required> 
-                        </label>
-                        
-                        <!--Room Selection-->
-                        <div class="label-container toggle-header" id="room-label" data-target="room-content" style="margin-top:.5rem;">
-                            <h2>Room Selection</h2>
-                            <i class="fas fa-chevron-up toggle-icon fa-2x"></i>
-                        </div>                 
-                        <div id="room-content" class="collapsible-content active">
-                            <div class="room-selection-wrapper">     
-                                <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                                <div id="room-selection">  
-                                    @foreach($rooms as $room)
-                                        <div class="room">
-                                            <label id="room-name" for="room">Room {{ $room->roomnum }}
-                                                <input type="checkbox" id="room" name="room[]" data-name="Room {{ $room->roomnum }}data-price="{{ $room->price }}" value="{{ $room->roomID }}" {{ in_array($room->roomID, old('roomID', [])) ? 'checked' : '' }} class="room-checkbox">
-                                                <div class="room-card">
-                                                    <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image">
-                                                    <div class="room-details">
-                                                        <p>Price: ₱ {{ $room->price }}</p>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>  
-                                    @endforeach
-                                </div>
-                                <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                            </div>
-                        </div>
-
-                        <!--Cottage Selection-->
-                        <div class="label-container toggle-header" data-target="cottage-content">
-                            <h2>Cottage Selection</h2>
-                            <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
-                        </div>
-                        <div id="cottage-content" class="collapsible-content">
-                            <div class="room-selection-wrapper">     
-                                <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                                <div id="cottage-selection">
-                                    @foreach($cottages as $cottage)
-                                        <div class="cottage">
-                                            <label id="cottage-name" for="cottage">{{ $cottage->cottagename }}
-                                                <input type="checkbox" id="cottage" name="cottage[]" data-name="{{ $cottage->cottagename }}" data-price="{{ $cottage->price }}" value="{{ $cottage->cottageID }}" {{ in_array($cottage->cottageID, old('cottageID', [])) ? 'checked' : '' }} class="cottage-checkbox">
-                                                <div class="cottage-card">
-                                                    <img src="{{ asset('storage/' . $cottage->image) }}" alt="Cottage Image">
-                                                    <div class="cottage-details">
-                                                        <p>Price: ₱ {{ $cottage->price }}</p>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                            </div>
-                        </div>
-                        
-                        <!--Amenity Selection-->
-                        <!--Amenity Selection-->
-                        <div class="label-container toggle-header" data-target="amenity-content">
-                            <h2>Amenity Selection</h2>
-                            <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
-                        </div>
-                        <div id="amenity-content" class="collapsible-content">
-                            <div class="room-selection-wrapper">     
-                                <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                                <div id="amenity-selection">
-                                    @foreach($amenities as $amenity)
-                                        <div class="amenity">
-                                            <label for="amenity-{{ $amenity->amenityID }}" id="amenity-name">
-                                                {{ $amenity->amenityname }}
-                                                <input 
-                                                    type="checkbox" 
-                                                    id="amenity-{{ $amenity->amenityID }}" 
-                                                    name="amenity[]" 
-                                                    data-name="{{ $amenity->amenityname }}" 
-                                                    data-price="{{ $amenity->price }}" 
-                                                    value="{{ $amenity->amenityID }}" 
-                                                    {{ in_array($amenity->amenityID, old('amenity', [])) ? 'checked' : '' }} 
-                                                    class="amenity-checkbox"
-                                                >
-                                                <div class="amenity-card">
-                                                    <img src="{{ asset('storage/' . $amenity->image) }}" alt="Amenity Image">
-                                                    <div class="amenity-details">
-                                                        <p>
-                                                            Adult Price: ₱ {{ $amenity->adultprice }}<br/>
-                                                            Child Price: ₱ {{ $amenity->childprice }}
-                                                        </p>
-                                                    </div>
-                                                </div>                                    
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="label-container" id="guest-label">
-                        <h2>Guest Information</h2>
-                        <button type="button" id="alreadyLogin" class="form-button">Click here if guest already has account</button>
-                    </div>
-                    <div class="guest-info-container">
-                        <div>
-                            <div style="position: relative; display: inline-block; width: 48%; vertical-align: top;">
-                                <label id="label" for="firstname">Firstname:
-                                    <input class="input" type="text" id="firstname" name="firstname"
-                                        value="{{ old('firstname') }}" autocomplete="off" required>
-                                </label>
-                                <ul id="firstname-suggestions" style="
-                                    position: absolute;
-                                    top: 100%;
-                                    left: 0;
-                                    right: 0;
-                                    background: #fff;
-                                    border: 1px solid #ccc;
-                                    border-radius: 5px;
-                                    list-style: none;
-                                    padding: 0;
-                                    margin: 2px 0 0;
-                                    display: none;
-                                    max-height: 150px;
-                                    overflow-y: auto;
-                                    z-index: 1000;
-                                "></ul>
-                                @error('firstname')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-
-                            <div style="position: relative; display: inline-block; width: 48%; vertical-align: top; margin-left: 4%;">
-                                <label id="label" for="lastname">Lastname:
-                                    <input class="input" type="text" id="lastname" name="lastname"
-                                        value="{{ old('lastname') }}" autocomplete="off" required>
-                                </label>
-                                <ul id="lastname-suggestions" style="
-                                    position: absolute;
-                                    top: 100%;
-                                    left: 0;
-                                    right: 0;
-                                    background: #fff;
-                                    border: 1px solid #ccc;
-                                    border-radius: 5px;
-                                    list-style: none;
-                                    padding: 0;
-                                    margin: 2px 0 0;
-                                    display: none;
-                                    max-height: 150px;
-                                    overflow-y: auto;
-                                    z-index: 1000;
-                                "></ul>
-                                @error('lastname')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div id="row2">
-                        <div>
-                            <label for="txtcontactnum">Contact #:</label>
-                            <div style="display:flex; flex-direction: row;gap:.2rem;">
-                                <span style="display:flex; align-items:center; padding:.5rem; background: rgba(240, 240, 240, 0.822); border: 1px solid black; border-radius: .5rem .2rem .2rem .5rem; width:9%;">+63</span>
-                                <input class="input" id="txtcontactnum" type="text"  maxlength="10" placeholder="912345678" name="contactnum" value="{{ old('contactnum')}}" style="border-radius: .2rem .5rem .5rem .2rem; width:90.3%">
-                            </div>
-                        </div>
-                        <div>
-                            <label for="txtemail">Email:</label> 
-                            <input class="input" id="txtemail" type="email" placeholder="@email.com.." name="email" value="{{ old('email')}}" required>  
-                        </div>
-                    </div>
-
-                    <div id="row3">
-                        <div>
-                            <label for="txtgender">Gender:</label>
-                            <select class="input" id="txtgender"  name="gender">
-                                <option value="" disabled selected>Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Prefer_not_to_say">Prefer not to say</option>
-                            </select>
-                        </div>
-                        <div> 
-                        {{-- Birthday --}}
-                        <label id="lblbirthday" for="txtbirthday">
-                            Birthday:
-                        </label>
-                        <input class="input" id="txtbirthday" type="date" name="birthday"
-                            value="{{ old('birthday') }}">
-                        </div>
-                    </div>
-
-                    {{-- Valid ID --}}
-                     <div class="cl-validID" id="row4">
-                        <label for="txtvalidid">Import Valid ID</label>
-                        <div>
-                            <img id="id-preview" src="{{ asset('images/photo.png') }}">
-                            <input class="input" id="txtvalidid" type="file" accept=".png, .jpg, .jpeg, .webp" name="validID">
-                        </div>
-                    </div>
-
-                    <div class="label-container">
-                        <h3>Account Information</h3>
-                    </div>
-
-                    <div id="row5" class="user-information">
-                        <div>
-                            <label for="txtusername">Username:</label> 
-                            <input class="input" id="txtusername" type="text" placeholder="Username" name="username" value="{{ old('username')}}" required>
-                        </div>
-                         
-                    </div>
-
-                    <div id="row6" class="user-information">
-                        <div>
-                            <label for="txtpassword">Password:</label> 
-                            <input class="input" id="txtpassword" type="text" placeholder="Password" name="password">
-                        </div> 
-                        <div>
-                            <label for="txtcpassword">Confirm Password:</label> 
-                            <input class="input" id="txtcpassword" type="text" placeholder="Confirm Password" name="password_confirmation">
-                            <small id="password-match-msg" style="color: red; display: none; margin-top:.5rem;"><i class="fas fa-info-circle"></i> Password does not match.</small>
-                        </div> 
-                    </div>
-
-                    <div id="row7">
-                        <div>
-                            <label for="avatar">Select Avatar:</label>
-                            <img id="pfp-preview" src="{{ asset('images/profile.jpg')}}">
-                            <input id="txtavatar" type="file" accept=".png, .jpg, .jpeg, .webp" name="avatar">
-                            @error('validAvatar')
-                                <div class="error-message" id="avatar-error-message">{{ $message}}</div>
-                            @enderror 
-                        </div> 
-                    </div>
-
-                    <div class="label-container">
-                        <h3>Guest Count</h3>
-                    </div>
-
-                        <div>
-                            <label id="label" for="guestamount">Number of Guest:
-                                <input class="input" type="text" id="guestamount" name="guestamount" value="{{ old('guestamount') }}" readonly>
-                            </label>
-                            
-                            @if($errors->has('guestamount'))
-                                <div class="alert alert-danger">
-                                    {{ $errors->first('guestamount') }}
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="guest-counts" id="guest-counts" style="display:flex;">
-                            <label id="label">Adult Guests:
-                                <input id="adultguest" type="number" min="0" name="amenity_adult_guest" class="input" placeholder="Enter number of adults" value="{{ old('amenity_adult_guest') }}">
-                            </label>
-                            <label id="label">Child Guests:
-                                <input id="childguest" type="number" min="0" name="amenity_child_guest" class="input" placeholder="Enter number of children" value="{{ old('amenity_child_guest') }}">
-                            </label>
-                        </div>
-
-                    </div>
-
-                </div>
-                <div class="button-container">
-                    <button type="button" id="cancel-button" class="form-button" data-url="{{ url('receptionist/booking') }}">Cancel</button>
-                    <button type="submit" id="submit-button" class="form-button">Submit Booking</button>
-                </div>
-            </form>
-        </div>
-        @if($errors->any())
-            <alert class="alert-message">
-                <strong>Something went wrong:</strong>
-                <ul>
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>   
-                    @endforeach
-                </ul>
-            </alert>
-        @endif
-    @if (session('error'))
-        <div class="alert-message">
-            <h2>{{ session('error') }}</h2>
-        </div>
-    @endif
-    </div>
-    </div>
-</body>
-<style>
-        #booking{color:orange;}
-        #layout{
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
             display: flex;
-            flex-direction: row;
-            height:100vh;
+            background: #f3f4f6;
         }
-        #main-layout{
-            display:flex;
-            flex-direction: column;
-            padding:1rem;
-            width:85%;
-            transition: width 0.3s ease-in-out;
-            margin-left:12rem;
-            margin-right:.7rem;
-            overflow-y: hidden;
-            overflow-x: hidden;
-        } 
-        #layout-header{
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            height:4rem;
-            padding:1rem;
-            background:white;
-            border-radius: .7rem;
-            border:1px solid black;
-            box-shadow:.1rem .1rem 0 black;
-            align-items: center;
-            justify-content: space-between; 
-            gap: 1rem;
-            font-size: .9rem;
+
+        main {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            overflow-y: auto;
         }
-        #form-container{
-            display:flex;
-            flex-direction: column;
-            height:80vh;
-            width:100%;
-            padding:1rem;
-            margin-top:.5rem;
-            border-radius:.7rem;
-            background:white;
-            overflow-y:auto;
-            overflow-x:hidden;
-            gap:.5rem;
-            border:1px solid black;
-            box-shadow:.1rem .2rem 0 black;
+
+        .booking-page {
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        
-        .label-container{
-            display: flex;
-            flex-direction: row;
+
+        .form-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
             margin-bottom: 1rem;
-            background:black;
-            width: 100%;
-            height:3rem;
-            justify-content: space-between;
-            align-items: center;
-            padding:.5rem;
-            font-size:.7rem;
-            color:white;
-            border-radius:.7rem;
-        }
-        .room{
-            display: flex;
-            flex-direction: column; 
-            gap:.5rem;
-            margin-bottom:.5rem;
-        }
-        #room-name{
-            font-size: .9rem;
-            color: black;
-            text-align: center;
-            font-weight: bold;
+            font-size: 1.25rem;
+            font-weight: 600;
+            border-bottom: 2px solid #eee;
+            padding-bottom: .5rem;
         }
 
-        .room-card{
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
             display: flex;
             flex-direction: column;
-            width:15rem;
-            height:10rem;
-            border-radius:.7rem;
-            box-shadow:.1rem .1rem 0 rgb(0,0,0);
-            border: solid 1px black;
-            background: white;
-            padding:.5rem;
-            gap:.5rem;
-            cursor: pointer;
-            align-content: center;
-            justify-content: center;
-            transition:all .2s ease;
         }
-        .room-card:hover{
-            background:orange;
-            transform:translateY(-.5rem);
+
+        label {
+            font-weight: 500;
+            margin-bottom: .3rem;
         }
-        .room-card.active{
-            background: rgb(0, 86, 0);
-            color:white;
-            scale: .9;
+
+        input, select {
+            padding: 0.6rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
         }
-        .room-card img{
-            width:100%;
-            height:70%;
-            object-fit: cover;
-            margin-top:1rem;
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
         }
-        .room-selection-wrapper {
-            position: relative;
+
+        .input-prefix {
             display: flex;
-            width: 100%;
-            height:13rem;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 6px;
         }
-        #room-selection{
-            display:flex;
-            flex-direction: row;
-            gap:.5rem;
+
+        .input-prefix span {
+            background: #f5f5f5;
+            padding: 0.5rem 0.75rem;
+            border-right: 1px solid #ccc;
+        }
+
+        .input-prefix input {
+            border: none;
+            flex: 1;
+            padding: 0.5rem;
+        }
+
+        .scroll-container {
+            display: flex;
             overflow-x: auto;
-            scroll-behavior: smooth;
+            gap: 1rem;
+            padding-bottom: 0.5rem;
         }
-        .cottage{
-            display: flex;
-            flex-direction: column; 
-            gap:.5rem;
-            margin-bottom:.5rem;
-        }
-        #cottage-name{
-            font-size: .9rem;
-            color: black;
+
+        .card-item {
+            flex: 0 0 auto;
+            width: 180px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 0.5rem;
+            background: #fff;
             text-align: center;
-            font-weight: bold;
-        }
-
-        .cottage-card{
-            display: flex;
-            flex-direction: column;
-            width:15rem;
-            height:10rem;
-            border-radius:.7rem;
-            box-shadow:.1rem .1rem 0 rgb(0,0,0);
-            border: solid 1px black;
-            background: white;
-            padding:.5rem;
-            gap:.5rem;
-            cursor: pointer;
-            align-content: center;
-            justify-content: center;
-            transition:all .2s ease;
-        }
-        .cottage-card img{
-            width:100%;
-            height:70%;
-            object-fit: cover;
-            margin-top:1rem;
-        }
-        .cottage-card:hover{
-            background:orange;
-            transform:translateY(-.5rem);
-        }
-        .cottage-card.active{
-            background: rgb(0, 86, 0);
-            color:white;
-            scale: .9;
-        }
-
-        #cottage-selection{
-            display:flex;
-            flex-direction: row;
-            gap:.5rem;
-        }
-        .amenity{
-            display: flex;
-            flex-direction: column; 
-            gap:.5rem;
-            margin-bottom:.5rem;
-        }
-        #amenity-name{
-            font-size: .9rem;
-            color: black;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .amenity-card{
-            display: flex;
-            flex-direction: column;
-            width:15rem;
-            height:10rem;
-            border-radius:.7rem;
-            box-shadow:.1rem .1rem 0 rgb(0,0,0);
-            border: solid 1px black;
-            background: white;
-            padding:.5rem;
-            gap:.5rem;
-            cursor: pointer;
-            align-content: center;
-            justify-content: center;
-            transition:all .2s ease;
-        }
-        .amenity-card img{
-            display:flex;
-            height:60%;
-            width:100%;
-            object-fit: cover;
-            margin-top:.5rem;
-        }
-        .amenity-card:hover{
-            background:orange;
-            transform:translateY(-.5rem);
-        }
-        .amenity-card.active{
-            background: rgb(0, 86, 0);
-            color:white;
-            scale: .9;
-        }
-
-        #amenity-selection{
-            display:flex;
-            flex-direction: row;
-            gap:.5rem;
-        }
-        .scroll-btn{
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            z-index: 10;
-            font-size: 1.2rem;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: rgb(174, 174, 174);
-            width: 2.5rem;
-            height: 2.5rem;
-            color: black;
-            border: 1px solid black;
-            border-radius: 100%;
             transition: all 0.2s ease;
         }
-        .scroll-btn:hover {
-            background: rgba(0, 0, 0, 0.5);
-            color:white;
-            scale: 1.1;
-        }
 
-        .left-btn {
-            position: absolute;
-            left: 0.5rem;
-        }
-        .right-btn {
-            position: absolute;
-            right: 0.5rem;
-        }
-        .collapsible-content {
-            display: none;
-            transition: all 0.3s ease;
-        }
-
-        .collapsible-content.active {
-            display: block;
-        }
-
-        .toggle-header {
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .toggle-icon {
-            transition: transform 0.3s ease;
-        }
-
-        .toggle-icon.rotate {
-            transform: rotate(180deg);
-        }
-
-        .guest-info-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            width:100%;
-            flex-wrap: wrap;
-        }
-        .guest-info-container div {
-            display: flex;
-            flex-direction: row;
-            gap: .5rem;
+        .card-item img {
             width: 100%;
-        }
-        #label{
-            display:flex;
-            width:100%;
-            flex-direction: column;
-        }
-        .input{
-            display:flex;
-            width:100%;
-            background: white;
-            border:1px solid black;
-            border-radius:.5rem;
-            padding:.5rem;
-            font-size: .8rem;
-        }
-        #checkin, #checkout {
-            width: 100%;
-            padding: .5rem;
-            border: solid 1px black;
-            background: white;
-            border-radius: .5rem;
-            font-size: .8rem;
-        }
-        
-
-        #row1 div, #row2 div, #row3 div, #row5 div, #row6 div, #row7 div {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
-        #pfp-preview {
-            height: 8rem;
-            width: 8rem;
-            border-radius: 50%;
+            height: 110px;
             object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
         }
 
-        #row4 div {
-            display: flex;
-            height: 15rem;
-            width: auto;
-            gap: 1.5rem;
-            flex-wrap: wrap;
+        .card-item:hover {
+            border-color: #0d6efd;
+            transform: translateY(-2px);
         }
 
-        #row4 img {
-            display: flex;
-            height: auto;
-            max-height: 80%;
-            width: auto;
-            min-width: 25%;
-            object-fit: contain;
-            border: 2px solid black;
-            border-radius: 1.5rem;
+        .card-item input[type="checkbox"] {
+            display: none;
         }
-        .button-container {
-            display: flex;
-            flex-direction: row;
-            margin-top: 1rem;
-            
+
+        .card-item h3 {
+            font-size: 1rem;
+            margin: 0.25rem 0;
         }
-        .form-button{
-            background: rgb(255, 255, 255);
-            color: rgb(0, 0, 0);
+
+        .card-item p {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 6px;
             border: none;
-            padding: .5rem 1rem;
-            border-radius: .5rem;
             cursor: pointer;
-            font-size: .8rem;
-            margin-right: .5rem;
-            transition: all .2s ease-in-out;
-            border:rgb(0, 0, 0) solid 1px;
-            box-shadow: .1rem .1rem 0 rgb(0, 0, 0);
-            margin-bottom: 1rem;
-        }
-        .form-button:hover{
-            background: orange;
-            color: black;
-            transform: translateY(-.1rem);
-        }   
-
-        .text-danger{
-            color:red;
-            font-style:italic;
+            font-weight: 500;
         }
 
-        #room-selection, #cottage-selection {
-            transition: opacity 0.3s ease;
-        }
-
-        .unavailable-overlay {
-            position: relative;
-        }
-
-        .unavailable-overlay::after {
-            content: 'BOOKED';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 0, 0, 0.9);
+        .btn-primary {
+            background-color: #007bff;
             color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: bold;
-            font-size: 1.2rem;
         }
 
-        .alert-message{
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            position: fixed;
-            right: 50%;
-            transform: translate(50%, 0);
-            bottom: 1rem;
-            height: fit-content;
-            min-height: 10rem;
-            max-height: 30rem;
-            width: fit-content;
-            min-width: 20rem;
-            max-width: 90vw;
-            background: rgb(255, 255, 255);
-            z-index: 1000;
-            border-radius: 1rem;
-            box-shadow: 0 0 1rem rgba(0,0,0,0.5);
-            margin: auto;
-            padding: 1rem;
-            flex-wrap: wrap;
-            word-wrap: break-word;
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
         }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .alert-danger {
+            background: #ffe5e5;
+            color: #d10000;
+        }
+
+        .alert-warning {
+            background: #fff8e1;
+            color: #997000;
+        }
+        .card-item {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: 2px solid transparent;
+        }
+        .card-item.selected {
+            border-color: #007bff;
+            background-color: #e7f1ff;
+            box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
+        }
+        .suggestion-box {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            z-index: 100;
+            display: none;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+        .suggestion-box li {
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .suggestion-box li:hover {
+            background: #f2f2f2;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color, #007bff);
+            border: 1px solid var(--primary-color, #007bff);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-outline:hover {
+            background: var(--primary-color, #007bff);
+            color: #fff;
+        }
+        .error-border {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdecea;
+        }
+        .flatpickr-calendar {
+            font-size: 0.95rem;
+            z-index: 9999 !important;
+        }
+        /* Quantity Selector Container */
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Number Input */
+        .quantity-selector input[type="number"] {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 0.25rem;
+            font-size: 1rem;
+        }
+
+        /* Increase/Decrease Buttons */
+        .quantity-selector button {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        /* Hover Effect */
+        .quantity-selector button:hover {
+            background-color: #e0e0e0;
+            transform: scale(1.1);
+        }
+
+        /* Disable button look */
+        .quantity-selector button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+
     </style>
+</head>
+
+<body>
+    {{-- ===========================
+        SIDEBAR INCLUDE
+    ============================ --}}
+    @include('components.receptionist_sidebar')
+
+    <main>
+        <div class="booking-page">
+
+            {{-- ===========================
+                🧾 BOOKING FORM START
+            ============================ --}}
+            <form action="{{ url('receptionist/submit_booking') }}" method="POST" enctype="multipart/form-data" class="booking-form">
+                @csrf
+
+                {{-- ===========================
+                    SECTION 1: BOOKING DETAILS
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Booking Details</h2>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="checkin">Check-in Date</label>
+                            <input type="date" name="checkin" id="checkin" value="{{ old('checkin') }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="checkout">Check-out Date</label>
+                            <input type="date" name="checkout" id="checkout" value="{{ old('checkout') }}" required>
+                        </div>
+                    </div>
+                </section>
+
+                {{-- ===========================
+                    SECTION 2: GUEST COUNT
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Guest Count</h2>
+                    <div class="form-group">
+                        <label for="guestamount">Total Guests</label>
+                        <input type="text" name="guestamount" id="guestamount" value="{{ old('guestamount') }}" readonly>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="amenity_adult_guest">Adults</label>
+                            <input type="number" name="amenity_adult_guest" id="amenity_adult_guest" value="{{ old('amenity_adult_guest', 0) }}" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="amenity_child_guest">Children</label>
+                            <input type="number" name="amenity_child_guest" id="amenity_child_guest" value="{{ old('amenity_child_guest', 0) }}" min="0">
+                        </div>
+                    </div>
+                </section>
+
+                {{-- ===========================
+                    SECTION 3: ROOM SELECTION
+                ============================ --}}
+                <section class="form-section">
+                    <div class="form-group">
+                        <label for="room_count">Selected Rooms</label>
+                        <input type="text" name="room_count" id="room_count" value="{{ old('room_count', '') }}" readonly>
+                    </div>
+
+                    <h2 class="section-title">Room Selection</h2>
+                    <div class="scroll-container">
+                        @foreach($rooms as $room)
+                            <div class="card-item" 
+                                data-roomtype="{{ $room->roomtype }}" 
+                                data-max="{{ $room->maxcapacity }}" 
+                                data-base="{{ $room->basecapacity }}"
+                                data-price="{{ $room->price }}"
+                                data-extra="{{ $room->extra }}">
+                                
+                                <img src="{{ $room->image_url }}" alt="Room {{ $room->roomtype }}">
+                                <h3>{{ $room->roomtype }}</h3>
+                                <p>₱{{ number_format($room->price, 2) }} per room (Base capacity: {{ $room->basecapacity }} guests)</p>
+
+                                <div class="quantity-selector">
+                                    <button type="button" class="decrease">-</button>
+                                    <input type="number" 
+                                        name="room[{{ $room->roomtypeID }}]" 
+                                        value="{{ old('room.' . $room->roomtypeID, 0) }}" 
+                                        min="0" 
+                                        max="{{ $room->maxcapacity }}">
+                                    <button type="button" class="increase">+</button>
+                                </div>
+
+                                <small>Max capacity per room: {{ $room->maxcapacity }} Base Capacity per room: {{ $room->basecapacity }}
+                                    <br> Extra per guest above base: ₱{{ number_format($room->extra, 2) }}</small>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+
+
+                {{-- ===========================
+                    SECTION 4: COTTAGE SELECTION
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Cottage Selection</h2>
+                    <div class="scroll-container">
+                        @foreach($cottages as $cottage)
+                            <label class="card-item">
+                                <input type="checkbox" name="cottage[]" value="{{ $cottage->cottageID }}" {{ in_array($cottage->cottageID, old('cottage', [])) ? 'checked' : '' }}>
+                                <img src="{{ asset('storage/' . $cottage->image) }}" alt="{{ $cottage->cottagename }}">
+                                <h3>{{ $cottage->cottagename }}</h3>
+                                <p>₱{{ number_format($cottage->price, 2) }}</p>
+                            </label>
+                        @endforeach
+                    </div>
+                </section>
+
+                {{-- ===========================
+                    SECTION 5: AMENITY SELECTION
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Amenity Selection</h2>
+                    <div class="scroll-container">
+                        @foreach($amenities as $amenity)
+                            <label class="card-item">
+                                <input type="checkbox" name="amenity[]" value="{{ $amenity->amenityID }}" {{ in_array($amenity->amenityID, old('amenity', [])) ? 'checked' : '' }}>
+                                <img src="{{ asset('storage/' . $amenity->image) }}" alt="{{ $amenity->amenityname }}">
+                                <h3>{{ $amenity->amenityname }}</h3>
+                                <p>₱{{ number_format($amenity->bookprice, 2) }}</p>
+                            </label>
+                        @endforeach
+                    </div>
+                </section>
+
+                {{-- ===========================
+                    SECTION 5.5: Extra SELECTION
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Extra Selection</h2>
+                    <div class="scroll-container">
+                        @foreach($extras as $extra)
+                            <div class="card-item">
+                                <img src="{{ asset('storage/' . $extra->image) }}" alt="{{ $extra->amenityname }}">
+                                <h3>{{ $extra->amenityname }}</h3>
+                                <p>₱{{ number_format($extra->bookprice, 2) }}</p>
+                                <div class="quantity-selector">
+                                    <button type="button" class="decrease">-</button>
+                                    <input type="number" name="extra[{{ $extra->amenityID }}]" value="{{ old('extra.' . $extra->amenityID, 0) }}" min="0">
+                                    <button type="button" class="increase">+</button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+
+
+                {{-- ===========================
+                    SECTION 6: GUEST INFORMATION
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Guest Information</h2>
+
+                    {{-- Name Inputs with Suggestions --}}
+                    <div class="grid-2">
+                        <div class="form-group position-relative">
+                            <label for="firstname">First Name</label>
+                            <input type="text" name="firstname" id="firstname" value="{{ old('firstname') }}" required autocomplete="off">
+                            <ul id="firstname-suggestions" class="suggestion-box"></ul>
+                        </div>
+
+                        <div class="form-group position-relative">
+                            <label for="lastname">Last Name</label>
+                            <input type="text" name="lastname" id="lastname" value="{{ old('lastname') }}" required autocomplete="off">
+                            <ul id="lastname-suggestions" class="suggestion-box"></ul>
+                        </div>
+                    </div>
+
+                    <button type="button" id="toggleReturningGuest" class="btn-outline mb-3">
+                        Returning Guest? Click to Skip Personal Details
+                    </button>
+
+                    <div id="guestExtraFields">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="contactnum">Contact Number</label>
+                                <div class="input-prefix">
+                                    <span>+63</span>
+                                    <input type="text" name="contactnum" id="contactnum" value="{{ old('contactnum') }}" maxlength="10">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" name="email" id="email" value="{{ old('email') }}" required>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="gender">Gender</label>
+                                <select name="gender" id="gender">
+                                    <option value="">Select</option>
+                                    <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
+                                    <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
+                                    <option value="Prefer not to say" {{ old('gender') == 'Prefer not to say' ? 'selected' : '' }}>Prefer not to say</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="birthday">Birthday</label>
+                                <input type="date" name="birthday" id="birthday" value="{{ old('birthday') }}">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="validID">Upload Valid ID</label>
+                            <input type="file" name="validID" id="validID" accept=".jpg,.jpeg,.png,.webp">
+                        </div>
+                    </div>
+                </section>
+
+                {{-- ===========================
+                    SECTION 7: ACCOUNT INFORMATION
+                ============================ --}}
+                <section class="form-section" id="accountInformationSection">
+                    <h2 class="section-title">Account Information</h2>
+
+                    {{-- Toggle Button --}}
+                    <div class="button-row mb-3">
+                        <button type="button" id="toggleNoAccount" class="btn-outline">
+                            Guest Without Account? Click to Skip Account Info
+                        </button>
+                    </div>
+
+                    {{-- ACCOUNT FIELDS --}}
+                    <div id="accountFields">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" name="username" id="username" value="{{ old('username') }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" name="password" id="password">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password_confirmation">Confirm Password</label>
+                            <input type="password" name="password_confirmation" id="password_confirmation">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="avatar">Select Avatar</label>
+                            <input type="file" name="avatar" id="avatar" accept=".jpg,.jpeg,.png,.webp">
+                        </div>
+                    </div>
+                </section>
+
+                {{-- ===========================
+                    SECTION 8: FORM ACTIONS
+                ============================ --}}
+                <div class="form-actions">
+                    <button type="button" id="cancel-button" class="btn btn-secondary" data-url="{{ url('receptionist/booking') }}">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Booking</button>
+                </div>
+            </form>
+
+            {{-- ===========================
+                FORM FEEDBACK
+            ============================ --}}
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="alert alert-warning">
+                    {{ session('error') }}
+                </div>
+            @endif
+        </div>
+    </main>
+</body>
+</html>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ===== Alert Auto-Hide =====
-    const message = document.querySelector('.alert-message');
-    if (message) {
-        setTimeout(() => {
-            message.style.display = 'none';
-        }, 3500);
-    }
-
-    // ===== Flatpickr Setup ====
-    flatpickr("#txtbirthday", {
-        dateFormat: "m/d/Y",
-        maxDate: "today",
-        defaultDate: "today",
-        allowInput: true,
+    // ====== Alert Auto-Hide ======
+    document.querySelectorAll('.alert').forEach(alert => {
+        setTimeout(() => alert.style.display = 'none', 3500);
     });
 
-    const today = new Date();
-    today.setDate(today.getDate() + 1);
-
-    const maxCheckin = new Date(today);
-    maxCheckin.setMonth(maxCheckin.getMonth() + 1);
-
-    let checkinDate = null;
-
-    const checkinCalendar = flatpickr("#checkin", {
-        dateFormat: "m/d/Y",
-        allowInput: true,
-        minDate: today,
-        maxDate: maxCheckin,
-        defaultDate: today,
-        onChange: function (selectedDates) {
-            if (selectedDates.length > 0) {
-                checkinDate = selectedDates[0];
-
-                const minCheckout = new Date(checkinDate);
-                minCheckout.setDate(minCheckout.getDate() + 1);
-
-                const maxCheckout = new Date(checkinDate);
-                maxCheckout.setMonth(maxCheckout.getMonth() + 1);
-
-                checkoutCalendar.set("minDate", minCheckout);
-                checkoutCalendar.set("maxDate", maxCheckout);
-                checkoutCalendar.clear();
-            }
-        }
-    });
-
-    const checkoutCalendar = flatpickr("#checkout", {
-        dateFormat: "m/d/Y",
-        allowInput: true
-    });
-
-    // ===== Toggle collapsible sections =====
-    document.querySelectorAll('.toggle-header').forEach(header => {
-        header.addEventListener('click', () => {
-            const targetId = header.getAttribute('data-target');
-            const content = document.getElementById(targetId);
-            const icon = header.querySelector('.toggle-icon');
-
-            const isOpen = content.classList.toggle('active');
-
-            icon.classList.toggle('fa-chevron-up', isOpen);
-            icon.classList.toggle('fa-chevron-down', !isOpen);
-        });
-    });
-
-    const roomContent = document.getElementById('room-content');
-    const roomIcon = document.querySelector('[data-target="room-content"] .toggle-icon');
-    roomContent.classList.add('active');
-    roomIcon.classList.add('fa-chevron-up');
-    roomIcon.classList.remove('fa-chevron-down');
-
-    // ===== Card activation =====
-    function activateCard(cardSelector) {
-        document.querySelectorAll(cardSelector).forEach(card => {
-            card.addEventListener('click', function (e) {
-                e.preventDefault();
-                const checkbox = this.closest('label').querySelector('input[type="checkbox"]');
-                if (checkbox) {
-                    checkbox.checked = !checkbox.checked;
-                    this.classList.toggle('active', checkbox.checked);
-                }
-            });
-        });
-    }
-
-    activateCard('.room-card');
-    activateCard('.cottage-card');
-    activateCard('.amenity-card');
-
-    // ===== Scroll buttons =====
-    const scrollAmount = 300;
-
-    function updateScrollButtons(wrapper) {
-        const container = wrapper.querySelector('.scroll-container') || wrapper.querySelector('div[id$="-selection"]');
-        const leftBtn = wrapper.querySelector('.left-btn');
-        const rightBtn = wrapper.querySelector('.right-btn');
-
-        if (!container || !leftBtn || !rightBtn) return;
-
-        const isScrollable = container.scrollWidth > container.clientWidth;
-
-        leftBtn.style.display = isScrollable ? 'flex' : 'none';
-        rightBtn.style.display = isScrollable ? 'flex' : 'none';
-
-        leftBtn.onclick = () => container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-        rightBtn.onclick = () => container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-
-    function refreshAllScrollButtons() {
-        document.querySelectorAll('.room-selection-wrapper').forEach(updateScrollButtons);
-    }
-
-    refreshAllScrollButtons();
-    window.addEventListener('resize', refreshAllScrollButtons);
-
-    // ===== Cancel button functionality =====
-    const cancelBTN = document.getElementById('cancel-button');
-    if (cancelBTN) {
-        cancelBTN.addEventListener('click', function () {
-            const url = this.getAttribute('data-url');
-            window.location.href = url;
-        });
-    }
-
-    // ===== Image Preview (Valid ID & Avatar) =====
-    function previewImage(inputSelector, imgSelector) {
-        const input = document.querySelector(inputSelector);
-        const img = document.querySelector(imgSelector);
-        if (!input || !img) return;
-
-        input.addEventListener('change', function () {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => img.src = e.target.result;
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-    }
-
-    previewImage('#txtvalidid', '#id-preview');
-    previewImage('#txtavatar', '#pfp-preview');
-
-    // ===== Password Match Validation =====
-    const password = document.getElementById('txtpassword');
-    const confirmPassword = document.getElementById('txtcpassword');
-    const matchMsg = document.getElementById('password-match-msg');
-
-    function checkPasswordMatch() {
-        if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
-            matchMsg.style.display = 'inline';
-        } else {
-            matchMsg.style.display = 'none';
-        }
-    }
-
-    password.addEventListener('input', checkPasswordMatch);
-    confirmPassword.addEventListener('input', checkPasswordMatch);
-
-    const adultGuestInput = document.getElementById('adultguest');
-    const childGuestInput = document.getElementById('childguest');
-    const totalGuestInput = document.getElementById('guestamount');
-
-    function updateGuestTotal() {
-        const adults = parseInt(adultGuestInput?.value || 0);
-        const children = parseInt(childGuestInput?.value || 0);
-        const total = adults + children;
-        if (totalGuestInput) totalGuestInput.value = total;
-    }
-
-    if (adultGuestInput && childGuestInput && totalGuestInput) {
-        adultGuestInput.addEventListener('input', updateGuestTotal);
-        childGuestInput.addEventListener('input', updateGuestTotal);
-        updateGuestTotal(); // Initialize total on page load
-    }
-
-    // ===== Guest Already Has Account Toggle =====
-    const guestInfoLabel = document.getElementById('guest-label');
-    const accountInfoFields = document.querySelectorAll('.user-information, #row4, #row2, #row3, #row7');
-
-    const toggleBtn = document.getElementById('alreadyLogin');
-    toggleBtn.type = 'button';
-    toggleBtn.textContent = 'Click here if guest already has account';
-    toggleBtn.style.marginLeft = '1rem';
-    toggleBtn.classList.add('form-button');
-    guestInfoLabel.appendChild(toggleBtn);
-
-    let guestHasAccount = false;
-
-    toggleBtn.addEventListener('click', function () {
-        guestHasAccount = !guestHasAccount;
-
-        accountInfoFields.forEach(field => {
-            field.style.display = guestHasAccount ? 'none' : '';
-            field.querySelectorAll('input, select').forEach(input => {
-                if (input.id !== 'firstname' && input.id !== 'lastname') {
-                    input.required = !guestHasAccount;
-                }
-            });
-        });
-
-        const birthdayField = document.getElementById('txtbirthday');
-        if (birthdayField) {
-            if (guestHasAccount) {
-                birthdayField.value = ''; // Clear field
-                birthdayField._flatpickr && birthdayField._flatpickr.clear(); // Reset Flatpickr date
-            } else {
-                birthdayField._flatpickr && birthdayField._flatpickr.setDate('today'); // Restore default if needed
-            }
-        }
-
-        toggleBtn.textContent = guestHasAccount
-            ? 'Click here if guest does NOT have account'
-            : 'Click here if guest already has account';
-    });
-
-    // ===== Guest & User Info Validation on Submit =====
-    document.getElementById('submit-button').addEventListener('click', function (e) {
-        let valid = true;
-        let errors = [];
-
-        const firstName = document.getElementById('firstname');
-        const lastName = document.getElementById('lastname');
-        const contactNum = document.getElementById('txtcontactnum');
-        const email = document.getElementById('txtemail');
-
-        if (!firstName.value.trim()) { valid = false; errors.push('First name is required.'); }
-        if (!lastName.value.trim()) { valid = false; errors.push('Last name is required.'); }
-
-        if (!guestHasAccount) {
-            if (!/^\d{10}$/.test(contactNum.value)) {
-                valid = false; errors.push('Contact number must be 10 digits.');
-            }
-            if (email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-                valid = false; errors.push('Invalid email format.');
-            }
-            if (password.value && password.value !== confirmPassword.value) {
-                valid = false; errors.push('Passwords do not match.');
-            }
-        }
-
-        if (!valid) {
-            e.preventDefault();
-            alert(errors.join('\n'));
-        }
-    });
-
-    // =================== NAME SUGGESTION ====================
-    function setupSuggestion(inputId, suggestionId) {
-        const input = document.getElementById(inputId);
-        const suggestionBox = document.getElementById(suggestionId);
-
-        input.addEventListener('input', async function () {
-            const query = this.value.trim();
-            suggestionBox.innerHTML = '';
-            suggestionBox.style.display = 'none';
-
-            if (query.length < 2) return;
-
-            const response = await fetch(`{{ route('receptionist.guestSuggestions') }}?q=${encodeURIComponent(query)}`);
-            const guests = await response.json();
-
-            if (guests.length > 0) {
-                guests.forEach(g => {
-                    const li = document.createElement('li');
-                    li.textContent = `${g.firstname} ${g.lastname}`;
-                    li.style.padding = '8px';
-                    li.style.cursor = 'pointer';
-                    li.addEventListener('click', function () {
-                        if (inputId === 'firstname') input.value = g.firstname;
-                        if (inputId === 'lastname') input.value = g.lastname;
-                        suggestionBox.innerHTML = '';
-                        suggestionBox.style.display = 'none';
-                    });
-                    li.addEventListener('mouseenter', () => li.style.background = '#f0f0f0');
-                    li.addEventListener('mouseleave', () => li.style.background = '#fff');
-                    suggestionBox.appendChild(li);
-                });
-                suggestionBox.style.display = 'block';
-            }
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!input.contains(e.target) && !suggestionBox.contains(e.target)) {
-                suggestionBox.innerHTML = '';
-                suggestionBox.style.display = 'none';
-            }
-        });
-    }
-
-    setupSuggestion('firstname', 'firstname-suggestions');
-    setupSuggestion('lastname', 'lastname-suggestions');
-
-    // ======================================
+    // ====== Date Validation ======
     const checkinInput = document.getElementById('checkin');
     const checkoutInput = document.getElementById('checkout');
 
-    function hideBookedItems(containerSelector, bookedIDs, checkboxName) {
-        const containers = document.querySelectorAll(containerSelector);
-        
-        containers.forEach(container => {
-            const checkbox = container.querySelector(`input[name="${checkboxName}"]`);
-            
-            if (checkbox) {
-                const itemID = parseInt(checkbox.value);
-                
-                if (bookedIDs.includes(itemID)) {
-                    container.style.display = 'none';
-                    
-                    if (checkbox.checked) {
-                        checkbox.checked = false;
-                        
-                        const card = container.querySelector('.room-card, .cottage-card, .amenity-card');
-                        if (card) {
-                            card.classList.remove('active');
-                        }
-                    }
-                } else {
-                    container.style.display = 'flex';
-                }
-            }
-        });
-    }
-
-    function showAllRoomsAndCottages() {
-        const allItems = document.querySelectorAll('.room, .cottage');
-        allItems.forEach(item => {
-            item.style.display = 'flex';
-        });
-        refreshAllScrollButtons();
-    }
-
-    function refreshAllScrollButtons() {
-        document.querySelectorAll('.room-selection-wrapper').forEach(wrapper => {
-            const container = wrapper.querySelector('.scroll-container') || 
-                            wrapper.querySelector('div[id$="-selection"]');
-            const leftBtn = wrapper.querySelector('.left-btn');
-            const rightBtn = wrapper.querySelector('.right-btn');
-
-            if (!container || !leftBtn || !rightBtn) return;
-
-            const isScrollable = container.scrollWidth > container.clientWidth;
-
-            leftBtn.style.display = isScrollable ? 'flex' : 'none';
-            rightBtn.style.display = isScrollable ? 'flex' : 'none';
-        });
-    }
-
-    function showLoadingIndicator() {
-        const roomSelection = document.getElementById('room-selection');
-        const cottageSelection = document.getElementById('cottage-selection');
-        
-        if (roomSelection) roomSelection.style.opacity = '0.5';
-        if (cottageSelection) cottageSelection.style.opacity = '0.5';
-    }
-
-    function hideLoadingIndicator() {
-        const roomSelection = document.getElementById('room-selection');
-        const cottageSelection = document.getElementById('cottage-selection');
-        
-        if (roomSelection) roomSelection.style.opacity = '1';
-        if (cottageSelection) cottageSelection.style.opacity = '1';
-    }
-
-    async function checkAvailabilityWithLoading() {
-        const checkin = checkinInput.value;
-        const checkout = checkoutInput.value;
-
-        if (!checkin || !checkout) {
-            showAllRoomsAndCottages();
-            return;
-        }
-
-        if (new Date(checkout) <= new Date(checkin)) {
-            showAllRoomsAndCottages();
-            return;
-        }
-
-        showLoadingIndicator();
-
-        try {
-            const response = await fetch(`{{ route('receptionist.checkAvailability') }}?checkin=${checkin}&checkout=${checkout}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-
-            hideBookedItems('.room', data.bookedRooms, 'room[]');
-            hideBookedItems('.cottage', data.bookedCottages, 'cottage[]');
-            
-            refreshAllScrollButtons();
-        } catch (error) {
-            console.error('Error checking availability:', error);
-            alert('Error checking availability. Please try again.');
-        } finally {
-            hideLoadingIndicator();
+    function validateDates() {
+        if (!checkinInput.value || !checkoutInput.value) return;
+        const checkin = new Date(checkinInput.value);
+        const checkout = new Date(checkoutInput.value);
+        if (checkout <= checkin) {
+            alert('Checkout date must be after check-in date.');
+            checkoutInput.value = '';
         }
     }
+    checkinInput?.addEventListener('change', validateDates);
+    checkoutInput?.addEventListener('change', validateDates);
 
-    checkinInput.addEventListener('change', checkAvailabilityWithLoading);
-    checkoutInput.addEventListener('change', checkAvailabilityWithLoading);
-
-    checkinInput.addEventListener('input', function() {
-        if (!this.value) {
-            showAllRoomsAndCottages();
+    // ====== Flatpickr ======
+    flatpickr("#checkin", {
+        altInput: true,
+        altFormat: "F j, Y",
+        dateFormat: "Y-m-d",
+        minDate: new Date().fp_incr(1),
+        maxDate: new Date().fp_incr(31),
+        onChange: function (selectedDates) {
+            if (!selectedDates[0]) return;
+            flatpickr("#checkout", {
+                altInput: true,
+                altFormat: "F j, Y",
+                dateFormat: "Y-m-d",
+                minDate: new Date(selectedDates[0]).fp_incr(1),
+                maxDate: new Date(selectedDates[0]).fp_incr(31)
+            }).open();
         }
     });
 
-    checkoutInput.addEventListener('input', function() {
-        if (!this.value) {
-            showAllRoomsAndCottages();
+    flatpickr("#checkout", {
+        altInput: true,
+        altFormat: "F j, Y",
+        dateFormat: "Y-m-d",
+        minDate: new Date().fp_incr(2),
+        maxDate: new Date().fp_incr(32),
+    });
+
+    // ====== Guest Count ======
+    const adultGuest = document.getElementById('amenity_adult_guest');
+    const childGuest = document.getElementById('amenity_child_guest');
+    const totalGuest = document.getElementById('guestamount');
+
+    function updateTotalGuests() {
+        const adults = parseInt(adultGuest?.value || 0);
+        const children = parseInt(childGuest?.value || 0);
+        if (totalGuest) totalGuest.value = adults + children;
+    }
+
+    [adultGuest, childGuest].forEach(i => i?.addEventListener('input', updateTotalGuests));
+    updateTotalGuests();
+
+    // ====== Checkbox Toggle for Cottages & Amenities ======
+    document.querySelectorAll('.scroll-container .card-item').forEach(card => {
+        const checkbox = card.querySelector('input[type="checkbox"]');
+        if (!checkbox) return; // skip rooms with number input
+
+        // Sync class with checkbox
+        checkbox.addEventListener('change', () => {
+            card.classList.toggle('selected', checkbox.checked);
+        });
+
+        // Clicking card toggles checkbox
+        card.addEventListener('click', e => {
+            if (e.target.tagName === 'INPUT') return;
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change'));
+        });
+    });
+
+    // ====== Quantity Selectors for Rooms & Extras ======
+    document.querySelectorAll('.card-item').forEach(card => {
+        const decreaseBtn = card.querySelector('.decrease');
+        const increaseBtn = card.querySelector('.increase');
+        const input = card.querySelector('input[type="number"]');
+        if (!input) return; // skip checkbox-only cards
+
+        const max = parseInt(input.max) || 999;
+
+        decreaseBtn?.addEventListener('click', () => {
+            let val = parseInt(input.value) || 0;
+            if (val > 0) input.value = val - 1;
+            updateRoomCount();
+        });
+
+        increaseBtn?.addEventListener('click', () => {
+            let val = parseInt(input.value) || 0;
+            if (val < max) input.value = val + 1;
+            updateRoomCount();
+        });
+
+        input.addEventListener('input', () => {
+            let val = parseInt(input.value) || 0;
+            if (val < 0) input.value = 0;
+            if (val > max) input.value = max;
+            updateRoomCount();
+        });
+    });
+
+    const roomCount = document.getElementById('room_count');
+
+    function updateRoomCount() {
+        let total = 0;
+        document.querySelectorAll('.card-item input[type="number"][name^="room["]').forEach(input => {
+            total += parseInt(input.value) || 0;
+        });
+        roomCount.value = total;
+    }
+
+    updateRoomCount(); // initialize on page load
+
+    // ====== Validate at Least One Room Selection ======
+    document.querySelector('.booking-form')?.addEventListener('submit', function (e) {
+        updateRoomCount?.(); // ensure count is updated
+        const roomInputs = Array.from(document.querySelectorAll('input[type="number"][name^="room["]'));
+        const totalRooms = roomInputs.reduce((sum, input) => {
+            const v = Number(input.value);
+            return sum + (Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0);
+        }, 0);
+
+        if (totalRooms <= 0) {
+            e.preventDefault();
+            alert('Please select at least one room before submitting.');
+            if (roomInputs.length) roomInputs[0].focus();
+            return false;
         }
     });
+
+    // ===== Toggle Returning Guest Fields =====
+    const toggleReturningBtn = document.getElementById('toggleReturningGuest');
+    const guestExtraFields = document.getElementById('guestExtraFields');
+
+    toggleReturningBtn?.addEventListener('click', () => {
+        const isVisible = guestExtraFields.style.display !== 'none';
+        guestExtraFields.style.display = isVisible ? 'none' : '';
+        ['contactnum','email','gender','birthday','validID'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (isVisible) el.removeAttribute('required');
+            else if(id === 'email') el.setAttribute('required', 'required');
+        });
+        toggleReturningBtn.textContent = isVisible ? 'Show Personal Details' : 'Returning Guest? Click to Skip Personal Details';
+    });
+
+    // ===== Toggle Account Fields =====
+    const toggleNoAccountBtn = document.getElementById('toggleNoAccount');
+    const accountFields = document.getElementById('accountFields');
+
+    toggleNoAccountBtn?.addEventListener('click', () => {
+        const isVisible = accountFields.style.display !== 'none';
+        accountFields.style.display = isVisible ? 'none' : '';
+        ['username','password','password_confirmation','avatar'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (isVisible) el.removeAttribute('required');
+            else if(id === 'username') el.setAttribute('required', 'required');
+        });
+        toggleNoAccountBtn.textContent = isVisible ? 'Show Account Information' : 'Guest Without Account? Click to Skip Account Info';
+    });
+
 });
 </script>

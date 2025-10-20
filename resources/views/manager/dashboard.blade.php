@@ -2,14 +2,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
     <title>Lantaw-Marbel Resort</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    @include('components.notification_manager')
     <div id="layout">
         @include('components.sidebar')
         <div id="main-layout">
@@ -20,64 +18,65 @@
                 <div class="card" data-url="{{ url('manager/feedback') }}" id="feedback">
                     <p>Feedback</p>
                     @if($feedbackNotification > 0)
-                        <div id="new-notification" >{{$feedbackNotification}}</div>
+                        <div class="new-notification">{{$feedbackNotification}}</div>
                     @endif
                 </div>  
 
                 <div class="card" data-url="{{ url('manager/chat') }}" id="inquiry">
                     <p>Chat Messages</p>
                     @if($notificationInquiry > 0)
-                        <div id="new-notification" >{{$notificationInquiry}}</div>
+                        <div class="new-notification">{{$notificationInquiry}}</div>
                     @endif
                 </div>  
+
                 <div class="card" data-url="{{ url('manager/session_logs') }}" id="logs">
                     <p>User Log Ins</p>
                     @if($userLogIns > 0)
-                        <div id="new-notification" >{{$userLogIns}}</div>
+                        <div class="new-notification">{{$userLogIns}}</div>
                     @endif
                 </div> 
-                <div class="card"  data-url="{{ url('manager/room_list') }}" id="availablerooms">
+
+                <div class="card" data-url="{{ url('manager/room_list') }}" id="availablerooms">
                     <p>Available Rooms</p>
                     @if ($availableRooms > 0)
-                        <div id="new-notification">{{$availableRooms}}</div>
+                        <div class="new-notification">{{$availableRooms}}</div>
                     @endif
                 </div> 
 
                 <div class="card" data-url="{{ url('manager/room_list') }}" id="unavailablerooms">
                     <p>Unavailable Rooms</p>
                     @if ($unavailableRooms > 0)
-                        <div id="new-notification" >{{$unavailableRooms}}</div>
+                        <div class="new-notification">{{$unavailableRooms}}</div>
                     @endif
                 </div> 
 
                 <div class="card" data-url="{{ url('manager/room_list') }}" id="maintenancedrooms">
                     <p>Maintenanced Rooms</p>
                     @if ($maintenancedRooms > 0)
-                        <div id="new-notification" >{{$maintenancedRooms}}</div>
+                        <div class="new-notification">{{$maintenancedRooms}}</div>
                     @endif
                 </div> 
 
                 <div class="card" data-url="{{ url('manager/cottage_list') }}" id="availablecottages">
                     <p>Available Cottages</p>
                     @if ($availableCottages > 0)
-                        <div id="new-notification" >{{$availableCottages}}</div>
+                        <div class="new-notification">{{$availableCottages}}</div>
                     @endif
                 </div> 
 
                 <div class="card" data-url="{{ url('manager/cottage_list') }}" id="unavailablecottages">
                     <p>Unavailable Cottages</p>
                     @if ($unavailableCottages > 0)
-                        <div id="new-notification" >{{$unavailableCottages}}</div>
+                        <div class="new-notification">{{$unavailableCottages}}</div>
                     @endif
                 </div> 
 
                 <div class="card" data-url="{{ url('manager/cottage_list') }}" id="maintenancedcottages">
                     <p>Maintenanced Cottages</p>
                     @if ($maintenancedCottages > 0)
-                        <div id="new-notification" >{{$maintenancedCottages}}</div>
+                        <div class="new-notification">{{$maintenancedCottages}}</div>
                     @endif
                 </div> 
-                 
             </div>
 
             <div id="kpi-charts-container">
@@ -100,32 +99,29 @@
                     @endif
                 </div>
                 <div class="chart-wrapper">
-                    <div class="row 1 column 1">
+                    <div class="chart-card">
                         <h2>Booking This Month</h2>
                         <canvas id="bookingPerMonth"></canvas>
                     </div>
-
-                    <div class="row 1 column 2">
+                    <div class="chart-card">
                         <h2>Hotel Guest vs Day Tour</h2>
                         <canvas id="bookingsVsRevenue"></canvas>
                     </div>
                 </div>
                 <div class="chart-wrapper">
-                    <div class="row 2 column-full">
+                    <div class="chart-card full-width">
                         <h2>Rooms Booked This Month</h2>
                         <canvas id="roomBookedPerMonth"></canvas>
                     </div>
                 </div>
-
                 <div class="chart-wrapper">
-                    <div class="row 4 column-full">
+                    <div class="chart-card full-width">
                         <h2>Amenities Toured This Month</h2>
                         <canvas id="amenityTourPerMonth"></canvas>
                     </div>
                 </div>
-
                 <div class="chart-wrapper">
-                    <div class="row 5 column-full">
+                    <div class="chart-card full-width">
                         <h2>Revenue Per Month</h2>
                         <canvas id="revenuPerMonth"></canvas>
                     </div>
@@ -136,127 +132,159 @@
 </body>
 
 <style>
-    #layout{
-        display: flex;
-        flex-direction: row;
-        height:100vh;
-    }
-    #main-layout{
-        padding:1.5rem;
-        margin-left:12rem;
-        width:100%;
-        overflow-x: auto;
-    }
-    .title_container{
-        display:flex;
-        height:5rem;    
-        font-size:2rem;
-        font-weight: lighter;
-        background:white;
-        border:1px solid black;
-        border-radius:.7rem;
-        box-shadow:.1rem .1rem 0 black;
-        align-items: center;
-        padding:.5rem;
-    }
-    .card_container{
-        display:grid;
-        grid-template-columns:1fr 1fr 1fr;
-        gap:1.5rem;
-        width:100%;
-        margin-top:1rem;
-        padding:1.5rem;
-        background:white;
-        border:1px solid black;
-        border-radius:.7rem;
-        box-shadow:.1rem .1rem 0 black;
-    }
-
-    #kpi-charts-container{
-        display:flex;
-        flex-direction: column;
-        gap:1rem;
-        width:100%;
-        height:auto;
-        margin-top:1rem;
-        padding:1.5rem;
-        background:white;
-        border:1px solid black;
-        border-radius:.7rem;
-        box-shadow:.1rem .1rem 0 black;
-        object-fit:contain;
-        justify-content: center;
-        align-items:center;
-    }
-
+#dashboard {
+    background: rgba(255,255,255,0.15);
+    border-left: 4px solid #ff9100;
+    color: white;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: 'Poppins', sans-serif;
+    background: white;
+}
+#layout {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    width: 100%;
+}
+#main-layout {
+    padding: 1.5rem;
+    width: calc(100% - 14rem);
+    overflow-x: auto;
+}
+.title_container {
+    display: flex;
+    height: 5rem;    
+    font-size: 2rem;
+    font-weight: 300;
+    background: white;
+    border: 1px solid black;
+    border-radius: 0.7rem;
+    box-shadow: 0.1rem 0.1rem 0 black;
+    align-items: center;
+    padding: 0.5rem;
+}
+.card_container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid black;
+    border-radius: 0.7rem;
+    box-shadow: 0.1rem 0.1rem 0 black;
+}
+.card {
+    height: 3.5rem;
+    display: flex;
+    position: relative;
+    align-items: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+    background: white;
+    border-radius: 0.5rem;
+    border: 1px solid black;
+    box-shadow: 0.1rem 0.2rem 0 black;
+    transition: all 0.2s ease-in-out;
+}
+.card:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+    background: whitesmoke;
+}
+.new-notification {
+    display: flex;
+    position: absolute;
+    height: 2rem;
+    width: 2rem;
+    align-items: center;
+    justify-content: center;
+    top: -1rem;
+    right: -1rem;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    border: 1px solid black;
+    box-shadow: 0.1rem 0.1rem 0 black;
+    font-size: 1rem;
+}
+#kpi-charts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid black;
+    border-radius: 0.7rem;
+    box-shadow: 0.1rem 0.1rem 0 black;
+    justify-content: center;
+    align-items: center;
+}
+.filter-wrapper {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.chart-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    width: 100%;
+    margin-bottom: 2rem;
+}
+.chart-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.chart-card h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+}
+.chart-card.full-width {
+    grid-column: 1 / -1;
+}
+select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+label {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+@media (max-width: 1024px) {
     .chart-wrapper {
-        display:grid;
+        grid-template-columns: 1fr;
+    }
+    .card_container {
         grid-template-columns: 1fr 1fr;
-        gap:5rem;
-        width: 100%;
-        height: 100%;
-        text-align: center;
-        font-size:.7rem;
     }
-    #roomBookedPerMonth, #amenityTourPerMonth, #revenuPerMonth{
-        width:100%;
+}
+@media (max-width: 768px) {
+    .card_container {
+        grid-template-columns: 1fr;
     }
-
-
-    .column-full{
-        grid-column: span 2;
-        place-items: center;
-        height: 25rem;
-        width: 100%;
-        margin-bottom: 1.5rem;
-    }
-
-    .column 1, .column 2{
-        height:30rem;
-        width:25rem;
-    }
-    
-    .card{
-        width:;
-        height:3.5rem;
-        display:flex;
-        position: relative;
-        align-items: center;
-        padding:1rem;
-        font-size:.9rem;
-        background:white;
-        border-radius:.5rem;
-        border:1px solid black;
-        box-shadow:.1rem .2rem 0 black;
-        transition: all 0.2s ease-in-out;
-    }
-    .card:hover{
-        cursor:pointer;
-        scale:1.1;
-        background:whitesmoke;
-    }
-    #new-notification{
-        display:flex;
-        position:absolute;
-        height:2rem;
-        width: 2rem;
-        align-items: center;
-        justify-content: center;
-        top:-1rem;
-        right:-1rem;
-        margin-left:auto;
-        background:red;
-        color:white;
-        border-radius:50%;
-        border:1px solid black;
-        box-shadow:.1rem .1rem 0 black;
-        font-size:1rem;
-    }
+}
 </style>
-
 <script>
-document.getElementById('dashboard').style.color = "#F78A21";
-
 document.addEventListener("DOMContentLoaded", function () {
     // Booking per Month Chart
     const ctxBooking = document.getElementById("bookingPerMonth").getContext("2d");
@@ -267,20 +295,29 @@ document.addEventListener("DOMContentLoaded", function () {
             datasets: [{
                 label: 'Bookings',
                 data: @json($bookingData),
-                borderColor: 'blue',
-                fill: false
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: '#667eea',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { display: false } },
             scales: {
                 y: { 
                     beginAtZero: true,
-                    ticks: {
-                        stepSize: 1,
-                        callback: function(value) { return Number.isInteger(value) ? value : null; }
-                    }
-                }
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: { stepSize: 1 }
+                },
+                x: { grid: { display: false } }
             }
         }
     });
@@ -295,35 +332,37 @@ document.addEventListener("DOMContentLoaded", function () {
                 {
                     label: 'Hotel Guest',
                     data: @json($bookingData),
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: false
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
                 },
                 {
                     label: 'Day Tour Guest',
                     data: @json($daytourData),
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: true
+                    borderColor: '#f5576c',
+                    backgroundColor: 'rgba(245, 87, 108, 0.2)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
                 }
             ]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,
             interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { position: 'top' } },
+            plugins: {
+                legend: { position: 'top', labels: { padding: 15, usePointStyle: true } }
+            },
             scales: {
-                y: { 
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1,
-                        callback: function(value) { return Number.isInteger(value) ? value : null; }
-                    }
-                }
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
             }
         }
     });
@@ -337,19 +376,24 @@ document.addEventListener("DOMContentLoaded", function () {
             datasets: [{
                 label: 'Total Bookings per Room',
                 data: @json($roombookData),
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.4)',
-                borderWidth: 2
+                backgroundColor: [
+                    'rgba(102, 126, 234, 0.8)',
+                    'rgba(118, 75, 162, 0.8)',
+                    'rgba(245, 87, 108, 0.8)',
+                    'rgba(67, 233, 123, 0.8)',
+                    'rgba(252, 182, 159, 0.8)'
+                ],
+                borderRadius: 10,
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: true, position: 'top' }, tooltip: { enabled: true } },
+            maintainAspectRatio: true,
+            plugins: { legend: { display: false } },
             scales: {
-                y: { 
-                    beginAtZero: true,
-                    ticks: { stepSize: 1, callback: function(value) { return Number.isInteger(value) ? value : null; } }
-                }
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
             }
         }
     });
@@ -363,15 +407,19 @@ document.addEventListener("DOMContentLoaded", function () {
             datasets: [{
                 label: 'Amenities Accessed',
                 data: @json($amenityData),
-                borderColor: 'rgba(153, 102, 255, 1)',
-                backgroundColor: 'rgba(153, 102, 255, 0.5)',
-                borderWidth: 2
+                backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                borderRadius: 10,
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: true, position: 'top' }, tooltip: { enabled: true } },
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { ticks: { autoSkip: false } } }
+            maintainAspectRatio: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 10 } },
+                x: { grid: { display: false } }
+            }
         }
     });
 
@@ -382,17 +430,28 @@ document.addEventListener("DOMContentLoaded", function () {
         data: {
             labels: @json($revenueLabels),
             datasets: [{
-                label: 'Revenue',
+                label: 'Revenue (PHP)',
                 data: @json($revenueValues),
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.4)',
-                borderWidth: 2
+                borderColor: '#43e97b',
+                backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: '#43e97b',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: true, position: 'top' }, tooltip: { enabled: true } },
-            scales: { y: { beginAtZero: true }, x: { ticks: { autoSkip: false } } }
+            maintainAspectRatio: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: value => '₱'+value.toLocaleString() } },
+                x: { grid: { display: false } }
+            }
         }
     });
 
@@ -416,3 +475,4 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 </script>
+</html>

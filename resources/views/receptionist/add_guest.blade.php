@@ -166,13 +166,14 @@
         display: flex;
         flex-direction: row;
         height: 100vh;
+        width: 100%
     }
 
     #main-layout {
         width: 100%;
         height: auto;
         padding: 0.75rem;
-        margin-left: 12rem;
+        margin-left: 15rem;
     }
 
     #add_user-container {

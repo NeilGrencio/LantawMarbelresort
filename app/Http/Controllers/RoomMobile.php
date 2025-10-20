@@ -2,22 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\RoomTypeTable;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-
-use App\Models\RoomTable;
 
 class RoomMobile extends Controller
 {
     public function roomList()
     {
-        $rooms = RoomTable::where('status', 'available')->get();
-
-        foreach ($rooms as $room) {
-            $room->image_url = route('room.image', ['filename' => basename($room->image)]);
-        }
+        $rooms = RoomTypeTable::
+            get()
+            ->map(function ($rooms) {
+                $rooms->image_url = $rooms->image
+                    ? route('room.image', basename($rooms->image))
+                    : null;
+                return $rooms;
+            });
 
         return response()->json($rooms);
     }
 }
+

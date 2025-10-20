@@ -7,1179 +7,833 @@
     <title>Lantaw-Marbel Resort</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-</head>
-<body>
-    <body>
-    <div id="layout">
-        @include('components.receptionist_sidebar')
-    <div id="main-layout">
-        <div id="layout-header">
-            <h1>Walk-In Guest</h1>
-        </div>
-            <form action="{{ url('receptionist/walk-booking') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div id="form-container">
-                    <div class="input-container">
-
-                        <div class="label-container">
-                            <h2>Booking Information</h2>
-                        </div>
-                        <label for="checkin">Check-in Date:
-                            <input type="date" id="checkin" name="checkin" value="{{ old('checkin') }}" required>
-                        </label>
-
-                        <label for="checkout">Check-out Date:
-                            <input class="input" type="date" id="checkout" name="checkout" value="{{ old('checkout') }}" required> 
-                        </label>
-                        
-                        <!--Room Selection-->
-                        <div class="label-container toggle-header" id="room-label" data-target="room-content">
-                            <h2>Room Selection</h2>
-                            <i class="fas fa-chevron-up toggle-icon fa-2x"></i>
-                        </div>                 
-                        <div id="room-content" class="collapsible-content active">
-                            <div class="room-selection-wrapper">     
-                                <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                                <div id="room-selection">  
-                                    @foreach($rooms as $room)
-                                        <div class="room">
-                                            <label id="room-name" for="room">Room {{ $room->roomnum }}
-                                                <input type="checkbox" id="room" name="room[]" data-name="Room {{ $room->roomnum }}data-price="{{ $room->price }}" value="{{ $room->roomID }}" {{ in_array($room->roomID, old('roomID', [])) ? 'checked' : '' }} class="room-checkbox">
-                                                <div class="room-card">
-                                                    <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image">
-                                                    <div class="room-details">
-                                                        <p>Price: ₱ {{ $room->price }}</p>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>  
-                                    @endforeach
-                                </div>
-                                <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                            </div>
-                        </div>
-
-                        <!--Cottage Selection-->
-                        <div class="label-container toggle-header" data-target="cottage-content">
-                            <h2>Cottage Selection</h2>
-                            <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
-                        </div>
-                        <div id="cottage-content" class="collapsible-content">
-                            <div class="room-selection-wrapper">     
-                                <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                                <div id="cottage-selection">
-                                    @foreach($cottages as $cottage)
-                                        <div class="cottage">
-                                            <label id="cottage-name" for="cottage">{{ $cottage->cottagename }}
-                                                <input type="checkbox" id="cottage" name="cottage[]" data-name="{{ $cottage->cottagename }}" data-price="{{ $cottage->price }}" value="{{ $cottage->cottageID }}" {{ in_array($cottage->cottageID, old('cottageID', [])) ? 'checked' : '' }} class="cottage-checkbox">
-                                                <div class="cottage-card">
-                                                    <img src="{{ asset('storage/' . $cottage->image) }}" alt="Cottage Image">
-                                                    <div class="cottage-details">
-                                                        <p>Price: ₱ {{ $cottage->price }}</p>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                            </div>
-                        </div>
-                        
-                        <!--Amenity Selection-->
-                        <div class="label-container toggle-header" data-target="amenity-content">
-                            <h2>Amenity Selection</h2>
-                            <i class="fas fa-chevron-down toggle-icon fa-2x"></i>
-                        </div>
-                        <div id="amenity-content" class="collapsible-content">
-                            <div class="room-selection-wrapper">     
-                                <button type="button" class="scroll-btn left-btn">&#9664;</button>
-                                <div id="amenity-selection">
-                                    @foreach($amenities as $amenity)
-                                        <div class="amenity">
-                                            <label for="amenity-{{ $amenity->amenityID }}" id="amenity-name">
-                                                {{ $amenity->amenityname }}
-                                                <input 
-                                                    type="checkbox" 
-                                                    id="amenity-{{ $amenity->amenityID }}" 
-                                                    name="amenity[]" 
-                                                    data-name="{{ $amenity->amenityname }}" 
-                                                    data-price="{{ $amenity->price }}" 
-                                                    value="{{ $amenity->amenityID }}" 
-                                                    {{ in_array($amenity->amenityID, old('amenity', [])) ? 'checked' : '' }} 
-                                                    class="amenity-checkbox"
-                                                >
-                                                <div class="amenity-card">
-                                                    <img src="{{ asset('storage/' . $amenity->image) }}" alt="Amenity Image">
-                                                    <div class="amenity-details">
-                                                        <p>
-                                                            Adult Price: ₱ {{ $amenity->adultprice }}<br/>
-                                                            Child Price: ₱ {{ $amenity->childprice }}
-                                                        </p>
-                                                    </div>
-                                                </div>                                    
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <button type="button" class="scroll-btn right-btn">&#9654;</button>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="label-container" id="guest-label">
-                        <h2>Guest Information</h2>
-                        <button type="button" id="alreadyLogin" class="hide_info"><i class="fa-solid fa-circle-info"></i> &nbsp;Click here if guest already has account</button>
-                    </div>
-                    <div class="guest-info-container">
-                            <div>
-                            <div style="position: relative; display: inline-block; width: 48%; vertical-align: top;">
-                                <label id="label" for="firstname">Firstname:
-                                    <input class="input" type="text" id="firstname" name="firstname"
-                                        value="{{ old('firstname') }}" autocomplete="off" required>
-                                </label>
-                                <ul id="firstname-suggestions" style="
-                                    position: absolute;
-                                    top: 100%;
-                                    left: 0;
-                                    right: 0;
-                                    background: #fff;
-                                    border: 1px solid #ccc;
-                                    border-radius: 5px;
-                                    list-style: none;
-                                    padding: 0;
-                                    margin: 2px 0 0;
-                                    display: none;
-                                    max-height: 150px;
-                                    overflow-y: auto;
-                                    z-index: 1000;
-                                "></ul>
-                                @error('firstname')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-
-                            <div style="position: relative; display: inline-block; width: 48%; vertical-align: top; margin-left: 4%;">
-                                <label id="label" for="lastname">Lastname:
-                                    <input class="input" type="text" id="lastname" name="lastname"
-                                        value="{{ old('lastname') }}" autocomplete="off" required>
-                                </label>
-                                <ul id="lastname-suggestions" style="
-                                    position: absolute;
-                                    top: 100%;
-                                    left: 0;
-                                    right: 0;
-                                    background: #fff;
-                                    border: 1px solid #ccc;
-                                    border-radius: 5px;
-                                    list-style: none;
-                                    padding: 0;
-                                    margin: 2px 0 0;
-                                    display: none;
-                                    max-height: 150px;
-                                    overflow-y: auto;
-                                    z-index: 1000;
-                                "></ul>
-                                @error('lastname')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div id="row2">
-                        <div>
-                            <label for="txtcontactnum">Contact #:</label>
-                            <div style="display:flex; flex-direction: row;gap:.2rem;">
-                                <span style="display:flex; align-items:center; padding:.5rem; background: rgba(240, 240, 240, 0.822); border: 1px solid black; border-radius: .5rem .2rem .2rem .5rem; width:9%;">+63</span>
-                                <input class="input" id="txtcontactnum" type="text"  maxlength="10" placeholder="912345678" name="contactnum" value="{{ old('contactnum')}}" style="border-radius: .2rem .5rem .5rem .2rem; width:90.3%">
-                            </div>
-                        </div>
-                        <div>
-                            <label for="txtemail">Email:</label> 
-                            <input class="input" id="txtemail" type="email" placeholder="@email.com.." name="email" value="{{ old('email')}}" required>  
-                        </div>
-                    </div>
-
-                    <div id="row3">
-                        <div>
-                            <label for="txtgender">Gender:</label>
-                            <select class="input" id="txtgender"  name="gender">
-                                <option value="" disabled selected>Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Prefer_not_to_say">Prefer not to say</option>
-                            </select>
-                        </div>
-                        <div> 
-                        {{-- Birthday --}}
-                        <label id="lblbirthday" for="txtbirthday">
-                            Birthday:
-                        </label>
-                        <input class="input" id="txtbirthday" type="date" name="birthday"
-                            value="{{ old('birthday') }}">
-                        </div>
-                    </div>
-
-                    {{-- Valid ID --}}
-                     <div class="cl-validID" id="row4">
-                        <label for="txtvalidid">Import Valid ID</label>
-                        <div>
-                            <img id="id-preview" src="{{ asset('images/photo.png') }}">
-                            <input class="input" id="txtvalidid" type="file" accept=".png, .jpg, .jpeg, .webp" name="validID">
-                        </div>
-                    </div>
-
-                    <div class="label-container">
-                        <h3>Account Information</h3>
-                        <button type="button" class="hide_info" id="toggleAccount" class="form-button" style="margin-left:1rem;">
-                            <i class="fa-solid fa-circle-info"></i> &nbsp;Click here to not make an account
-                        </button>
-                    </div>
-                    <div id="account_information">
-                        <div id="row5" class="user-information">
-                            <div>
-                                <label for="txtusername">Username:</label> 
-                                <input class="input" id="txtusername" type="text" placeholder="Username" name="username" value="{{ old('username')}}" required>
-                            </div>
-                            
-                        </div>
-
-                        <div id="row6" class="user-information">
-                            <div>
-                                <label for="txtpassword">Password:</label> 
-                                <input class="input" id="txtpassword" type="text" placeholder="Password" name="password">
-                            </div> 
-                            <div>
-                                <label for="txtcpassword">Confirm Password:</label> 
-                                <input class="input" id="txtcpassword" type="text" placeholder="Confirm Password" name="password_confirmation">
-                                <small id="password-match-msg" style="color: red; display: none; margin-top:.5rem;"><i class="fas fa-info-circle"></i> Password does not match.</small>
-                            </div> 
-                        </div>
-
-                        <div id="row7" class="user-information">
-                            <div>
-                                <label for="avatar">Select Avatar:</label>
-                                <img id="pfp-preview" src="{{ asset('images/profile.jpg')}}">
-                                <input id="txtavatar" type="file" accept=".png, .jpg, .jpeg, .webp" name="avatar">
-                                @error('validAvatar')
-                                    <div class="error-message" id="avatar-error-message">{{ $message}}</div>
-                                @enderror 
-                            </div> 
-                        </div>
-                    </div>
-
-                    <div class="label-container">
-                        <h3>Guest Count</h3>
-                    </div>
-
-                        <div>
-                            <label id="label" for="guestamount">Total Guest Count:
-                                <input class="input" type="text" id="guestamount" name="guestamount" value="{{ old('guestamount') }}" readonly>
-                            </label>
-                            
-                            @if($errors->has('guestamount'))
-                                <div class="alert alert-danger">
-                                    {{ $errors->first('guestamount') }}
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="guest-counts" id="guest-counts" style="display:flex;">
-                            <label id="label">Adult Guests:
-                                <input type="number" min="0" name="amenity_adult_guest" id="adult" class="input" placeholder="Enter number of adults" value="{{ old('amenity_adult_guest') }}">
-                            </label>
-                            <label id="label">Child Guests:
-                                <input type="number" min="0" name="amenity_child_guest" id="child" class="input" placeholder="Enter number of children" value="{{ old('amenity_child_guest') }}">
-                            </label>
-                        </div>
-
-                    </div>
-
-                    
-
-                </div>
-                <div class="button-container">
-                    <button type="button" id="cancel-button" class="form-button" data-url="{{ url('receptionist/booking') }}">Cancel</button>
-                    <button type="submit" id="submit-button" class="form-button">Check-In Guest</button>
-                </div>
-            </form>
-        </div>
-        @if($errors->any())
-            <alert class="alert-message">
-                <strong>Something went wrong:</strong>
-                <ul>
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>   
-                    @endforeach
-                </ul>
-            </alert>
-        @endif
-    @if (session('error'))
-        <div class="alert-message">
-            <h2>{{ session('error') }}</h2>
-        </div>
-    @endif
-    </div>
-    </div>
-</body>
-<style>
-        #booking{color:orange;}
-        #layout{
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
             display: flex;
-            flex-direction: row;
-            height:100vh;
+            background: #f3f4f6;
         }
-        #main-layout{
-            display:flex;
-            flex-direction: column;
-            padding:1rem;
-            width:100%;
-            transition: width 0.3s ease-in-out;
-            margin-left:12rem;
-            margin-right:.7rem;
-            overflow-y: hidden;
-            overflow-x: hidden;
-        } 
-        #layout-header{
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            height:4rem;
-            padding:1rem;
-            background:white;
-            border-radius: .7rem;
-            border:1px solid black;
-            box-shadow:.1rem .1rem 0 black;
-            align-items: center;
-            justify-content: space-between; 
-            gap: 1rem;
-            font-size: .9rem;
+
+        main {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            overflow-y: auto;
         }
-        #form-container{
-            display:flex;
-            flex-direction: column;
-            height:80vh;
-            width:100%;
-            padding:1rem;
-            margin-top:.5rem;
-            border-radius:.7rem;
-            background:white;
-            overflow-y:auto;
-            overflow-x:hidden;
-            gap:.5rem;
-            border:1px solid black;
-            box-shadow:.1rem .2rem 0 black;
+
+        .booking-page {
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        
-        .label-container{
-            display: flex;
-            flex-direction: row;
+
+        .form-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
             margin-bottom: 1rem;
-            background:black;
-            width: 100%;
-            height:3rem;
-            justify-content: space-between;
-            align-items: center;
-            padding:.5rem;
-            font-size:.7rem;
-            color:white;
-            border-radius:.7rem;
-        }
-        .room{
-            display: flex;
-            flex-direction: column; 
-            gap:.5rem;
-            margin-bottom:.5rem;
-        }
-        #room-name{
-            font-size: .9rem;
-            color: black;
-            text-align: center;
-            font-weight: bold;
+            font-size: 1.25rem;
+            font-weight: 600;
+            border-bottom: 2px solid #eee;
+            padding-bottom: .5rem;
         }
 
-        .room-card{
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
             display: flex;
             flex-direction: column;
-            width:15rem;
-            height:10rem;
-            border-radius:.7rem;
-            box-shadow:.1rem .1rem 0 rgb(0,0,0);
-            border: solid 1px black;
-            background: white;
-            padding:.5rem;
-            gap:.5rem;
-            cursor: pointer;
-            align-content: center;
-            justify-content: center;
-            transition:all .2s ease;
         }
-        .room-card:hover{
-            background:orange;
-            transform:translateY(-.5rem);
+
+        label {
+            font-weight: 500;
+            margin-bottom: .3rem;
         }
-        .room-card.active{
-            background: rgb(0, 86, 0);
-            color:white;
-            scale: .9;
+
+        input, select {
+            padding: 0.6rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
         }
-        .room-card img{
-            width:100%;
-            height:70%;
-            object-fit: cover;
-            margin-top:1rem;
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
         }
-        .room-selection-wrapper {
-            position: relative;
+
+        .input-prefix {
             display: flex;
-            width: 100%;
-            height:13rem;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 6px;
         }
-        #room-selection{
-            display:flex;
-            flex-direction: row;
-            gap:.5rem;
+
+        .input-prefix span {
+            background: #f5f5f5;
+            padding: 0.5rem 0.75rem;
+            border-right: 1px solid #ccc;
+        }
+
+        .input-prefix input {
+            border: none;
+            flex: 1;
+            padding: 0.5rem;
+        }
+
+        .scroll-container {
+            display: flex;
             overflow-x: auto;
-            scroll-behavior: smooth;
+            gap: 1rem;
+            padding-bottom: 0.5rem;
         }
-        .cottage{
-            display: flex;
-            flex-direction: column; 
-            gap:.5rem;
-            margin-bottom:.5rem;
-        }
-        #cottage-name{
-            font-size: .9rem;
-            color: black;
+
+        .card-item {
+            flex: 0 0 auto;
+            width: 180px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 0.5rem;
+            background: #fff;
             text-align: center;
-            font-weight: bold;
-        }
-
-        .cottage-card{
-            display: flex;
-            flex-direction: column;
-            width:15rem;
-            height:10rem;
-            border-radius:.7rem;
-            box-shadow:.1rem .1rem 0 rgb(0,0,0);
-            border: solid 1px black;
-            background: white;
-            padding:.5rem;
-            gap:.5rem;
-            cursor: pointer;
-            align-content: center;
-            justify-content: center;
-            transition:all .2s ease;
-        }
-        .cottage-card img{
-            width:100%;
-            height:70%;
-            object-fit: cover;
-            margin-top:1rem;
-        }
-        .cottage-card:hover{
-            background:orange;
-            transform:translateY(-.5rem);
-        }
-        .cottage-card.active{
-            background: rgb(0, 86, 0);
-            color:white;
-            scale: .9;
-        }
-
-        #cottage-selection{
-            display:flex;
-            flex-direction: row;
-            gap:.5rem;
-        }
-        .amenity{
-            display: flex;
-            flex-direction: column; 
-            gap:.5rem;
-            margin-bottom:.5rem;
-        }
-        #amenity-name{
-            font-size: .9rem;
-            color: black;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .amenity-card{
-            display: flex;
-            flex-direction: column;
-            width:15rem;
-            height:10rem;
-            border-radius:.7rem;
-            box-shadow:.1rem .1rem 0 rgb(0,0,0);
-            border: solid 1px black;
-            background: white;
-            padding:.5rem;
-            gap:.5rem;
-            cursor: pointer;
-            align-content: center;
-            justify-content: center;
-            transition:all .2s ease;
-        }
-        .amenity-card img{
-            display:flex;
-            height:60%;
-            width:100%;
-            object-fit: cover;
-            margin-top:.5rem;
-        }
-        .amenity-card:hover{
-            background:orange;
-            transform:translateY(-.5rem);
-        }
-        .amenity-card.active{
-            background: rgb(0, 86, 0);
-            color:white;
-            scale: .9;
-        }
-
-        #amenity-selection{
-            display:flex;
-            flex-direction: row;
-            gap:.5rem;
-        }
-        .scroll-btn{
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            z-index: 10;
-            font-size: 1.2rem;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: rgb(174, 174, 174);
-            width: 2.5rem;
-            height: 2.5rem;
-            color: black;
-            border: 1px solid black;
-            border-radius: 100%;
             transition: all 0.2s ease;
         }
-        .scroll-btn:hover {
-            background: rgba(0, 0, 0, 0.5);
-            color:white;
-            scale: 1.1;
-        }
 
-        .left-btn {
-            position: absolute;
-            left: 0.5rem;
-        }
-        .right-btn {
-            position: absolute;
-            right: 0.5rem;
-        }
-        .collapsible-content {
-            display: none;
-            transition: all 0.3s ease;
-        }
-
-        .collapsible-content.active {
-            display: block;
-        }
-
-        .toggle-header {
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .toggle-icon {
-            transition: transform 0.3s ease;
-        }
-
-        .toggle-icon.rotate {
-            transform: rotate(180deg);
-        }
-
-        .guest-info-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            width:100%;
-            flex-wrap: wrap;
-        }
-        .guest-info-container div {
-            display: flex;
-            flex-direction: row;
-            gap: .5rem;
+        .card-item img {
             width: 100%;
-        }
-        #label{
-            display:flex;
-            width:100%;
-            flex-direction: column;
-        }
-        .input{
-            display:flex;
-            width:100%;
-            background: white;
-            border:1px solid black;
-            border-radius:.5rem;
-            padding:.5rem;
-            font-size: .8rem;
-        }
-        #checkin, #guestamount{
-            width: 100%;
-            padding: .5rem;
-            border: solid 1px rgb(71, 71, 71);
-            background: rgb(198, 198, 198);
-            color:rgb(73, 73, 73);
-            border-radius: .5rem;
-            font-size: .8rem;
-        }
-        #checkout {
-            width: 100%;
-            padding: .5rem;
-            border: solid 1px black;
-            background: white;
-            border-radius: .5rem;
-            font-size: .8rem;
-        }
-        
-
-        #row1 div, #row2 div, #row3 div, #row5 div, #row6 div, #row7 div {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
-        #pfp-preview {
-            height: 8rem;
-            width: 8rem;
-            border-radius: 50%;
+            height: 110px;
             object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
         }
 
-        #row4 div {
-            display: flex;
-            height: 15rem;
-            width: auto;
-            gap: 1.5rem;
-            flex-wrap: wrap;
+        .card-item:hover {
+            border-color: #0d6efd;
+            transform: translateY(-2px);
         }
 
-        #row4 img {
-            display: flex;
-            height: auto;
-            max-height: 80%;
-            width: auto;
-            min-width: 25%;
-            object-fit: contain;
-            border: 2px solid black;
-            border-radius: 1.5rem;
+        .card-item input[type="checkbox"] {
+            display: none;
         }
-        #account_information{
-            display: flex;
-            flex-direction: column;
+
+        .card-item h3 {
+            font-size: 1rem;
+            margin: 0.25rem 0;
         }
-        .button-container {
+
+        .card-item p {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .form-actions {
             display: flex;
-            flex-direction: row;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
             margin-top: 1rem;
         }
-        .hide_info{
-            border:none;
-            background:none;
-            color:white;
-            font-style: italic;
-            cursor:pointer;
-            transition:all .3s ease;
+
+        .alert-danger {
+            background: #ffe5e5;
+            color: #d10000;
         }
-        .hide_info:hover{
-            transform:scale(1.05);
-            color:orange;
+
+        .alert-warning {
+            background: #fff8e1;
+            color: #997000;
         }
-        .form-button{
-            background: rgb(255, 255, 255);
-            color: rgb(0, 0, 0);
-            border: none;
-            padding: .5rem 1rem;
-            border-radius: .5rem;
+        .card-item {
             cursor: pointer;
-            font-size: .8rem;
-            margin-right: .5rem;
-            transition: all .2s ease-in-out;
-            border:rgb(0, 0, 0) solid 1px;
-            box-shadow: .1rem .1rem 0 rgb(0, 0, 0);
-            margin-bottom: 1rem;
+            transition: all 0.2s ease-in-out;
+            border: 2px solid transparent;
         }
-        .form-button:hover{
-            background: orange;
-            color: black;
-            transform: translateY(-.1rem);
-        }   
-
-        .text-danger{
-            color:red;
-            font-style:italic;
+        .card-item.selected {
+            border-color: #007bff;
+            background-color: #e7f1ff;
+            box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
+        }
+        .suggestion-box {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            z-index: 100;
+            display: none;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+        .suggestion-box li {
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .suggestion-box li:hover {
+            background: #f2f2f2;
         }
 
-        .alert-message{
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color, #007bff);
+            border: 1px solid var(--primary-color, #007bff);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-outline:hover {
+            background: var(--primary-color, #007bff);
+            color: #fff;
+        }
+        .error-border {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdecea;
+        }
+        .flatpickr-calendar {
+            font-size: 0.95rem;
+            z-index: 9999 !important;
+        }
+        /* Quantity Selector Container */
+        .quantity-selector {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Number Input */
+        .quantity-selector input[type="number"] {
+            width: 50px;
             text-align: center;
-            position: fixed;
-            right: 50%;
-            transform: translate(50%, 0);
-            bottom: 1rem;
-            height: fit-content;
-            min-height: 10rem;
-            max-height: 30rem;
-            width: fit-content;
-            min-width: 20rem;
-            max-width: 90vw;
-            background: rgb(255, 255, 255);
-            z-index: 1000;
-            border-radius: 1rem;
-            box-shadow: 0 0 1rem rgba(0,0,0,0.5);
-            margin: auto;
-            padding: 1rem;
-            flex-wrap: wrap;
-            word-wrap: break-word;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 0.25rem;
+            font-size: 1rem;
+        }
+
+        /* Increase/Decrease Buttons */
+        .quantity-selector button {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        /* Hover Effect */
+        .quantity-selector button:hover {
+            background-color: #e0e0e0;
+            transform: scale(1.1);
+        }
+
+        /* Disable button look */
+        .quantity-selector button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
         }
     </style>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // ===== Alert auto-hide =====
-        const message = document.querySelector('.alert-message');
-        if (message) setTimeout(() => message.style.display = 'none', 3500);
+</head>
+<body>
+    {{-- ===========================
+        SIDEBAR INCLUDE
+    ============================ --}}
+    @include('components.receptionist_sidebar')
 
-        // ===== Flatpickr Setup =====
-        flatpickr("#txtbirthday", {
-            dateFormat: "m/d/Y",
-            maxDate: "today",
-            allowInput: true,
-        });
+    <main style="margin-left:15rem;">
+        <div class="booking-page">
+            <h3>Walk-In Guest</h3>
 
-        const today = new Date();
-        flatpickr("#checkin", {
-            dateFormat: "m/d/Y",
-            defaultDate: today,
-            minDate: today,
-            maxDate: today,
-            clickOpens: false
-        });
+            {{-- ===========================
+                🧾 WALK-IN GUEST FORM
+            ============================ --}}
+            <form action="{{ url('receptionist/walk-booking') }}" method="POST" enctype="multipart/form-data" class="booking-form">
+                @csrf
 
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        const maxCheckout = new Date(today);
-        maxCheckout.setMonth(today.getMonth() + 1);
+                {{-- ===========================
+                    SECTION 1: BOOKING INFORMATION
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Booking Information</h2>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="checkin">Check-in Date</label>
+                            <input type="date" id="checkin" name="checkin" value="{{ old('checkin') }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="checkout">Check-out Date</label>
+                            <input type="date" id="checkout" name="checkout" value="{{ old('checkout') }}" required>
+                        </div>
+                    </div>
+                </section>
 
-        flatpickr("#checkout", {
-            dateFormat: "m/d/Y",
-            allowInput: true,
-            minDate: tomorrow,
-            maxDate: maxCheckout,
-            defaultDate: tomorrow
-        });
+                {{-- ===========================
+                    SECTION 5: GUEST COUNT
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Guest Count</h2>
+                    <div class="form-group">
+                        <label for="guestamount">Total Guests</label>
+                        <input type="text" id="guestamount" name="guestamount" value="{{ old('guestamount') }}" readonly>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="adult">Adult Guests</label>
+                            <input type="number" id="adult" name="amenity_adult_guest" value="{{ old('amenity_adult_guest', 0) }}" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="child">Child Guests</label>
+                            <input type="number" id="child" name="amenity_child_guest" value="{{ old('amenity_child_guest', 0) }}" min="0">
+                        </div>
+                    </div>
+                </section>
 
-        // ===== Collapsible Sections =====
-        document.querySelectorAll('.toggle-header').forEach(header => {
-            header.addEventListener('click', () => {
-                const targetId = header.getAttribute('data-target');
-                const content = document.getElementById(targetId);
-                const icon = header.querySelector('.toggle-icon');
-                const isOpen = content.classList.toggle('active');
-                icon.classList.toggle('fa-chevron-up', isOpen);
-                icon.classList.toggle('fa-chevron-down', !isOpen);
-            });
-        });
+                {{-- ===========================
+                    SECTION 2: ROOM SELECTION
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Room Selection</h2>
+                    <div class="scroll-container">
+                        @foreach($rooms as $room)
+                            <div class="card-item card-room" 
+                                data-roomtype="{{ $room->roomtype }}" 
+                                data-price="{{ $room->price }}" 
+                                data-extra="{{ $room->extra }}"
+                                data-roomid="{{ $room->roomtypeID }}">
+                                
+                                <img src="{{ asset('storage/' . $room->image) }}" alt="Room {{ $room->roomtype }}">
+                                <h3>{{ $room->roomtype }}</h3>
+                                <p>₱{{ number_format($room->price, 2) }} per night</p>
 
-        // Keep rooms open by default
-        const roomContent = document.getElementById('room-content');
-        const roomIcon = document.querySelector('[data-target="room-content"] .toggle-icon');
-        if (roomContent && roomIcon) {
-            roomContent.classList.add('active');
-            roomIcon.classList.add('fa-chevron-up');
-            roomIcon.classList.remove('fa-chevron-down');
-        }
+                                <div class="quantity-selector">
+                                    <button type="button" class="decrease">-</button>
+                                    <input type="number" 
+                                        name="room[{{ $room->roomtypeID }}]" 
+                                        value="{{ old('room.' . $room->roomtypeID, 0) }}" 
+                                        min="0">
+                                    <button type="button" class="increase">+</button>
+                                </div>
 
-        // ===== Card Activation =====
-        function activateCard(selector) {
-            document.querySelectorAll(selector).forEach(card => {
-                card.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const checkbox = this.closest('label').querySelector('input[type="checkbox"]');
-                    if (checkbox) {
-                        checkbox.checked = !checkbox.checked;
-                        this.classList.toggle('active', checkbox.checked);
-                    }
-                });
-            });
-        }
-        activateCard('.room-card');
-        activateCard('.cottage-card');
-        activateCard('.amenity-card');
+                                <p class="room-subtotal">
+                                    Subtotal: ₱<span>0.00</span>
+                                </p>
+                            </div>
+                        @endforeach
+                    </div>
 
-        // ===== Scroll Buttons =====
-        const scrollAmount = 300;
-        function updateScrollButtons(wrapper) {
-            const container = wrapper.querySelector('div[id$="-selection"]');
-            const leftBtn = wrapper.querySelector('.left-btn');
-            const rightBtn = wrapper.querySelector('.right-btn');
-            if (!container || !leftBtn || !rightBtn) return;
-            const isScrollable = container.scrollWidth > container.clientWidth;
-            leftBtn.style.display = isScrollable ? 'flex' : 'none';
-            rightBtn.style.display = isScrollable ? 'flex' : 'none';
-            leftBtn.onclick = () => container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-            rightBtn.onclick = () => container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        }
-        function refreshAllScrollButtons() {
-            document.querySelectorAll('.room-selection-wrapper').forEach(updateScrollButtons);
-        }
-        refreshAllScrollButtons();
-        window.addEventListener('resize', refreshAllScrollButtons);
+                    <div class="mt-4 flex justify-between font-semibold">
+                        <span>Total Room Price:</span>
+                        <span id="total-room-price">₱0.00</span>
+                    </div>
+                </section>
 
-        // ===== Cancel Button =====
-        const cancelBTN = document.getElementById('cancel-button');
-        if (cancelBTN) {
-            cancelBTN.addEventListener('click', function () {
-                window.location.href = this.getAttribute('data-url');
-            });
-        }
 
-        // ===== Guest Already Has Account Toggle =====
-        const accountInfoFields = document.querySelectorAll('.user-information, #row4, #row2, #row3, #row7, #row8');
-        const toggleBtn = document.getElementById('alreadyLogin');
-        let guestHasAccount = false;
+                {{-- ===========================
+                    SECTION 3: COTTAGE SELECTION
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Cottage Selection</h2>
+                    <div class="scroll-container">
+                        @foreach($cottages as $cottage)
+                            <label class="card-item card-cottage">
+                                <input type="checkbox" name="cottage[]" value="{{ $cottage->cottageID }}" {{ in_array($cottage->cottageID, old('cottage', [])) ? 'checked' : '' }}>
+                                <img src="{{ asset('storage/' . $cottage->image) }}" alt="{{ $cottage->cottagename }}">
+                                <h3>{{ $cottage->cottagename }}</h3>
+                                <p>₱{{ number_format($cottage->price, 2) }}</p>
+                            </label>
+                        @endforeach
+                    </div>
+                </section>
 
-        const profileImageInput = document.getElementById('profileImage');
-        const profilePreview = document.getElementById('profilePreview');
-        const defaultImage = "default.png"; // your default guest image
+                {{-- ===========================
+                    SECTION 4: AMENITY SELECTION
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Amenity Selection</h2>
+                    <div class="scroll-container">
+                        @foreach($amenities as $amenity)
+                            <label class="card-item card-amenity">
+                                <input type="checkbox" name="amenity[]" value="{{ $amenity->amenityID }}" {{ in_array($amenity->amenityID, old('amenity', [])) ? 'checked' : '' }}>
+                                <img src="{{ asset('storage/' . $amenity->image) }}" alt="{{ $amenity->amenityname }}">
+                                <h3>{{ $amenity->amenityname }}</h3>
+                                <p>Adult ₱{{ number_format($amenity->adultprice, 2) }} / Child ₱{{ number_format($amenity->childprice, 2) }}</p>
+                            </label>
+                        @endforeach
+                    </div>
+                </section>
 
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', function () {
-                guestHasAccount = !guestHasAccount;
+                {{-- ===========================
+                    SECTION 6: GUEST INFORMATION
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Guest Information</h2>
 
-                accountInfoFields.forEach(field => {
-                    if (field) {
-                        field.style.display = guestHasAccount ? 'none' : '';
-                        field.querySelectorAll('input, select').forEach(input => {
-                            if (input.id !== 'firstname' && input.id !== 'lastname') {
-                                input.required = !guestHasAccount;
-                            }
-                        });
-                    }
-                });
+                    <button type="button" id="alreadyLogin" class="btn-outline mb-3">
+                        Returning Guest? Click to Skip Details
+                    </button>
 
-                // If guest already has account → reset to default image
-                if (guestHasAccount) {
-                    if (profileImageInput) profileImageInput.value = "";
-                    if (profilePreview) profilePreview.src = defaultImage;
-                }
+                    <div class="grid-2">
+                        <div class="form-group position-relative">
+                            <label for="firstname">First Name</label>
+                            <input type="text" id="firstname" name="firstname" value="{{ old('firstname') }}" autocomplete="off" required>
+                            <ul id="firstname-suggestions" class="suggestion-box"></ul>
+                        </div>
 
-                toggleBtn.textContent = guestHasAccount
-                    ? 'Click here if guest does NOT have account'
-                    : 'Click here if guest already has account';
-            });
-        }
+                        <div class="form-group position-relative">
+                            <label for="lastname">Last Name</label>
+                            <input type="text" id="lastname" name="lastname" value="{{ old('lastname') }}" autocomplete="off" required>
+                            <ul id="lastname-suggestions" class="suggestion-box"></ul>
+                        </div>
+                    </div>
 
-        // ===== Password Match Validation =====
-        const password = document.getElementById('txtpassword');
-        const confirmPassword = document.getElementById('txtcpassword');
-        const passwordMsg = document.getElementById('password-match-msg');
-        function checkPasswordMatch() {
-            if (password.value !== confirmPassword.value) {
-                passwordMsg.style.display = 'block';
-            } else {
-                passwordMsg.style.display = 'none';
+                    <div id="guest-extra">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="contactnum">Contact Number</label>
+                                <div class="input-prefix">
+                                    <span>+63</span>
+                                    <input type="text" id="contactnum" name="contactnum" value="{{ old('contactnum') }}" maxlength="10">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" name="email" value="{{ old('email') }}" required>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="gender">Gender</label>
+                                <select name="gender" id="gender">
+                                    <option value="">Select</option>
+                                    <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
+                                    <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
+                                    <option value="Prefer_not_to_say" {{ old('gender') == 'Prefer_not_to_say' ? 'selected' : '' }}>Prefer not to say</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="birthday">Birthday</label>
+                                <input type="date" id="birthday" name="birthday" value="{{ old('birthday') }}">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="validID">Upload Valid ID</label>
+                            <input type="file" id="validID" name="validID" accept=".jpg,.jpeg,.png,.webp">
+                        </div>
+                    </div>
+                </section>
+
+                {{-- ===========================
+                    SECTION 7: ACCOUNT INFORMATION
+                ============================ --}}
+                <section class="form-section">
+                    <h2 class="section-title">Account Information</h2>
+
+                    <button type="button" id="toggleAccount" class="btn-outline mb-3">
+                        Skip Account Creation
+                    </button>
+
+                    <div id="account-section">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" id="username" name="username" value="{{ old('username') }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" id="password" name="password">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="password_confirmation">Confirm Password</label>
+                            <input type="password" id="password_confirmation" name="password_confirmation">
+                        </div>
+                        <div class="form-group">
+                            <label for="avatar">Select Avatar</label>
+                            <input type="file" id="avatar" name="avatar" accept=".jpg,.jpeg,.png,.webp">
+                        </div>
+                    </div>
+                </section>
+
+                {{-- ===========================
+                    SECTION 8: ACTION BUTTONS
+                ============================ --}}
+                <div class="form-actions">
+                    <button type="button" id="cancel-button" class="btn btn-secondary" data-url="{{ url('receptionist/booking') }}">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Check-In Guest</button>
+                </div>
+            </form>
+
+            {{-- ===========================
+                ALERTS
+            ============================ --}}
+            @if($errors->any())
+                <div class="alert alert-danger mt-3">
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="alert alert-warning mt-3">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+        </div>
+    </main>
+
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // =========================
+    // ALERT AUTO-HIDE
+    // =========================
+    document.querySelectorAll('.alert').forEach(alert => {
+        setTimeout(() => alert.style.display = 'none', 3500);
+    });
+
+    // =========================
+    // FLATPICKR SETUP
+    // =========================
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    const checkinInput = document.getElementById('checkin');
+    const checkoutInput = document.getElementById('checkout');
+
+    const checkinPicker = flatpickr(checkinInput, {
+        altInput: true,
+        altFormat: "F j, Y",
+        dateFormat: "Y-m-d",
+        minDate: tomorrow,
+        maxDate: new Date().fp_incr(1),
+        defaultDate: tomorrow,
+        onChange: function (selectedDates) {
+            const checkinDate = selectedDates[0];
+            if (checkinDate) {
+                checkoutPicker.set('minDate', new Date(checkinDate).fp_incr(1));
+                checkoutPicker.set('maxDate', new Date(checkinDate).fp_incr(32));
+                checkoutPicker.open();
             }
         }
-        if (password && confirmPassword && passwordMsg) {
-            password.addEventListener('input', checkPasswordMatch);
-            confirmPassword.addEventListener('input', checkPasswordMatch);
+    });
+
+    const checkoutPicker = flatpickr(checkoutInput, {
+        altInput: true,
+        altFormat: "F j, Y",
+        dateFormat: "Y-m-d",
+        minDate: new Date().fp_incr(2),
+        maxDate: new Date().fp_incr(32),
+    });
+
+    // =========================
+    // DATE VALIDATION
+    // =========================
+    function validateDates() {
+        const checkin = new Date(checkinInput.value);
+        const checkout = new Date(checkoutInput.value);
+        if (checkout <= checkin) {
+            alert('Checkout date must be after check-in date.');
+            checkoutInput.value = '';
         }
+    }
+    checkinInput?.addEventListener('change', validateDates);
+    checkoutInput?.addEventListener('change', validateDates);
 
-        // ===== Final Form Validation =====
-        document.getElementById('submit-button').addEventListener('click', function (e) {
-            let errors = [];
-            const firstName = document.getElementById('firstname');
-            const lastName = document.getElementById('lastname');
-            const contactNum = document.getElementById('txtcontactnum');
-            const email = document.getElementById('txtemail');
+    // =========================
+    // ROOM QUANTITY & SUBTOTAL
+    // =========================
+    const roomCards = document.querySelectorAll('.card-item.card-room');
+    const totalRoomPriceEl = document.getElementById('total-room-price');
 
-            if (!firstName.value.trim()) errors.push("First name is required.");
-            if (!lastName.value.trim()) errors.push("Last name is required.");
-            if (!guestHasAccount) {
-                if (!contactNum.value.match(/^[0-9]{10}$/)) {
-                    errors.push("Contact number must be 10 digits.");
-                }
-                if (!email.value.includes('@')) {
-                    errors.push("Email must be valid.");
-                }
-                if (password.value !== confirmPassword.value) {
-                    errors.push("Passwords do not match.");
-                }
-            }
+    function updateRoomSubtotal(card) {
+        const qtyInput = card.querySelector('input[type="number"]');
+        const price = parseFloat(card.dataset.price) || 0;
+        const quantity = parseInt(qtyInput.value || 0);
+        const subtotal = price * quantity;
+        card.querySelector('.room-subtotal span').textContent = subtotal.toFixed(2);
+        updateTotalRoomPrice();
+    }
 
-            if (errors.length > 0) {
-                e.preventDefault();
-                alert("Please fix the following:\n- " + errors.join("\n- "));
-            }
+    function updateTotalRoomPrice() {
+        let total = 0;
+        roomCards.forEach(card => {
+            const qtyInput = card.querySelector('input[type="number"]');
+            const price = parseFloat(card.dataset.price) || 0;
+            const quantity = parseInt(qtyInput.value || 0);
+            total += price * quantity;
+        });
+        totalRoomPriceEl.textContent = `₱${total.toFixed(2)}`;
+    }
+
+    roomCards.forEach(card => {
+        const decreaseBtn = card.querySelector('.decrease');
+        const increaseBtn = card.querySelector('.increase');
+        const qtyInput = card.querySelector('input[type="number"]');
+
+        decreaseBtn?.addEventListener('click', () => {
+            let val = parseInt(qtyInput.value || 0);
+            if (val > 0) qtyInput.value = val - 1;
+            updateRoomSubtotal(card);
         });
 
-        // ===== Toggle Account Creation =====
-        const accountSection = document.getElementById('account_information');
-        const toggleAccountBtn = document.getElementById('toggleAccount');
-        let skipAccountCreation = false;
+        increaseBtn?.addEventListener('click', () => {
+            let val = parseInt(qtyInput.value || 0);
+            qtyInput.value = val + 1;
+            updateRoomSubtotal(card);
+        });
 
-        function toggleAccountCreation() {
-            skipAccountCreation = !skipAccountCreation;
+        qtyInput?.addEventListener('input', () => {
+            if (parseInt(qtyInput.value) < 0) qtyInput.value = 0;
+            updateRoomSubtotal(card);
+        });
 
-            if (accountSection) {
-                accountSection.style.display = skipAccountCreation ? 'none' : '';
-                accountSection.querySelectorAll('input').forEach(input => {
-                    input.required = !skipAccountCreation; // disable required if hiding
-                    if (skipAccountCreation) input.value = ""; // clear values when hidden
-                });
-            }
+        updateRoomSubtotal(card);
+    });
 
-            toggleAccountBtn.textContent = skipAccountCreation
-                ? "Click here to not make an account"
-                : "Click here to make an account";
-        }
+    // =========================
+    // GUEST COUNT
+    // =========================
+    const adultGuest = document.getElementById('adult');
+    const childGuest = document.getElementById('child');
+    const totalGuest = document.getElementById('guestamount');
 
-        if (toggleAccountBtn) {
-            toggleAccountBtn.addEventListener('click', toggleAccountCreation);
-        }
+    function updateTotalGuests() {
+        const adults = parseInt(adultGuest?.value || 0);
+        const children = parseInt(childGuest?.value || 0);
+        if (totalGuest) totalGuest.value = adults + children;
+    }
+    [adultGuest, childGuest].forEach(i => i?.addEventListener('input', updateTotalGuests));
+    updateTotalGuests();
 
-        // ===== Guest Amount Auto-Sum =====
-        const adultInput = document.getElementById('adult');
-        const childInput = document.getElementById('child');
-        const guestAmountInput = document.getElementById('guestamount');
+    // =========================
+    // CARD TOGGLE FOR CHECKBOXES
+    // =========================
+    const checkboxCards = document.querySelectorAll('.card-item input[type="checkbox"]');
+    checkboxCards.forEach(checkbox => {
+        const card = checkbox.closest('.card-item');
+        card.addEventListener('click', function(e) {
+            if (e.target.tagName === 'INPUT') return;
+            checkbox.checked = !checkbox.checked;
+            card.classList.toggle('selected', checkbox.checked);
+        });
+    });
 
-        if (guestAmountInput) {
-            guestAmountInput.readOnly = true; // make guest amount non-editable
-        }
+    // =========================
+    // IMAGE PREVIEW
+    // =========================
+    function setupImagePreview(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        input.addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+            let existingImg = this.nextElementSibling;
+            if (existingImg && existingImg.tagName === 'IMG') existingImg.remove();
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.style.maxWidth = '100px';
+            img.style.marginTop = '0.5rem';
+            this.insertAdjacentElement('afterend', img);
+        });
+    }
+    setupImagePreview('validID');
+    setupImagePreview('avatar');
 
-        function updateGuestAmount() {
-            const adults = parseInt(adultInput?.value || 0, 10);
-            const children = parseInt(childInput?.value || 0, 10);
-            if (guestAmountInput) {
-                guestAmountInput.value = adults + children;
-            }
-        }
+    // =========================
+    // PASSWORD VALIDATION
+    // =========================
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('password_confirmation');
+    function validatePasswordMatch() {
+        if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity('Passwords do not match.');
+        } else confirmPassword.setCustomValidity('');
+    }
+    [password, confirmPassword].forEach(i => i?.addEventListener('input', validatePasswordMatch));
 
-        if (adultInput) adultInput.addEventListener('input', updateGuestAmount);
-        if (childInput) childInput.addEventListener('input', updateGuestAmount);
+    // =========================
+    // CANCEL BUTTON
+    // =========================
+    const cancelBTN = document.getElementById('cancel-button');
+    cancelBTN?.addEventListener('click', function () {
+        window.location.href = this.dataset.url;
+    });
 
-        // Run once on page load
-        updateGuestAmount();
+    // =========================
+    // RETURNING GUEST TOGGLE
+    // =========================
+    const returningBtn = document.getElementById('alreadyLogin');
+    const guestExtra = document.getElementById('guest-extra');
+    returningBtn?.addEventListener('click', () => {
+        const hidden = guestExtra.style.display === 'none';
+        guestExtra.style.display = hidden ? '' : 'none';
+        ['contactnum','email','gender','birthday','validID'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (hidden) el.setAttribute('required','required');
+            else el.removeAttribute('required');
+        });
+        returningBtn.textContent = hidden
+            ? 'Returning Guest? Click to Skip Details'
+            : 'Show Personal Details';
+    });
 
-       // =================== NAME SUGGESTION ====================
-        function setupSuggestion(inputId, suggestionId) {
-            const input = document.getElementById(inputId);
-            const suggestionBox = document.getElementById(suggestionId);
+    // =========================
+    // ACCOUNT TOGGLE
+    // =========================
+    const toggleAccount = document.getElementById('toggleAccount');
+    const accountSection = document.getElementById('account-section');
+    toggleAccount?.addEventListener('click', () => {
+        const hidden = accountSection.style.display === 'none';
+        accountSection.style.display = hidden ? '' : 'none';
+        ['username','password','password_confirmation','avatar'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (hidden) el.setAttribute('required','required');
+            else el.removeAttribute('required');
+        });
+        toggleAccount.textContent = hidden
+            ? 'Skip Account Creation'
+            : 'Show Account Information';
+    });
 
-            input.addEventListener('input', async function () {
-                const query = this.value.trim();
-                suggestionBox.innerHTML = '';
-                suggestionBox.style.display = 'none';
+    // =========================
+    // NAME SUGGESTIONS
+    // =========================
+    function setupSuggestion(inputId, suggestionId) {
+        const input = document.getElementById(inputId);
+        const suggestionBox = document.getElementById(suggestionId);
+        if (!input || !suggestionBox) return;
 
-                if (query.length < 2) return;
-
+        input.addEventListener('input', async function () {
+            const query = this.value.trim();
+            suggestionBox.innerHTML = '';
+            suggestionBox.style.display = 'none';
+            if (query.length < 2) return;
+            try {
                 const response = await fetch(`{{ route('receptionist.guestSuggestions') }}?q=${encodeURIComponent(query)}`);
                 const guests = await response.json();
-
                 if (guests.length > 0) {
                     guests.forEach(g => {
                         const li = document.createElement('li');
                         li.textContent = `${g.firstname} ${g.lastname}`;
-                        li.style.padding = '8px';
-                        li.style.cursor = 'pointer';
-                        li.addEventListener('click', function () {
-                            if (inputId === 'firstname') input.value = g.firstname;
-                            if (inputId === 'lastname') input.value = g.lastname;
+                        li.addEventListener('click', () => {
+                            document.getElementById('firstname').value = g.firstname;
+                            document.getElementById('lastname').value = g.lastname;
+                            document.getElementById('contactnum').value = g.contactnum || '';
+                            document.getElementById('email').value = g.email || '';
+                            document.getElementById('gender').value = g.gender || '';
+                            document.getElementById('birthday').value = g.birthday || '';
                             suggestionBox.innerHTML = '';
                             suggestionBox.style.display = 'none';
                         });
-                        li.addEventListener('mouseenter', () => li.style.background = '#f0f0f0');
-                        li.addEventListener('mouseleave', () => li.style.background = '#fff');
                         suggestionBox.appendChild(li);
                     });
                     suggestionBox.style.display = 'block';
                 }
-            });
+            } catch (err) {
+                console.error('Suggestion fetch error:', err);
+            }
+        });
 
-            document.addEventListener('click', function (e) {
-                if (!input.contains(e.target) && !suggestionBox.contains(e.target)) {
-                    suggestionBox.innerHTML = '';
-                    suggestionBox.style.display = 'none';
-                }
-            });
-        }
-
-        setupSuggestion('firstname', 'firstname-suggestions');
-        setupSuggestion('lastname', 'lastname-suggestions');
-
-        // ===== Image Preview for Valid ID =====
-        const validIdInput = document.getElementById('txtvalidid');
-        const idPreview = document.getElementById('id-preview');
-
-        if (validIdInput && idPreview) {
-            validIdInput.addEventListener('change', function() {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        idPreview.src = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    idPreview.src = "{{ asset('images/photo.png') }}";
-                }
-            });
-        }
-
-        // ===== Image Preview for Avatar =====
-        const avatarInput = document.getElementById('txtavatar');
-        const pfpPreview = document.getElementById('pfp-preview');
-
-        if (avatarInput && pfpPreview) {
-            avatarInput.addEventListener('change', function() {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        pfpPreview.src = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    pfpPreview.src = "{{ asset('images/profile.jpg') }}";
-                }
-            });
-        }
-        // ======================================
-    const checkinInput = document.getElementById('checkin');
-    const checkoutInput = document.getElementById('checkout');
-
-    function hideBookedItems(containerSelector, bookedIDs, checkboxName) {
-        const containers = document.querySelectorAll(containerSelector);
-        
-        containers.forEach(container => {
-            const checkbox = container.querySelector(`input[name="${checkboxName}"]`);
-            
-            if (checkbox) {
-                const itemID = parseInt(checkbox.value);
-                
-                if (bookedIDs.includes(itemID)) {
-                    container.style.display = 'none';
-                    
-                    if (checkbox.checked) {
-                        checkbox.checked = false;
-                        
-                        const card = container.querySelector('.room-card, .cottage-card, .amenity-card');
-                        if (card) {
-                            card.classList.remove('active');
-                        }
-                    }
-                } else {
-                    container.style.display = 'flex';
-                }
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !suggestionBox.contains(e.target)) {
+                suggestionBox.innerHTML = '';
+                suggestionBox.style.display = 'none';
             }
         });
     }
+    setupSuggestion('firstname', 'firstname-suggestions');
+    setupSuggestion('lastname', 'lastname-suggestions');
 
-    function showAllRoomsAndCottages() {
-        const allItems = document.querySelectorAll('.room, .cottage');
-        allItems.forEach(item => {
-            item.style.display = 'flex';
-        });
-        refreshAllScrollButtons();
-    }
-
-    function refreshAllScrollButtons() {
-        document.querySelectorAll('.room-selection-wrapper').forEach(wrapper => {
-            const container = wrapper.querySelector('.scroll-container') || 
-                            wrapper.querySelector('div[id$="-selection"]');
-            const leftBtn = wrapper.querySelector('.left-btn');
-            const rightBtn = wrapper.querySelector('.right-btn');
-
-            if (!container || !leftBtn || !rightBtn) return;
-
-            const isScrollable = container.scrollWidth > container.clientWidth;
-
-            leftBtn.style.display = isScrollable ? 'flex' : 'none';
-            rightBtn.style.display = isScrollable ? 'flex' : 'none';
-        });
-    }
-
-    function showLoadingIndicator() {
-        const roomSelection = document.getElementById('room-selection');
-        const cottageSelection = document.getElementById('cottage-selection');
-        
-        if (roomSelection) roomSelection.style.opacity = '0.5';
-        if (cottageSelection) cottageSelection.style.opacity = '0.5';
-    }
-
-    function hideLoadingIndicator() {
-        const roomSelection = document.getElementById('room-selection');
-        const cottageSelection = document.getElementById('cottage-selection');
-        
-        if (roomSelection) roomSelection.style.opacity = '1';
-        if (cottageSelection) cottageSelection.style.opacity = '1';
-    }
-
-    async function checkAvailabilityWithLoading() {
+    // =========================
+    // AVAILABILITY CHECK
+    // =========================
+    async function checkAvailability() {
         const checkin = checkinInput.value;
         const checkout = checkoutInput.value;
-
-        if (!checkin || !checkout) {
-            showAllRoomsAndCottages();
-            return;
-        }
-
-        if (new Date(checkout) <= new Date(checkin)) {
-            showAllRoomsAndCottages();
-            return;
-        }
-
-        showLoadingIndicator();
+        if (!checkin || !checkout) return;
 
         try {
             const response = await fetch(`{{ route('receptionist.checkAvailability') }}?checkin=${checkin}&checkout=${checkout}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
             const data = await response.json();
 
-            hideBookedItems('.room', data.bookedRooms, 'room[]');
-            hideBookedItems('.cottage', data.bookedCottages, 'cottage[]');
-            
-            refreshAllScrollButtons();
-        } catch (error) {
-            console.error('Error checking availability:', error);
-            alert('Error checking availability. Please try again.');
-        } finally {
-            hideLoadingIndicator();
+            hideBookedItems('.card-item.card-room', data.bookedRooms, 'room[]');
+            hideBookedItems('.card-item', data.bookedCottages, 'cottage[]');
+        } catch (err) {
+            console.error('Error checking availability:', err);
         }
     }
 
-    checkinInput.addEventListener('change', checkAvailabilityWithLoading);
-    checkoutInput.addEventListener('change', checkAvailabilityWithLoading);
+    function hideBookedItems(selector, bookedIDs, checkboxName) {
+        document.querySelectorAll(selector).forEach(container => {
+            const checkbox = container.querySelector(`input[name="${checkboxName}"]`);
+            if (checkbox) {
+                const itemID = parseInt(checkbox.value);
+                if (bookedIDs.includes(itemID)) {
+                    container.style.opacity = '0.4';
+                    container.style.pointerEvents = 'none';
+                } else {
+                    container.style.opacity = '1';
+                    container.style.pointerEvents = 'auto';
+                }
+            }
+        });
+    }
 
-    checkinInput.addEventListener('input', function() {
-        if (!this.value) {
-            showAllRoomsAndCottages();
-        }
-    });
+    checkinInput?.addEventListener('change', checkAvailability);
+    checkoutInput?.addEventListener('change', checkAvailability);
 
-    checkoutInput.addEventListener('input', function() {
-        if (!this.value) {
-            showAllRoomsAndCottages();
-        }
-    });
-    });
+});
 </script>
+
+</body>
+</html>

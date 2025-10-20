@@ -203,10 +203,12 @@ Route::post('manager/save_room', [ManageRoomController::class, 'saveRoom'])->nam
 
 // Display Form
 Route::get('manager/add_room', [ManageRoomController::class, 'addRoom'])->name('manager.add_room');
+Route::get('manager/roomtype_inclusions/{id}', [ManageRoomController::class, 'getRoomTypeInclusions']);
 
 // Room List
 Route::get('manager/room_list', [ManageRoomController::class, 'roomList'])->name('manager.room_list');
-
+Route::get('manager/deactivated_room_list', [ManageRoomController::class, 'deactivatedroomList']);
+Route::match(['get', 'post'], 'manager/add_roomtype', [ManageRoomController::class, 'addroomType']);
 // Edit Room
 Route::match(['get', 'post'], 'manager/edit_room/{roomID}', [ManageRoomController::class, 'editRoom'])->name('manager.edit_room');
 
@@ -264,6 +266,7 @@ Route::match(['get', 'post'], 'manager/maintenance_cottage/{cottageID}', [Manage
 
 // Menu List
 Route::get('manager/menu_list', [ManageMenuController::class, 'menuList'])->name('manager.menu_list');
+Route::get('manager/deactivated_menu_list', [ManageMenuController::class, 'deactivatedmenuList'])->name('manager.deactivated_menu_list');
 
 // Show add menu form
 Route::get('manager/add_menu', [ManageMenuController::class, 'addMenu'])->name('manager.add_menu_form');
@@ -359,11 +362,18 @@ Route::get('receptionist/search_checkout', [SearchUserController::class, 'search
 Route::get('receptionist/booking', [BookingController::class, 'bookingList'])->name('receptionist.booking');
 Route::get('receptionist/booking_list', [BookingController::class, 'bookingListView'])->name('receptionist.booking_list');
 Route::get('receptionist/create_booking', [BookingController::class, 'createBooking'])->name('receptionist.create_booking');
+Route::get('receptionist/create_booking/{sessionID}', [BookingController::class, 'createBooking']);
+// routes/web.php
+Route::post('receptionist/bookings_extend/{bookingID}', [BookingController::class, 'extendBooking']);
+
 
 Route::post('receptionist/submit_booking', [BookingController::class, 'submitBooking'])->name('receptionist.submit_booking');
-
+Route::get('/get-room-inclusions', [BookingController::class, 'getRoomInclusions'])
+    ->name('booking.getRoomInclusions');
+    
 Route::get('receptionist/receipt_booking/{sessionID}', [BookingController::class, 'receiptBooking'])->name('receptionist.booking_receipt');
 Route::get('receptionist/view_booking/{bookingID}', [BookingController::class, 'viewBooking'])->name('receptionist.view_booking');
+
 
 Route::match(['post', 'get'], 'receptionist/update_booking/{bookingID}', [BookingController::class, 'updateBooking'])->name('receptionist.update_booking');
 Route::post('receptionist/approve_booking/{bookingID}', [BookingController::class, 'approveBooking'])

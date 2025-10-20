@@ -16,6 +16,7 @@
         display: flex;
         flex-direction: row;
         height:100vh;
+        width:100%;
     }
     #main-layout{
         display:flex;
@@ -23,7 +24,7 @@
         padding:1rem;
         width:100%;
         transition: width 0.3s ease-in-out;
-        margin-left:12rem;
+        margin-left:15rem;
     } 
     #layout-header {
         display: flex;
@@ -296,6 +297,39 @@
         from { opacity: 0; transform: translateY(-10px); }
         to { opacity: 1; transform: translateY(0); }
     }
+    .table-wrapper table th,
+    .table-wrapper table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .table-wrapper table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+    }
+
+    .table-wrapper table tbody tr:hover {
+        background-color: #fef3c7; /* light orange */
+    }
+
+    .view-billing-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: color 0.2s ease-in-out;
+    }
+
+    .view-billing-btn:hover {
+        color: #c2410c; /* darker orange */
+    }
+
+    .rounded-full {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
 </style>
 
 <body>
@@ -322,54 +356,61 @@
                     </div>
                 </div>
             </div>
-            <div class="billing-container">
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Billing #</th>
-                                <th>Name</th>
-                                <th>Amount Tendered</th>
-                                <th>Balance Remaining</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php $count = 0 ?>
-                            @foreach($payments as $bill)
-                                <?php $count++ ?>
-                            <tr>
-                                <td>{{ $count}}</td>
-                                <td>{{ $bill->guestname }}</td>
-                                <td>{{ $bill->totaltender }}</td>
-                                <td>{{ $bill->totalamount }}</td>
-                                <td>
-                                    <a href="#"
-                                        class="view-billing-btn"
-                                        data-billing-no="{{ $loop->iteration }}"
-                                        data-guest-name="{{ $bill->guestname }}"
-                                        data-tender="{{ $bill->totaltender }}"
-                                        data-total="{{ $bill->totalamount }}"
-                                        data-amenity="{{ $bill->amenity_total }}"
-                                        data-menu="{{ $bill->menu_total }}"
-                                        data-room="{{ $bill->room_total }}"
-                                        data-cottage="{{ $bill->cottage_total }}"
-                                        data-additional="{{ $bill->additional_total }}">
-                                        View
-                                    </a>
-                                </td>
-                                    {{--<a href="{{ route('/edit_billing', ['id' => $bill->id]) }}">Edit</a>--}}
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <div id="page-container">
-                    {{ $payments->links() }}
-                </div>
-
-            </div>
+            <div class="billing-container p-4">
+    <div class="table-wrapper overflow-x-auto rounded-lg shadow-lg bg-white">
+        <table class="min-w-full text-sm border-collapse">
+            <thead class="bg-orange-500 text-white">
+                <tr>
+                    <th class="px-4 py-2 text-left">Billing #</th>
+                    <th class="px-4 py-2 text-left">Name</th>
+                    <th class="px-4 py-2 text-left">Date</th>
+                    <th class="px-4 py-2 text-left">Status</th>
+                    <th class="px-4 py-2 text-right">Amount Tendered</th>
+                    <th class="px-4 py-2 text-right">Balance Remaining</th>
+                    <th class="px-4 py-2 text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php $count = 0 ?>
+                @foreach($payments as $bill)
+                    <?php $count++ ?>
+                    <tr class="hover:bg-gray-50 border-b">
+                        <td class="px-4 py-2">{{ $count }}</td>
+                        <td class="px-4 py-2">{{ $bill->guestname }}</td>
+                        <td class="px-4 py-2">{{ \Carbon\Carbon::parse($bill->created_at)->format('M d, Y') }}</td>
+                        <td class="px-4 py-2">
+                            @if($bill->totalamount - $bill->totaltender <= 0)
+                                <span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Paid</span>
+                            @else
+                                <span class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">Pending</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-2 text-right">₱ {{ number_format($bill->totaltender, 2) }}</td>
+                        <td class="px-4 py-2 text-right">₱ {{ number_format($bill->totalamount - $bill->totaltender, 2) }}</td>
+                        <td class="px-4 py-2 text-center">
+                            <button
+                                class="view-billing-btn text-orange-600 hover:text-orange-800 font-semibold"
+                                data-billing-no="{{ $loop->iteration }}"
+                                data-guest-name="{{ $bill->guestname }}"
+                                data-tender="{{ $bill->totaltender }}"
+                                data-total="{{ $bill->totalamount }}"
+                                data-amenity="{{ $bill->amenity_total }}"
+                                data-menu="{{ $bill->menu_total }}"
+                                data-room="{{ $bill->room_total }}"
+                                data-cottage="{{ $bill->cottage_total }}"
+                                data-additional="{{ $bill->additional_total }}">
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    <div id="page-container" class="mt-4 flex justify-center">
+        {{ $payments->links() }}
+    </div>
+</div>
             <div id="billingModal" class="modal-overlay" style="display:none;">
                 <div class="modal-content">
                     <span class="close-btn">&times;</span>

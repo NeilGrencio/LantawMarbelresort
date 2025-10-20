@@ -89,7 +89,9 @@ class DiscountController extends Controller
         if($request->isMethod('post')){
             $validatedData = $request->validate([
                 'name' => 'required',
-                'amount' => 'required|numeric|min:0|max:1',
+                'percent' => 'nullable|numeric|min:0|max:1',
+                'flat' => 'nullable|numeric|min:0',
+                'type' => 'required',
                 'status' => 'required',
             ]);
 
@@ -98,7 +100,9 @@ class DiscountController extends Controller
             try{
                 $discount = new DiscountTable();
                 $discount->name = $validatedData['name'];
-                $discount->amount = $validatedData['amount'];
+                $discount->percentamount = $validatedData['percent'];
+                $discount->flatamount = $validatedData['flat'];
+                $discount->type = $validatedData['type'];
                 $discount->status = $validatedData['status'];
                 $discount->save();
 
@@ -133,14 +137,18 @@ class DiscountController extends Controller
         if($request->isMethod('post')){
             $validatedData = $request->validate([
                 'name' => 'required',
-                'amount' => 'required|numeric|min:0|max:1',
+                'percent' => 'nullable|numeric|min:0|max:1',
+                'flat' => 'nullable|numeric|min:0',
+                'type' => 'required',
                 'status' => 'required',
             ]);
 
             $hasChanges = false;
                 if (
                     $discount->name != $validatedData['name'] || 
-                    $discount->amounnt != $validatedData['amount'] ||
+                    $discount->percentamount != $validatedData['percent'] ||
+                    $discount->flatamount != $validatedData['flat'] ||
+                    $discount->type != $validatedData['type'] ||
                     $discount->status != $validatedData['status']
                 ) {
                     $hasChanges = true;
@@ -155,7 +163,9 @@ class DiscountController extends Controller
             try{
                 $update = [
                     'name' => $validatedData['name'],
-                    'amount' => $validatedData['amount'],
+                    'percentamount' => $validatedData['percent'],
+                    'flatamount' => $validatedData['flat'],
+                    'type' => $validatedData['type'],
                     'status' => $validatedData['status'],
                 ];
 

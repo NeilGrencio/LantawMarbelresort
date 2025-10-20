@@ -15,7 +15,7 @@ class ManageMenuController extends Controller
 {
     public function menuList(Request $request)
     {
-        $menu = MenuTable::where('itemtype', '!=', 'Services')->get();
+        $menu = MenuTable::where('itemtype', '!=', 'Services')->where('status', 'available')->get();
         $uniqueMenuTypes = $menu->pluck('itemtype')->unique();
 
         foreach ($menu as $item) {
@@ -35,6 +35,30 @@ class ManageMenuController extends Controller
         }
 
         return view('manager/menu_list', compact('menu', 'uniqueMenuTypes'));
+    }
+
+    public function deactivatedmenuList(Request $request)
+    {
+        $menu = MenuTable::where('itemtype', '!=', 'Services')->where('status', 'unavailable')->get();
+        $uniqueMenuTypes = $menu->pluck('itemtype')->unique();
+
+        foreach ($menu as $item) {
+            $item->image_url = $item->image
+                ? route('menu.image', ['filename' => basename($item->image)])
+                : null;
+        }
+
+        $userID = $request->session()->get('user_id');
+
+        if ($userID) {
+            SessionLogTable::create([
+                'userID' => $userID,
+                'activity' => 'User Viewed Deactivated Menu List',
+                'date' => now(),
+            ]);
+        }
+
+        return view('manager/deactivated_menu_list', compact('menu', 'uniqueMenuTypes'));
     }
 
     public function serviceList(Request $request)

@@ -6,493 +6,415 @@
     <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
     <title>Lantaw-Marbel Resort</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div id="layout">
-        @include('components.receptionist_sidebar')
+<body class="bg-gray-100 text-gray-900 font-sans">
+    @include('components.receptionist_sidebar')
 
-        <div id="main-layout">
-            <div id="layout-header">
-                <h1>Booking Payment</h1>
-            </div>
+    <!-- MAIN LAYOUT -->
+    <div 
+        id="main-layout" 
+        class="min-h-screen bg-gray-100 ml-[15rem] p-8 overflow-y-auto transition-all"
+        style="width: calc(100vw - 15rem);"
+    >
+        <!-- HEADER -->
+        <div class="bg-white border border-gray-200 shadow-md rounded-xl p-5 mb-6 flex items-center justify-between">
+            <h1 class="text-2xl font-bold tracking-wide text-gray-800 uppercase">Booking Payment</h1>
+        </div>
 
-            <div class="receipt-wrapper">
-                <div class="receipt">
-                    <h2>Booking Information</h2>
-                    <p><span>Guest: </span>{{ $booking['firstname'] . ' ' . $booking['lastname'] }}</p>
-                    <p><span>Guest Amount: </span>{{ $booking['guestamount'] }}</p>
-                    <hr/>
+        <div class="flex flex-col lg:flex-row gap-8">
 
-                    @if($room->isEmpty())
-                        <p class="no-selection">No rooms selected</p>
-                    @else
-                        <p>Selected Rooms:</p>
-                        <ul>
-                            @foreach($room as $r)
-                                <li><span>Room:</span> {{ $r->roomnum }}</li>
-                            @endforeach
-                        </ul>
-                    @endif
+            <!-- ==========================
+                 LEFT SIDE — BOOKING + PAYMENT SUMMARY
+            =========================== -->
+            <div class="flex-1 bg-white border border-gray-200 rounded-2xl shadow-lg p-6">
+                <h2 class="text-lg font-semibold uppercase tracking-wide text-gray-800 mb-3">Booking Information</h2>
 
-                    @if($cottage->isEmpty())
-                        <p class="no-selection">No cottage selected</p>
-                    @else
-                        <p>Selected Cottages:</p>
-                        <ul>
-                            @foreach($cottage as $c)
-                                <li>{{ $c->cottagename }}</li>
-                            @endforeach
-                        </ul>
-                    @endif
-
-                    @if($amenity->isEmpty())
-                        <p class="no-selection">No amenity selected</p>
-                    @else
-                        <p>Selected Amenity:</p>
-                        <ul>
-                            @foreach($amenity as $a)
-                                <li>{{ $a->amenityname }}</li>
-                            @endforeach
-                        </ul>
-                    @endif
-                    <hr/>
-
-                    <h2>Selected Dates</h2>
-                    <p><span>Check-in: </span>{{ $booking['checkin'] }}</p>
-                    <p><span>Check-out: </span>{{ $booking['checkout'] }}</p>
-                    <hr/>
-
-                    <h2>Total</h2>
-                    @if(!$room->isEmpty())
-                        <p><span>Room Total: ₱</span> {{ number_format($roomprice, 2) }}</p>
-                    @endif
-                    @if(!$cottage->isEmpty())
-                        <p><span>Cottage Total: ₱</span> {{ number_format($cottageprice, 2) }}</p>
-                    @endif
-                    @if(!$amenity->isEmpty())
-                        <p><span>Adult Total: ₱</span> {{ number_format($adultprice, 2) }}</p>
-                        <p><span>Child Total: ₱</span> {{ number_format($childprice, 2) }}</p>
-                        <p><span>Amenity Total: ₱</span> {{ number_format($amenityprice, 2) }}</p>
-                    @endif
-
-                    <p><span>SubTotal: ₱</span> <span id="subtotal-receipt">{{ $totalprice }}</span></p>
-                    <p><span>Discount: </span><span id="discount-receipt">0%</span></p>
-                    <p><span>Total: </span><span id="total-receipt">₱ {{ $totalprice }}</span></p>
-                    <p><span>Amount Due: </span><span id="amount-due-receipt">₱ {{ $totalprice }}</span></p>
-
-                    <h2>Payment</h2>
-                    <p><span>Amount Tendered: </span><span id="amount-tendered">₱ 0.00</span></p>
-                    <p><span>Total Change:</span> <span id="change-receipt">₱ 0.00</span></p>
+                <div class="space-y-2 mb-4 text-sm">
+                    <p><span class="font-semibold">Guest:</span> {{ $booking['firstname'] . ' ' . $booking['lastname'] }}</p>
+                    <p><span class="font-semibold">Guest Amount:</span> {{ $booking['guestamount'] }}</p>
                 </div>
 
-                <form id="booking-form" method="POST" action="{{ url('receptionist/confirm_booking/' . $sessionID) }}">
-                    @csrf
+                <hr class="my-4 border-gray-300"/>
 
-                    <div class="payment">
-                        <div class="label-container"><h2>Payment Information</h2></div>
+                @if(!$rooms->isEmpty())
+                    <h3 class="font-semibold text-sm uppercase text-gray-700 mb-1">Selected Rooms</h3>
+                    <ul class="list-disc list-inside text-sm mb-4 text-gray-600">
+                        @foreach($rooms as $r)
+                            <li class="flex justify-between">
+                                <div>
+                                    <span class="font-semibold">{{ $r->roomtype }}</span>
+                                    <span class="text-gray-500">× {{ $r->quantity }}</span><br>
+                                    <span class="text-xs text-gray-500">
+                                        {{ $r->nights }} night(s) @ ₱{{ number_format($r->price_per_night, 2) }} per night
+                                    </span>
+                                </div>
+                                <span class="font-semibold text-gray-800">
+                                    ₱{{ number_format($r->total_price, 2) }}
+                                </span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <h3 class="text-sm text-gray-600 italic">No room selected</h3>
+                @endif
 
-                        <div class="payment-type-wrapper">
-                            <label for="full-payment">
-                                Full Payment:
-                                <div class="payment-type-selection"><i class="fas fa-credit-card fa-2x"></i></div>
-                                <input class="radio" type="radio" id="full-payment" name="payment_type" value="full" checked>
-                            </label>
 
-                            <label for="downpayment">
-                                50% Downpayment:
-                                <div class="payment-type-selection"><i class="fas fa-percentage fa-2x"></i></div>
-                                <input class="radio" type="radio" id="downpayment" name="payment_type" value="downpayment">
-                            </label>
-                            @error('payment_type')
-                                <small style="color: red; font-style: italic;">{{ $message }}</small>
-                            @enderror
-                        </div>
 
-                        <div class="payment-selection-wrapper">
-                            <label for="cash">
-                                Cash:
-                                <div class="payment-selection"><i class="fas fa-money-bill-wave fa-2x"></i></div>
-                                <input class="radio" type="radio" id="cash" name="payment" value="cash" required>
-                            </label>
+                @if(!$cottage->isEmpty())
+                    <h3 class="font-semibold text-sm uppercase text-gray-700 mb-1">Selected Cottages</h3>
+                    <ul class="list-disc list-inside text-sm mb-4 text-gray-600">
+                        @foreach($cottage as $c)
+                            <li>{{ $c->cottagename }}</li>
+                        @endforeach
+                    </ul>
+                @endif
 
-                            <label for="gcash">
-                                Gcash:
-                                <div class="payment-selection"><i class="fas fa-mobile-alt fa-2x"></i></div>
-                                <input class="radio" type="radio" id="gcash" name="payment" value="gcash" required>
-                            </label>
-                            @error('payment')
-                                <small style="color: red; font-style: italic;">{{ $message }}</small>
-                            @enderror
-                        </div>
+                @if(!$amenity->isEmpty())
+                    <h3 class="font-semibold text-sm uppercase text-gray-700 mb-1">Selected Amenities</h3>
+                    <ul class="list-disc list-inside text-sm mb-4 text-gray-600">
+                        @foreach($amenity as $a)
+                            <li>{{ $a->amenityname }}</li>
+                        @endforeach
+                    </ul>
+                @endif
 
-                        <div id="cash-amount-wrapper" style="display: none; margin-top: 10px;">
-                            <label for="cash-amount">Amount Paid:</label>
-                            <input class="input" type="number" id="cash-amount" name="cashamount" min="0" step="0.01" placeholder="Enter amount paid" value="{{ old('cashamount') }}">
-                            @error('cashamount')
-                                <small style="color: red; font-style: italic;">{{ $message }}</small>
-                            @enderror
-                        </div>
 
-                        <div class="label-container"><h2>Discount Information</h2></div>
-                        <label for="discount">Discount
-                            <select class="input" name="discount" id="discount">
-                                <option value="0" data-amount="0">No Discount</option>
-                                @foreach($discount as $d)
-                                    <option value="{{ $d->discountID }}" data-amount="{{ $d->amount }}">
-                                        {{ $d->name }}: {{ $d->amount }}%
-                                    </option>
-                                @endforeach
-                            </select>
-                        </label>
-                        @error('discount')
-                            <small style="color: red; font-style: italic;">{{ $message }}</small>
-                        @enderror
+                @if(!empty($inclusionsByRoom))
+                    <hr class="my-4 border-gray-300"/>
+                    <h3 class="font-semibold text-sm uppercase text-gray-700 mb-1">Room Inclusions</h3>
 
-                        <div class="button-container">
-                            <button type="button" id="cancel-button" class="form-button">Cancel</button>
-                            <button type="submit" id="submit-button" class="form-button">Submit Booking</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
+                    @foreach($inclusionsByRoom as $roomNum => $items)
+                        <p class="font-semibold text-gray-800 mt-2">Room {{ $roomNum }}</p>
+                        <ul class="list-disc list-inside text-sm text-gray-600 mb-3">
+                            @foreach($items as $item)
+                                <li>{{ $item }}</li>
+                            @endforeach
+                        </ul>
+                    @endforeach
+                @endif
 
-            @if (session('error'))
-                <div class="alert-message">
-                    <h2>{{ session('error') }}</h2>
+                <hr class="my-4 border-gray-300"/>
+
+                <h2 class="text-lg font-semibold mb-2 text-gray-800 uppercase tracking-wide">Selected Dates</h2>
+                <div class="space-y-1 text-sm text-gray-700 mb-4">
+                    <p><span class="font-semibold">Check-in:</span> {{ $booking['checkin'] }}</p>
+                    <p><span class="font-semibold">Check-out:</span> {{ $booking['checkout'] }}</p>
                 </div>
-            @endif
+
+                <hr class="my-4 border-gray-300"/>
+
+                <!-- ==========================
+    PAYMENT SUMMARY (CLEAN VERSION)
+=========================== -->
+<section class="mt-8">
+    <h2 class="text-lg font-semibold uppercase tracking-wide text-gray-800 mb-3">Payment Summary</h2>
+
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 mt-4 space-y-4">
+
+        <!-- ✅ ROOM PRICE BREAKDOWN TABLE -->
+        @if(!$rooms->isEmpty())
+            <h3 class="font-semibold text-sm uppercase text-gray-700 mb-2">Room Breakdown</h3>
+            <table class="w-full text-sm text-gray-700 border-collapse mb-4">
+                <thead>
+                    <tr class="border-b bg-gray-50">
+                        <th class="text-left py-2">Room Type</th>
+                        <th class="text-center py-2">Qty</th>
+                        <th class="text-center py-2">Price/Night</th>
+                        <th class="text-center py-2">Nights</th>
+                        <th class="text-right py-2">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($rooms as $r)
+                        <tr class="border-b">
+                            <td class="py-2">{{ $r->roomtype }}</td>
+                            <td class="text-center py-2">{{ $r->quantity }}</td>
+                            <td class="text-center py-2">₱{{ number_format($r->price_per_night, 2) }}</td>
+                            <td class="text-center py-2">{{ $r->nights }}</td>
+                            <td class="text-right py-2 font-semibold">₱{{ number_format($r->subtotal, 2) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr class="border-t">
+                        <td colspan="4" class="text-right font-bold py-2">Room Total:</td>
+                        <td class="text-right font-bold py-2">₱{{ number_format($roomprice, 2) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        @endif
+
+        <div class="border-t border-gray-300 my-4"></div>
+
+        <!-- RECEIPT BREAKDOWN -->
+        <div class="text-sm space-y-2 text-gray-700">
+            <p class="flex justify-between">
+                <span class="font-semibold">Subtotal:</span>
+                <span id="subtotal-receipt">₱{{ number_format($totalprice, 2) }}</span>
+            </p>
+            <p class="flex justify-between">
+                <span class="font-semibold">Discount:</span>
+                <span id="discount-receipt">0%</span>
+            </p>
+            <p class="flex justify-between">
+                <span class="font-semibold">Total After Discount:</span>
+                <span id="total-receipt">₱{{ number_format($totalprice, 2) }}</span>
+            </p>
+            <p class="flex justify-between">
+                <span class="font-semibold">Amount Paid:</span>
+                <span id="amount-tendered">₱0.00</span>
+            </p>
+            <p class="flex justify-between">
+                <span class="font-semibold">Change:</span>
+                <span id="change-receipt">₱0.00</span>
+            </p>
+        </div>
+
+        <div class="border-t border-gray-300 my-4"></div>
+
+        <!-- INDIVIDUAL CATEGORY TOTALS -->
+        <div class="space-y-2 text-gray-700 text-sm sm:text-base">
+            <div class="flex justify-between">
+                <span>Room Total:</span>
+                <span class="font-semibold">₱{{ number_format($roomprice, 2) }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Cottage Total:</span>
+                <span class="font-semibold">₱{{ number_format($cottageprice, 2) }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Amenity Total:</span>
+                <span class="font-semibold">₱{{ number_format($amenityprice, 2) }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Adult Guests:</span>
+                <span class="font-semibold">₱{{ number_format($adultprice, 2) }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Child Guests:</span>
+                <span class="font-semibold">₱{{ number_format($childprice, 2) }}</span>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-300 my-4"></div>
+
+        <!-- TOTAL AMOUNT + AMOUNT DUE (BOTTOM) -->
+        <div class="flex justify-between items-center">
+            <span class="text-sm tracking-wide uppercase font-semibold text-gray-600">Total Amount</span>
+            <span class="text-2xl sm:text-3xl font-bold text-gray-900">
+                ₱{{ number_format($totalprice, 2) }}
+            </span>
+        </div>
+
+        <div class="flex justify-between items-center">
+            <span class="text-sm tracking-wide uppercase font-bold text-gray-800">Amount Due</span>
+            <span id="amount-due-receipt" class="text-3xl sm:text-4xl font-extrabold text-gray-900">
+                ₱{{ number_format($totalprice, 2) }}
+            </span>
         </div>
     </div>
-<style>
-    #booking{color:orange;}
-    #layout{
-        display: flex;
-        flex-direction: row;
-        height:100vh;
-    }
-    #main-layout{
-        display:flex;
-        flex-direction: column;
-        padding:1rem;
-        width:85%;
-        height:100vh;
-        transition: width 0.3s ease-in-out;
-        margin-left:12rem;
-        margin-right:.7rem;
-        overflow-y: hidden;
-        overflow-x: hidden;
-        gap:.5rem;
-    } 
-    #layout-header{
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        height:4rem;
-        padding:1rem;
-        background:white;
-        border-radius: .7rem;
-        border:1px solid black;
-        box-shadow:.1rem .1rem 0 black;
-        align-items: center;
-        justify-content: space-between; 
-        gap: 1rem;
-        font-size: .9rem;
-    }
-    p{
-        display: flex;
-        justify-content: space-between;
-    }
-    .receipt-wrapper{
-        display: flex;
-        flex-direction: row;
-        position:relative;
-        width:100%;
-        height:100%;
-        gap:.5rem;
-    }
-    .receipt{
-        background:white;
-        display:flex;
-        flex-direction: column;
-        position:relative;
-        height:90%;
-        width:30%;
-        border-radius:.7rem;
-        box-shadow:.1rem .1rem 0 black;
-        border:1px solid black;
-        padding:1rem;
-        font-size:.8rem;
-        overflow-y:auto;
-    }
-    hr {
-        border: 1px solid black;  
-        margin: 1rem 0;  
-        width: 100%;
-    }
-    .no-selection{
-        color:red;
-        font-weight:bold;
-    }
-    .receipt span{
-        font-weight:bold;
-    }
-    .label-container{
-        display: flex;
-        flex-direction: row;
-        margin-bottom: 1rem;
-        background:black;
-        width: 100%;
-        height:3rem;
-        justify-content: space-between;
-        align-items: center;
-        padding:.5rem;
-        font-size:.7rem;
-        color:white;
-        border-radius:.7rem;
-    }
-    .payment{
-        display:flex;
-        flex-direction: column;
-        position:absolute;
-        width:69.5%;
-        height:90%;
-        background:white;   
-        border-radius:.7rem;
-        box-shadow:.1rem .1rem 0 black;
-        border:1px solid black;
-        padding:1rem;
-        font-size:.8rem;
-        gap:.5rem;
-    }
-    .payment-type-wrapper{
-        display:flex;
-        flex-direction: row;
-        gap:.5rem;
-        margin-bottom: 1rem;
-    }
-    .payment-type-selection{
-        display:flex;
-        height:4rem;
-        width:8rem;
-        border-radius:.7rem;
-        justify-content:center;
-        align-items:center;
-        border:1px solid black;
-        box-shadow:.1rem .1rem 0 black;
-        gap:.5rem;
-        cursor:pointer;
-        transition:all .2s ease;
-        background: #f0f0f0;
-    }
-    .payment-type-selection:hover{
-        background:orange;
-        color:white;
-        scale:1.05;
-    }
-    .payment-selection-wrapper{
-        display:flex;
-        flex-direction: row;
-        gap:.5rem;
-    }
-    .payment-selection{
-        display:flex;
-        height:5rem;
-        width:7rem;
-        border-radius:.7rem;
-        justify-content:center;
-        align-items:center;
-        border:1px solid black;
-        box-shadow:.1rem .1rem 0 black;
-        gap:.5rem;
-        cursor:pointer;
-        transition:all .2s ease;
-    }
-    .payment-selection:hover{
-        background:orange;
-        color:white;
-        scale:1.1;
-    }
-    .input{
-        display:flex;
-        width:100%;
-        background: white;
-        border:1px solid black;
-        border-radius:.5rem;
-        padding:.5rem;
-        font-size: .8rem;
-    }
-    .button-container {
-        position:absolute;
-        display: flex;
-        flex-direction: row;
-        margin-top: auto;
-        bottom:1rem;
-    }.form-button{
-        background: rgb(255, 255, 255);
-        color: rgb(0, 0, 0);
-        border: none;
-        padding: .5rem 1rem;
-        border-radius: .5rem;
-        cursor: pointer;
-        font-size: .8rem;
-        margin-right: .5rem;
-        transition: all .2s ease-in-out;
-        border:rgb(0, 0, 0) solid 1px;
-        box-shadow: .1rem .1rem 0 rgb(0, 0, 0);
-        margin-bottom: 1rem;
-    }
-    .form-button:hover{
-        background: orange;
-        color: black;
-        transform: translateY(-.1rem);
-    }  
+</section>
 
-    .alert-message{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        position: fixed;
-        right: 50%;
-        transform: translate(50%, 0);
-        bottom: 1rem;
-        height: fit-content;
-        min-height: 10rem;
-        max-height: 30rem;
-        width: fit-content;
-        min-width: 20rem;
-        max-width: 90vw;
-        background: rgb(255, 255, 255);
-        z-index: 1000;
-        border-radius: 1rem;
-        box-shadow: 0 0 1rem rgba(0,0,0,0.5);
-        margin: auto;
-        padding: 1rem;
-        flex-wrap: wrap;
-        word-wrap: break-word;
-    }
-</style>
+
+            </div>
+
+            <!-- ==========================
+                 RIGHT SIDE — PAYMENT OPTIONS
+            =========================== -->
+            <form 
+                id="booking-form" 
+                method="POST" 
+                action="{{ url('receptionist/confirm_booking/' . $sessionID) }}" 
+                class="bg-white border border-gray-200 shadow-lg rounded-2xl p-6 w-full lg:w-[28rem] flex flex-col justify-between"
+            >
+                @csrf
+
+                <div class="flex flex-col space-y-6">
+                    <div>
+                        <h2 class="text-lg font-semibold mb-3 text-gray-800 uppercase tracking-wide">Payment Type</h2>
+                        <div class="flex flex-col gap-3">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="payment_type" value="full" checked class="text-black focus:ring-gray-600">
+                                <span>Full Payment</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="payment_type" value="downpayment" class="text-black focus:ring-gray-600">
+                                <span>50% Downpayment</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 class="text-lg font-semibold mb-3 text-gray-800 uppercase tracking-wide">Payment Method</h2>
+                        <div class="flex flex-col gap-3">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" id="cash" name="payment" value="cash" class="text-black focus:ring-gray-600" required>
+                                <span>Cash</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" id="gcash" name="payment" value="gcash" class="text-black focus:ring-gray-600" required>
+                                <span>GCash</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="cash-amount-wrapper" class="hidden">
+                        <label for="cash-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount Paid</label>
+                        <input 
+                            type="number" 
+                            id="cash-amount" 
+                            name="cashamount" 
+                            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-gray-600 focus:border-gray-600" 
+                            min="0" step="0.01" placeholder="Enter amount">
+                    </div>
+
+                    <div>
+                        <h2 class="text-lg font-semibold mb-3 text-gray-800 uppercase tracking-wide">Discount</h2>
+                        <select 
+                            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-gray-600 focus:border-gray-600" 
+                            name="discount" 
+                            id="discount"
+                        >
+                            <option value="0" data-amount="0">No Discount</option>
+                            @foreach($discount as $d)
+                                <option value="{{ $d->discountID }}" data-amount="{{ $d->percentamount }}">
+                                    {{ $d->name }}: {{ $d->amount }}%
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mt-8">
+                    <button 
+                        type="button" 
+                        id="cancel-button" 
+                        class="border border-gray-700 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-800 hover:text-white transition"
+                    >
+                        Cancel
+                    </button>
+                    <button type="submit" id="submit-button" class="bg-black text-white px-5 py-2 rounded-lg hover:bg-gray-900 transition">Submit</button>
+                </div>
+            </form>
+        </div>
+
+        @if (session('error'))
+            <div class="fixed bottom-5 right-5 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg">
+                <p>{{ session('error') }}</p>
+            </div>
+        @endif
+    </div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const message = document.querySelector('.alert-message');
-        const amountPaidInput = document.getElementById('cash-amount');
-        const amountTenderedField = document.getElementById('amount-tendered');
-        const discountSelect = document.getElementById('discount');
-        const discountField = document.getElementById('discount-receipt'); 
-        const subtotalField = document.getElementById('subtotal-receipt'); 
-        const totalPriceField = document.getElementById('total-receipt');
-        const amountDueField = document.getElementById('amount-due-receipt');
-        const changeField = document.getElementById('change-receipt'); 
-        const cashAmountWrapper = document.getElementById('cash-amount-wrapper');
-        const cashRadio = document.getElementById('cash');
-        const gcashRadio = document.getElementById('gcash');
-        const fullPaymentRadio = document.getElementById('full-payment');
-        const downpaymentRadio = document.getElementById('downpayment');
+document.addEventListener('DOMContentLoaded', function () {
+    // === ELEMENTS ===
+    const amountPaidInput = document.getElementById('cash-amount');
+    const amountTenderedField = document.getElementById('amount-tendered');
+    const discountSelect = document.getElementById('discount');
+    const discountField = document.getElementById('discount-receipt');
+    const subtotalField = document.getElementById('subtotal-receipt');
+    const totalPriceField = document.getElementById('total-receipt');
+    const amountDueField = document.getElementById('amount-due-receipt');
+    const changeField = document.getElementById('change-receipt');
+    const cashAmountWrapper = document.getElementById('cash-amount-wrapper');
+    const cashRadio = document.getElementById('cash');
+    const gcashRadio = document.getElementById('gcash');
+    const fullPaymentRadio = document.querySelector('input[name="payment_type"][value="full"]');
+    const downpaymentRadio = document.querySelector('input[name="payment_type"][value="downpayment"]');
 
-        const roomPrice = parseFloat("{{ $roomprice }}") || 0;
-        const cottagePrice = parseFloat("{{ $cottageprice }}") || 0;
-        const amenityPrice = parseFloat("{{ $amenityprice }}") || 0;
+    // === BASE PRICES ===
+    const roomPrice = parseFloat("{{ $roomprice }}") || 0;
+    const cottagePrice = parseFloat("{{ $cottageprice }}") || 0;
+    const amenityPrice = parseFloat("{{ $amenityprice }}") || 0;
+    const adultPrice = parseFloat("{{ $adultprice }}") || 0;
+    const childPrice = parseFloat("{{ $childprice }}") || 0;
 
-        let subtotal = roomPrice + cottagePrice + amenityPrice;
-        let discountAmount = 0;
-        let totalAmount = subtotal;
-        let amountDue = subtotal;
+    let subtotal = roomPrice + cottagePrice + amenityPrice + adultPrice + childPrice;
+    let discountPercent = 0;
+    let discountAmount = 0;
+    let totalAfterDiscount = subtotal;
+    let amountDue = subtotal;
 
-        if (!amountPaidInput || !amountTenderedField || !discountSelect || !cashRadio || !gcashRadio) {
-            console.error("One or more required elements are missing.");
-            return;
+    // === Convert fractional or numeric discounts ===
+    function normalizeDiscount(val) {
+        const v = parseFloat(val);
+        if (!Number.isFinite(v)) return 0;
+        return v <= 1 ? v * 100 : v; // treat 0.2 as 20%
+    }
+
+    // === Update displayed values ===
+    function updateReceipt() {
+        // Base subtotal
+        subtotal = roomPrice + cottagePrice + amenityPrice + adultPrice + childPrice;
+
+        // Get discount %
+        const selectedOption = discountSelect.options[discountSelect.selectedIndex];
+        discountPercent = normalizeDiscount(selectedOption?.getAttribute('data-amount'));
+        discountAmount = subtotal * (discountPercent / 100);
+
+        // Compute total after discount
+        totalAfterDiscount = subtotal - discountAmount;
+
+        // Compute actual amount due
+        amountDue = downpaymentRadio.checked ? totalAfterDiscount * 0.5 : totalAfterDiscount;
+
+        // Update DOM
+        subtotalField.textContent = '₱ ' + subtotal.toFixed(2);
+        discountField.textContent = discountPercent + '%';
+        totalPriceField.textContent = '₱ ' + totalAfterDiscount.toFixed(2);
+        amountDueField.textContent = '₱ ' + amountDue.toFixed(2);
+
+        // Animate Amount Due for clarity
+        amountDueField.classList.add('scale-110');
+        setTimeout(() => amountDueField.classList.remove('scale-110'), 200);
+
+        // Update payment display
+        if (cashRadio.checked) {
+            updateAmountTendered();
+        } else {
+            amountTenderedField.textContent = '₱ ' + amountDue.toFixed(2);
+            changeField.textContent = '₱ 0.00';
         }
-        
-        if (message) {
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 3500);
+    }
+
+    // === Update Amount Paid + Change ===
+    function updateAmountTendered() {
+        const amountPaid = parseFloat(amountPaidInput.value) || 0;
+        amountTenderedField.textContent = '₱ ' + amountPaid.toFixed(2);
+        const change = amountPaid - amountDue;
+        changeField.textContent = '₱ ' + (change >= 0 ? change.toFixed(2) : '0.00');
+        amountPaidInput.style.borderColor = amountPaid < amountDue ? 'red' : '';
+    }
+
+    // === Show/Hide Cash Input ===
+    function toggleCashAmount() {
+        if (cashRadio.checked) {
+            cashAmountWrapper.classList.remove('hidden');
+            updateAmountTendered();
+        } else {
+            cashAmountWrapper.classList.add('hidden');
+            amountPaidInput.value = '';
+            amountTenderedField.textContent = '₱ ' + amountDue.toFixed(2);
+            changeField.textContent = '₱ 0.00';
         }
+    }
 
-        function updateAmountTendered() {
-            const amountPaid = parseFloat(amountPaidInput.value) || 0;
-            amountTenderedField.textContent = '₱ ' + amountPaid.toFixed(2);
-            calculateChange(amountPaid);
-        }
+    // === EVENT LISTENERS ===
+    discountSelect.addEventListener('change', updateReceipt);
+    amountPaidInput.addEventListener('input', updateAmountTendered);
+    cashRadio.addEventListener('change', () => { toggleCashAmount(); updateReceipt(); });
+    gcashRadio.addEventListener('change', () => { toggleCashAmount(); updateReceipt(); });
+    fullPaymentRadio.addEventListener('change', updateReceipt);
+    downpaymentRadio.addEventListener('change', updateReceipt);
 
-        function calculateChange(amountPaid) {
-            const change = amountPaid - amountDue;
-            changeField.textContent = '₱ ' + (change >= 0 ? change.toFixed(2) : '0.00');
-            amountPaidInput.style.borderColor = amountPaid < amountDue ? 'red' : '';
-        }
+    // === INIT ===
+    updateReceipt();
+    toggleCashAmount();
 
-        function updateReceipt() {
-            // Update subtotal display
-            subtotalField.textContent = '₱ ' + subtotal.toFixed(2);
-
-            // Get selected discount
-            const selectedOption = discountSelect.options[discountSelect.selectedIndex];
-            const discountDecimal = parseFloat(selectedOption.getAttribute('data-amount')) || 0;
-            const discountPercentage = discountDecimal * 100;
-
-            // Calculate discount amount
-            if (discountDecimal > 0) {
-                discountAmount = discountDecimal * subtotal;
-            } else {
-                discountAmount = 0;
-            }
-
-            // Calculate total after discount
-            totalAmount = subtotal - discountAmount;
-
-            // Calculate amount due based on payment type
-            if (downpaymentRadio.checked) {
-                amountDue = totalAmount * 0.5; // 50% downpayment
-            } else {
-                amountDue = totalAmount; // Full payment
-            }
-
-            // Update display fields
-            discountField.textContent = discountPercentage + '%';
-            totalPriceField.textContent = '₱ ' + totalAmount.toFixed(2);
-            amountDueField.textContent = '₱ ' + amountDue.toFixed(2);
-
-            // Update amount tendered and change
-            if (cashRadio.checked) {
-                updateAmountTendered();
-            } else {
-                // For GCash, amount tendered equals amount due
-                amountTenderedField.textContent = '₱ ' + amountDue.toFixed(2);
-                changeField.textContent = '₱ 0.00';
-            }
-        }
-
-        function toggleCashAmount() {
-            if (cashRadio.checked) {
-                cashAmountWrapper.style.display = 'block';
-                updateAmountTendered();
-            } else {
-                cashAmountWrapper.style.display = 'none';
-                amountPaidInput.value = '';
-                // For GCash, set amount tendered to amount due
-                amountTenderedField.textContent = '₱ ' + amountDue.toFixed(2);
-                changeField.textContent = '₱ 0.00';
-            }
-        }
-
-        // Event listeners
-        discountSelect.addEventListener('change', updateReceipt);
-        amountPaidInput.addEventListener('input', updateAmountTendered);
-        cashRadio.addEventListener('change', function() {
-            toggleCashAmount();
-            updateReceipt();
-        });
-        gcashRadio.addEventListener('change', function() {
-            toggleCashAmount();
-            updateReceipt();
-        });
-        fullPaymentRadio.addEventListener('change', updateReceipt);
-        downpaymentRadio.addEventListener('change', updateReceipt);
-
-        // Initialize
-        updateReceipt();
-        toggleCashAmount();
+    const cancelBtn = document.getElementById('cancel-button');
+    cancelBtn.addEventListener('click', () => {
+        window.history.back();
     });
+});
 </script>
-</html>

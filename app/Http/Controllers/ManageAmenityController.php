@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\SessionLogTable;
 
 use App\Models\AmenityTable;
+use App\Models\DisableReasonTable;
+use App\Models\StaffTable;
 
 class ManageAmenityController extends Controller
 {
@@ -48,7 +50,8 @@ class ManageAmenityController extends Controller
             'description' => 'required|string',
             'amenityimage' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'childprice' => 'required|numeric|min:0',
-            'adultprice' => 'required|numeric|min:0'
+            'adultprice' => 'required|numeric|min:0',
+            'type' => 'required|string',
         ]);
 
         DB::beginTransaction();
@@ -63,6 +66,7 @@ class ManageAmenityController extends Controller
             $amenity->childprice = $validatedData['childprice'];
             $amenity->adultprice = $validatedData['adultprice'];
             $amenity->status = 'Available';
+            $amenity->type = $validatedData['type'];
             $amenity->save();
 
             // Get the userID from the session
@@ -106,6 +110,7 @@ class ManageAmenityController extends Controller
             'childprice' => 'required|numeric|min:0',
             'adultprice' => 'required|numeric|min:0',
             'status' => 'required|string',
+            'type' => 'required|string',
         ]);
 
         $hasChanges = (
@@ -115,6 +120,7 @@ class ManageAmenityController extends Controller
             $amenity->childprice != $validatedData['childprice'] ||
             $amenity->adultprice != $validatedData['adultprice'] ||
             $amenity->status != $validatedData['status'] ||
+            $amenity->type != $validatedData['type'] ||
             $request->hasFile('image')
         );
 
@@ -130,6 +136,7 @@ class ManageAmenityController extends Controller
             $amenity->childprice = $validatedData['childprice'];
             $amenity->adultprice = $validatedData['adultprice'];
             $amenity->status = $validatedData['status'];
+            $amenity->type = $validatedData['type'];
 
             if ($request->hasFile('image')) {
                 // Delete old image if exists
@@ -195,6 +202,13 @@ class ManageAmenityController extends Controller
 
         // Get the userID from the session
         $userID = $request->session()->get('user_id');
+        $staff = StaffTable::Where('userID', $userID)->first();
+
+        DisableReasonTable::create([
+            'amenityID' => $amenityID,
+            'reason' => '',
+            'reported_by' => $staff->staffID,
+        ]);
 
         // Log the session activity
         if ($userID) {

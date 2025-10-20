@@ -230,10 +230,10 @@
       display: none;
       flex-direction: column;
       position: absolute;
-      left: 7rem;
-      top: -2rem;
-      background: #f0f0f0;
-      border: 1px solid #000000;
+      right: 0;
+      top: 2.6rem;
+      background: #fff;
+      border: 1px solid #ddd;
       border-radius: 0.5rem;
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
       width: 10rem;
@@ -291,7 +291,7 @@
       <div class="right-actions">
         <div class="add-container" data-url="{{ url('manager/deactivated_menu_list') }}">
           <i class="fas fa-ban"></i>
-          <span>Deactivated Menu</span>
+          <span>Menu List</span>
         </div>
         <div class="add-container" data-url="{{ url('manager/add_menu') }}">
           <i class="fas fa-plus-circle"></i>

@@ -1,458 +1,147 @@
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
-    <title>Lantaw-Marbel Resort</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-</head>
-<body>
-    <div id="layout">
-        <div id="main-layout">
-            <div id="layout-header">
-                <h2>Welcome Kitchen Staff</h2>
-
-                <div class="nav-links">
-                    <div id="menu-section" data-url="{{ route('kitchen.dashboard') }}">
-                        <i class="fa-solid fa-utensils fa-2x"></i>
-                        <strong>Dashboard</strong>
-                    </div>
-                    <div>
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <div id="out">  
-                                <i class="fa-solid fa-power-off fa-2x"></i>
-                                <button type="submit" style="all:unset; cursor:pointer; font-size:12px;">Log Out</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div class="navbar">
-                <div class="navbar-item" data-filter="All"><h3>All</h3></div>
-                @foreach($uniqueMenuTypes as $menutypes)
-                    <div class="navbar-item" data-filter="{{ $menutypes}}">
-                        <h3>{{$menutypes}}</h3>
-                    </div>
-                @endforeach
-            </div>
-            <div class='menu-contianer'>
-                @foreach($menu as $menuitem)
-                    <div class="menu-card {{ $menuitem->status !== 'Available' ? 'unavailable' : '' }}" 
-                        data-type="{{ $menuitem->itemtype }}">
-                        <div id="img-container">
-                            <img src="{{ route('menu.image', ['filename' => basename($menuitem->image)]) }}" 
-                                alt="{{ $menuitem->menuname }}">
-                            @if($menuitem->status !== 'Available')
-                                <div class="unavailable-overlay">Unavailable</div>
-                            @endif
-                        </div>
-                        <div id="menu-details">
-                            <h2>Name: {{$menuitem->menuname}}</h2>
-                            <h2>Type: {{$menuitem->itemtype}}</h2>
-                            <h2>Price: {{$menuitem->price}}</h2>
-                            <hr/>
-                            <div id="manage-container">
-                                <h2>Status: {{$menuitem->status}}</h2>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-            @if(session('success'))
-            <div class="alert-message">
-                <h2>{{ session('success') }}</h2>
-            </div>
-        @endif
-
-        @if (session('error'))
-            <div class="alert-message">
-                <h2>{{ session('error') }}</h2>
-           </div>
-        @endif
-        </div>
-    </div>
-</body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lantaw-Marbel Resort | Kitchen</title>
+<link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
-* {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
+/* ===== Base ===== */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+html, body { width: 100%; height: 100%; background: #f8f2e6; color: #333; }
 
-    html, body {
-        width: 100%;
-        height: 100%;
-        overflow-x: hidden;
-    }
+/* ===== Layout ===== */
+#layout { display: flex; flex-direction: column; height: 100vh; }
+#layout-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background: #F78A21; color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.2); border-radius: 0 0 12px 12px; }
+#layout-header h2 { font-size: 1.4rem; }
+.nav-links { display: flex; gap: 1rem; align-items: center; }
+.nav-links div { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s ease; }
+.nav-links div:hover { transform: scale(1.1) rotate(-5deg); color: #fff; }
 
-    #layout {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        width: 100%;
-        overflow: hidden;
-        background: rgba(248, 242, 230, 0.5);
-    }
-    .total-container{ 
-        display:grid; 
-        grid-template-columns: 1fr 1fr 1fr; 
-        text-align: center; 
-    }
-    #layout-header {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        width: 100vw;
-        height: 8%;
-        padding: 1rem 3rem 1rem 2rem;
-        background: #F78A21;
-        color:white;
-        font-size: .7rem;
-        border-bottom: 1px solid black;
-        box-shadow: .1rem .1rem 0 black;
-        gap: 1rem;
-    }
-    #layout-wrapper {
-        display: flex;
-        flex-direction: row;
-        padding: 1rem;
-        width: 100%;
-        height: 92%;
-        overflow: hidden;
-        gap: .5rem;
-        background: transparent;
-    }
-    #main-content {
-        flex: 1;
-        height: 100%;
-        overflow-y: auto;
-    }
+/* ===== Navbar filter ===== */
+.navbar { display: flex; gap: 0.8rem; justify-content: center; padding: 1rem; overflow-x: auto; max-width:100vw;}
+.navbar-item { padding: 0.5rem 1rem; background: white; border-radius: 0.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s ease; text-align: center; white-space: nowrap; font-weight: 600; font-size: 0.85rem; }
+.navbar-item:hover, .navbar-item.active { background: #F78A21; color: white; transform: scale(1.05); }
 
-    #layout-side {
-        flex: 0 0 25%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        border-radius: 0.7rem;
-        overflow-y: auto;
-        padding: 1rem;
-        gap: 1rem;
-        overflow:none;
-    }
-    .nav-links{
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: .3rem;
-        font-size: 12px;
-        cursor:pointer;
-        gap:1rem;
-    }
-    .nav-links div{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        transition: all .2s ease-in-out;
-    }
-    .nav-links div:hover{
-        color: black;
-        transform: rotate(-10deg);
-        scale: 1.1;
-    }
+/* ===== Menu container ===== */
+.menu-contianer { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; padding: 1rem; overflow-y: auto; }
+.menu-card { width: 12rem; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; flex-direction: column; }
+.menu-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
 
-    .search-container .reset-btn {
-        padding: 10px 15px;
-        background-color: #e53935;
-        color: white;
-        text-decoration: none;
-        border-radius: 25px;
-        margin-left: 10px;
-        transition: background-color 0.3s ease;
-        font-size: 14px;
-    }
+/* ===== Menu image ===== */
+#img-container { position: relative; width: 100%; height: 8rem; overflow: hidden; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+#img-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+.menu-card:hover img { transform: scale(1.05); }
+.unavailable-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(72,72,72,0.7); display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.2rem; text-transform: uppercase; }
 
-    .search-container .reset-btn:hover {
-        background-color: #b71c1c;
-    }
-    .button-group {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
+/* ===== Menu details ===== */
+#menu-details { padding: 0.5rem 0.7rem; display: flex; flex-direction: column; gap: 0.2rem; }
+#menu-details h2 { font-size: 0.8rem; line-height: 1.1rem; font-weight: 600; color: #333; }
+#manage-container { display: flex; justify-content: space-between; align-items: center; margin-top: auto; font-size: 0.75rem; }
+#manage-button { padding: 0.25rem 0.5rem; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+#manage-button:hover { background: #F78A21; color: white; }
 
-    #add-container {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        color: #333;
-        transition: color 0.3s ease;
-    }
-    #add-container:hover {
-        color: #F78A21;
-    }
-    #add-text {
-        opacity: 1;
-        visibility: visible;
-        width: auto;
-        margin-left: 0.5rem;
-    }
+/* ===== Alerts ===== */
+.alert-message { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: #fff; padding: 1rem 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); z-index: 1000; text-align: center; font-weight: 600; animation: fadeIn 0.5s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
-    .search-container {
-        display: flex;
-        justify-content: center;
-        align-content: center;
-        margin: 15px 0;
-    }
+/* ===== Unavailable card ===== */
+.menu-card.unavailable { opacity: 0.5; pointer-events: none; }
 
-    .search-container form {
-        display: flex;
-        align-items: center;
-    }
-
-    .search-container input[type="text"] {
-        padding: 10px 15px;
-        border: 1px solid #ccc;
-        border-radius: 25px 0 0 25px;
-        outline: none;
-        width: 250px;
-        font-size: 14px;
-    }
-
-    .search-container button {
-        padding: 10px 15px;
-        border-left: none;
-        background-color: #000000;
-        color: white;
-        border-radius: 0 25px 25px 0;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-    .search-container button:hover {
-        background-color: #F78A21;
-        border: 1px solid #F78A21;
-    }
-    .navbar{
-        display:flex;
-        flex-direction: row;
-        width:100%;
-        height: 4rem;
-        gap:1rem;
-        padding:1rem;
-        justify-content:center;
-        align-items:center;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .navbar-item{
-        display: flex;
-        height:3rem;    
-        width:7rem;
-        background:#ffffff;
-        border-radius:.5rem;
-        font-size:.7rem;
-        align-items:center;
-        justify-content:center;
-        box-shadow:.1rem .2rem 0 rgba(0,0,0,0.2);
-        transition:all .3s ease;
-    }
-    .navbar-item:hover{
-        background:rgb(53, 53, 53);
-        color:white;
-        cursor:pointer;
-    }
-    .menu-contianer{
-        display:flex;
-        flex-direction:row;
-        flex-wrap: wrap;
-        gap:1rem;
-        padding:1rem;
-        width:100%;
-        height: 100%;
-        overflow-y: auto;
-        justify-content:center;
-    }
-    #manage-container{
-        display:flex;
-        flex-direction:row;
-        width:100%;
-        height:3rem;
-        justify-content: space-evenly;
-        margin-top:auto;
-        bottom:1;
-    }
-    #manage-button{
-        height:100%;
-        margin-left:auto;
-        right:1;
-        border-radius:.5rem;
-        background:black;
-        color:white;
-        align-items:center;
-        justify-content: space-evenly;
-        transition:all .2s ease;
-        border:none;
-        box-shadow: .2rem .2rem 0 rgba(0,0,0,0.2);
-        position: relative;
-    } 
-    #manage-button:hover{
-        background:orange;
-        color:black;
-        cursor:pointer;
-    }
-    .menu-card {
-        height: 15rem;
-        width: 12rem;
-        display: flex;
-        flex-direction: column;
-        background: white;
-        border-radius: 0.6rem;
-        padding: 0.6rem;
-        font-size: 0.75rem;
-        box-shadow: 0.1rem 0.2rem 0 rgba(0, 0, 0, 0.2);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .menu-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0.2rem 0.3rem 0 rgba(0, 0, 0, 0.3);
-    }
-
-    .menu-card img {
-        height: 8rem;
-        width: 100%;
-        border-radius: 0.5rem;
-        object-fit: cover;
-        margin-bottom: 0.4rem;
-    }
-
-    .menu-card h2 {
-        font-size: 0.8rem;
-        line-height: 1.1rem;
-        margin: 0.15rem 0;
-    }
-
-    #manage-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 0.7rem;
-        margin-top: auto;
-    }
-
-    .menu-contianer {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 0.8rem;
-        padding: 0.7rem;
-    }
-    .menu-card.unavailable {
-        opacity: 0.5;
-        position: relative;
-    }
-    .unavailable-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 10rem;
-        background: rgba(72, 72, 72, 0.6);
-        color: white;
-        font-weight: bold;
-        font-size: 1.2rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-top-left-radius: 1rem;
-        border-top-right-radius: 1rem;
-        text-transform: uppercase;
-        pointer-events: none; 
-    }
+/* ===== Scrollbar styling ===== */
+.menu-contianer::-webkit-scrollbar { width: 8px; height: 8px; }
+.menu-contianer::-webkit-scrollbar-thumb { background: #F78A21; border-radius: 4px; }
+.menu-contianer::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
 
 </style>
+</head>
+<body>
+<div id="layout">
+    <!-- Header -->
+    <div id="layout-header">
+        <h2>Welcome Kitchen Staff</h2>
+        <div class="nav-links">
+            <div id="menu-section" data-url="{{ route('kitchen.dashboard') }}">
+                <i class="fa-solid fa-utensils fa-2x"></i>
+                <strong>Dashboard</strong>
+            </div>
+            <div>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" style="all:unset; cursor:pointer; display:flex; align-items:center;">
+                        <i class="fa-solid fa-power-off fa-2x"></i> Log Out
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar Filters -->
+    <div class="navbar">
+        <div class="navbar-item active" data-filter="All"><h3>All</h3></div>
+        @foreach($uniqueMenuTypes as $menutypes)
+            <div class="navbar-item" data-filter="{{ $menutypes}}"><h3>{{ $menutypes }}</h3></div>
+        @endforeach
+    </div>
+
+    <!-- Menu Cards -->
+    <div class='menu-contianer'>
+        @foreach($menu as $menuitem)
+        <div class="menu-card {{ $menuitem->status !== 'Available' ? 'unavailable' : '' }}" data-type="{{ $menuitem->itemtype }}">
+            <div id="img-container">
+                <img src="{{ route('menu.image', ['filename' => basename($menuitem->image)]) }}" alt="{{ $menuitem->menuname }}">
+                @if($menuitem->status !== 'Available')
+                <div class="unavailable-overlay">Unavailable</div>
+                @endif
+            </div>
+            <div id="menu-details">
+                <h2>Name: {{$menuitem->menuname}}</h2>
+                <h2>Type: {{$menuitem->itemtype}}</h2>
+                <h2>Price: ₱{{$menuitem->price}}</h2>
+                <div id="manage-container">
+                    <h2>Status: {{$menuitem->status}}</h2>
+                </div>
+            </div>
+        </div>
+        @endforeach
+    </div>
+
+    <!-- Alerts -->
+    @if(session('success'))
+        <div class="alert-message">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="alert-message">{{ session('error') }}</div>
+    @endif
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const filterButtons = Array.from(document.querySelectorAll('.navbar-item'));
-    const menuCards = Array.from(document.querySelectorAll('.menu-card'));
-    const message = document.querySelector('.alert-message');
-
-    const menuSection = document.getElementById('menu-section');
-    menuSection.addEventListener('click', () => {
-        window.location.href = menuSection.dataset.url;
-    });
-
-    if (message) {
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 2500);
-        }
-
-    function normalize(s) {
-        return (s || '').toString().trim().toLowerCase();
-    }
-
-    function applyFilter(filter) {
-        const f = normalize(filter);
-        menuCards.forEach(card => {
-            const rawType = card.dataset.type || card.getAttribute('data-type') || '';
-            const types = rawType.split(',').map(t => normalize(t));
-            const matches = (f === 'all') || types.includes(f);
-            card.style.display = matches ? '' : 'none';
-        });
-    }
-
-    if (filterButtons.length) {
-        const allBtn = filterButtons.find(b => normalize(b.dataset.filter) === 'all') || filterButtons[0];
-        filterButtons.forEach(b => b.classList.remove('active'));
-        if (allBtn) {
-            allBtn.classList.add('active');
-            applyFilter(allBtn.dataset.filter || allBtn.textContent);
-        }
-    }
-
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function () {
+    // Filter logic
+    const filterButtons = document.querySelectorAll('.navbar-item');
+    const menuCards = document.querySelectorAll('.menu-card');
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
             filterButtons.forEach(b => b.classList.remove('active'));
-            button.classList.add('active');
-            const filter = button.dataset.filter || button.textContent || 'All';
-            applyFilter(filter);
-        });
-    });
-
-    document.querySelectorAll('#manage-button').forEach(button => {
-        button.addEventListener('click', function (event) {
-            event.stopPropagation();
-            const menuCard = this.closest('.menu-card');
-            const dropdown = menuCard.querySelector('.drop-down');
-            document.querySelectorAll('.drop-down').forEach(dd => {
-                if (dd !== dropdown) dd.style.display = 'none';
-            });
-            dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
-        });
-    });
-
-    document.addEventListener('click', function () {
-        document.querySelectorAll('.drop-down').forEach(dropdown => {
-            dropdown.style.display = 'none';
-        });
-    });
-
-    document.querySelectorAll('.drop-down').forEach(dropdown => {
-        dropdown.querySelectorAll('div[data-url]').forEach(item => {
-            item.addEventListener('click', function (ev) {
-                ev.stopPropagation();
-                const url = this.dataset.url;
-                if (url) window.location.href = url;
+            btn.classList.add('active');
+            const filter = btn.dataset.filter.toLowerCase();
+            menuCards.forEach(card => {
+                const type = card.dataset.type.toLowerCase();
+                card.style.display = (filter === 'all' || type === filter) ? 'flex' : 'none';
             });
         });
-        dropdown.addEventListener('click', function (ev) {
-            ev.stopPropagation();
-        });
+    });
+
+    // Menu section navigation
+    document.getElementById('menu-section').addEventListener('click', function(){
+        window.location.href = this.dataset.url;
+    });
+
+    // Hide alerts
+    document.querySelectorAll('.alert-message').forEach(msg => {
+        setTimeout(()=>msg.style.display='none', 3000);
     });
 });
 </script>
+</body>
+</html>

@@ -1,207 +1,240 @@
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
-    <title>Lantaw-Marbel Resort</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-</head>
-<body>
-    <div id="layout">
-        @include ('components.sidebar')
-        <div id="main-layout">
-            <div id="title-header">
-                <h1>Edit Kiddy Pool Cottage</h1>
-            </div>
-
-            <form action="{{ route('manager.edit_cottage', ['cottageID' => $cottage->cottageID]) }}" method="post" enctype="multipart/form-data">
-                @csrf
-                <div id="form-container">
-                    <label for="cottagename">Cottage Name:</label>
-                    <input id="cottagename" type="text" name="cottagename" placeholder="November Rain Cottage"
-                        value="{{ old('cottagename', $cottage->cottagename ?? '') }}" required>
-
-                    <label for="capacity">Capacity:</label>
-                    <input id="capacity" type="text" name="capacity" placeholder="8"
-                        value="{{ old('capacity', $cottage->capacity ?? '') }}" required>
-
-                    <label for="price">Price</label>
-                    <input id="price" type="text" name="price" placeholder="2300.00"
-                        value="{{ old('price', $cottage->price ?? '') }}" required>
-
-                    <label for="image">Select an Image</label>
-                    <img id="cottage-preview"
-                        src="{{ $cottage->image ? asset('storage/' . $cottage->image) : asset('images/photo.png') }}" />
-                    <input id="image" type="file" accept="image/jpg, image/png, image/webp, image/jpeg" name="image">
-
-                    <label for="status">Status</label>
-                    <select id="status" name="status" required>
-                        <option disabled {{ old('status', $cottage->status ?? '') == '' ? 'selected' : '' }}>Select Status</option>
-                        <option value="Available" {{ old('status', $cottage->status ?? '') == 'Available' ? 'selected' : '' }}>Available</option>
-                        <option value="Unavailable" {{ old('status', $cottage->status ?? '') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
-                        <option value="Maintenance" {{ old('status', $cottage->status ?? '') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
-                    </select>
-                </div>
-
-                <div class="button-container">
-                    <button id="cancel" type="button" data-url="{{url('manager/cottage_list')}}">Cancel</button>
-                    <button type="Submit">Save</button>
-                </div>
-            </form>
-        </div>
-        @if (session('success'))
-            <div class="alert-message">
-                <h2>{{ session('success')}}</h2>
-            </div>
-        @endif
-        @if (session('error'))
-            <div class="alert-message">
-                <h2>{{ session('error') }}</h2>
-            </div>
-        @endif
-    </div>
-</body>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lantaw-Marbel Resort - Edit Cottage</title>
+<link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
+<link rel="shortcut icon" href="{{ asset('favico.ico') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
-body{overflow-y:auto;}
-    #cottages { color: #F78A21;}
-    #layout{
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: #f5f5f5;
+        margin: 0;
+        padding: 0;
+    }
+
+    #layout {
         display: flex;
         flex-direction: row;
-        height:100vh;
-    }
-    #main-layout{
-        width:100%;
-        height: auto;
-        padding:1rem;
-        margin-left:15rem;
-    }
-    #title-header{
-        display: flex;
-        flex-direction: row;
+        height: 100vh;
         width: 100%;
-        max-height:5rem;
-        padding:1rem;
-        border-radius: 2rem;
-        align-content: center;
-        align-items: center;
     }
-    #form-container{
-        display:flex;
-        flex-direction: column;
-        background:white;
-        padding:1rem;
-        border-radius:2rem;
-        gap:1rem;
+
+    #main-layout {
+        width: calc(100% - 14rem);
+        padding: 2rem;
+        overflow-x: auto;
     }
-    label{
-        font-size:15px;
-        font-weight:bold;
+
+    #title-header {
+        margin-bottom: 2rem;
     }
-    input, select{
-        display:flex;
-        padding:.5rem;
-        border-radius:.7rem;
-        width:100%;
-        padding:.5rem;
+
+    #title-header h1 {
+        font-size: 2rem;
+        color: #F78A21;
+        font-weight: 700;
     }
-    .image-loader{
-        display: flex;
-        flex-direction:column;
-        cursor: pointer;
-    }
-    #cottage-preview{
-        display:flex;
-        height:20rem;
-        width:20rem;
-        object-fit: cover;
-        box-shadow:.2rem .3rem 0 rgba(0,0,0,0.5);
-        border-radius:.7rem;
-    }
-    .button-container{
-        display:flex;
-        flex-direction: row;
-        height:5rem;
-        padding:1rem;
-        gap:1rem;
-    }
-    button{
-        height:3rem;
-        width:7rem;
-        border:none;
-        border-radius:.7rem;
-        box-shadow:.2rem .3rem 0 rgba(0,0,0,0.2);
-        transiton:all .3s ease;
-    }
-    button:hover{
-        background:#F78A21;
-        cursor:pointer;
-    }
-        .alert-message{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        position: fixed;
-        right: 50%;
-        transform: translate(50%, 0);
-        bottom: 1rem;
-        height: fit-content;
-        min-height: 10rem;
-        max-height: 30rem;
-        width: fit-content;
-        min-width: 20rem;
-        max-width: 90vw;
-        background: rgb(255, 255, 255);
-        z-index: 1000;
+
+    form {
+        background: #fff;
+        padding: 2rem;
         border-radius: 1rem;
-        box-shadow: 0 0 1rem rgba(0,0,0,0.5);
-        margin: auto;
-        padding: 1rem;
-        flex-wrap: wrap;
-        word-wrap: break-word;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    label {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+        color: #333;
+    }
+
+    input[type="text"], input[type="file"], select {
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid #ccc;
+        outline: none;
+        font-size: 0.95rem;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus, select:focus {
+        border-color: #F78A21;
+        box-shadow: 0 0 5px rgba(247,138,33,0.3);
+    }
+
+    .image-loader {
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    #cottage-preview {
+        width: 250px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 1rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    #cottage-preview:hover {
+        transform: scale(1.03);
+    }
+
+    .button-container {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 1rem;
+    }
+
+    button {
+        padding: 0.75rem 2rem;
+        border-radius: 0.75rem;
+        border: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    button[type="submit"] {
+        background-color: #F78A21;
+        color: #fff;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #e36b0f;
+    }
+
+    #cancel {
+        background-color: #ccc;
+        color: #333;
+    }
+
+    #cancel:hover {
+        background-color: #b3b3b3;
+    }
+
+    .alert-message {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #fff;
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        font-weight: 600;
+        z-index: 1000;
+        text-align: center;
+        min-width: 250px;
     }
 </style>
+</head>
+<body>
+<div id="layout">
+    @include ('components.sidebar')
+    <div id="main-layout">
+        <div id="title-header">
+            <h1>Edit Kiddy Pool Cottage</h1>
+        </div>
+
+        <form action="{{ route('manager.edit_cottage', ['cottageID' => $cottage->cottageID]) }}" method="post" enctype="multipart/form-data">
+            @csrf
+
+            <div>
+                <label for="cottagename">Cottage Name:</label>
+                <input id="cottagename" type="text" name="cottagename" placeholder="November Rain Cottage"
+                       value="{{ old('cottagename', $cottage->cottagename ?? '') }}" required>
+            </div>
+
+            <div>
+                <label for="capacity">Capacity:</label>
+                <input id="capacity" type="text" name="capacity" placeholder="8"
+                       value="{{ old('capacity', $cottage->capacity ?? '') }}" required>
+            </div>
+
+            <div>
+                <label for="price">Price</label>
+                <input id="price" type="text" name="price" placeholder="2300.00"
+                       value="{{ old('price', $cottage->price ?? '') }}" required>
+            </div>
+
+            <div class="image-loader">
+                <label for="image">Select an Image:</label>
+                <img id="cottage-preview"
+                     src="{{ $cottage->image ? asset('storage/' . $cottage->image) : asset('images/photo.png') }}" alt="Cottage Preview"/>
+                <input id="image" type="file" accept="image/jpg, image/png, image/webp, image/jpeg" name="image">
+            </div>
+
+            <div>
+                <label for="status">Status</label>
+                <select id="status" name="status" required>
+                    <option disabled {{ old('status', $cottage->status ?? '') == '' ? 'selected' : '' }}>Select Status</option>
+                    <option value="Available" {{ old('status', $cottage->status ?? '') == 'Available' ? 'selected' : '' }}>Available</option>
+                    <option value="Unavailable" {{ old('status', $cottage->status ?? '') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
+                    <option value="Maintenance" {{ old('status', $cottage->status ?? '') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                </select>
+            </div>
+
+            <div class="button-container">
+                <button id="cancel" type="button" data-url="{{url('manager/cottage_list')}}">Cancel</button>
+                <button type="submit">Save</button>
+            </div>
+        </form>
+
+        @if (session('success'))
+        <div class="alert-message">{{ session('success')}}</div>
+        @endif
+        @if (session('error'))
+        <div class="alert-message">{{ session('error') }}</div>
+        @endif
+    </div>
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function(){
-        const cancelbtn = document.getElementById('cancel');
-        const cottagepreview = document.getElementById('cottage-preview');
-        const inptCottageImage = document.getElementById('image');
-        const priceInput = document.getElementById('price');
-        const message = document.querySelector('.alert-message');
-        if (message) {
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 2500);
-        }
+document.addEventListener('DOMContentLoaded', function(){
+    const cancelBtn = document.getElementById('cancel');
+    const cottagePreview = document.getElementById('cottage-preview');
+    const imageInput = document.getElementById('image');
+    const priceInput = document.getElementById('price');
+    const message = document.querySelector('.alert-message');
 
-        
-        priceInput.addEventListener('input', function () {
-            this.value = this.value.replace(/[^\d.]/g, '')  
-                                .replace(/(\..*?)\..*/g, '$1');
-        });
+    if (message) {
+        setTimeout(() => message.style.display = 'none', 2500);
+    }
 
-        // Format to end with .00 if necessary when losing focus
-        priceInput.addEventListener('blur', function () {
-            let val = parseFloat(this.value);
-            if (!isNaN(val)) {
-                this.value = val.toFixed(2);
-            } else {
-                this.value = '';
-            }
-        });
-
-        inptCottageImage.addEventListener('change', function(){
-            const file = inptCottageImage.files[0];
-            if (file) {
-                cottagepreview.src = URL.createObjectURL(file);
-            }
-        });
-
-        cancelbtn.addEventListener('click', function(){
-            window.location.href = this.dataset.url;
-        });
+    cancelBtn.addEventListener('click', () => {
+        window.location.href = cancelBtn.dataset.url;
     });
+
+    // Preview image
+    imageInput.addEventListener('change', () => {
+        const file = imageInput.files[0];
+        if (file) cottagePreview.src = URL.createObjectURL(file);
+    });
+
+    // Numeric validation
+    priceInput.addEventListener('input', function () {
+        this.value = this.value.replace(/[^\d.]/g, '').replace(/(\..*?)\..*/g, '$1');
+    });
+
+    priceInput.addEventListener('blur', function () {
+        let val = parseFloat(this.value);
+        this.value = isNaN(val) ? '' : val.toFixed(2);
+    });
+});
 </script>
+</body>
+</html>

@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 use App\Models\CottageTable;
+use App\Models\DisableReasonTable;
+use App\Models\StaffTable;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class ManageCottageController extends Controller
@@ -122,7 +125,7 @@ class ManageCottageController extends Controller
     }
 
     // Update cottage status
-    public function updateCottageStatus($cottageID, $status)
+    public function updateCottageStatus($cottageID, $status, Request $request)
     {
         $cottage = CottageTable::find($cottageID);
 
@@ -130,16 +133,48 @@ class ManageCottageController extends Controller
             return redirect('manager/cottage_list')->with('error', 'Cottage not found.');
         }
 
+        // Get logged-in user and staff info
+        $user = $request->session()->get('user_id');
+        $staff = StaffTable::where('userID', $user)->first();
+
+        // Get reason from request (from query param or POST)
+        $reason = $request->input('reason', ''); // default to empty if not provided
+
+        // Save reason
+        DisableReasonTable::create([
+            'cottageID' => $cottageID,
+            'reason' => $reason,
+            'reported_by' => $staff->staffID ?? null, // in case staff not found
+            'reported_date' => \Carbon\Carbon::now(),
+        ]);
+
+        // Update status
         $cottage->status = $status;
         $cottage->save();
 
-        Log::info('Cottage status updated', ['cottageID' => $cottageID, 'status' => $status]);
+        Log::info('Cottage status updated', [
+            'cottageID' => $cottageID,
+            'status' => $status,
+            'reason' => $reason,
+        ]);
 
         return redirect('manager/cottage_list')->with('success', "Cottage status set to {$status} successfully.");
     }
 
+
     // Convenience methods
-    public function deactivateCottage($cottageID) { return $this->updateCottageStatus($cottageID, 'Unavailable'); }
-    public function activateCottage($cottageID) { return $this->updateCottageStatus($cottageID, 'Available'); }
-    public function maintenanceCottage($cottageID) { return $this->updateCottageStatus($cottageID, 'Maintenance'); }
+    public function deactivateCottage($cottageID, Request $request)
+    {
+        return $this->updateCottageStatus($cottageID, 'Unavailable', $request);
+    }
+
+    public function activateCottage($cottageID, Request $request)
+    {
+        return $this->updateCottageStatus($cottageID, 'Available', $request);
+    }
+
+    public function maintenanceCottage($cottageID, Request $request)
+    {
+        return $this->updateCottageStatus($cottageID, 'Maintenance', $request);
+    }
 }

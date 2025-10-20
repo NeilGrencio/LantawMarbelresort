@@ -14,76 +14,62 @@ class BillingController extends Controller
     public function billingList()
     {
         $payments = PaymentTable::query()
-            ->leftJoin('guest', 'payment.guestID', '=', 'guest.guestID')
-            ->leftJoin('billing', 'payment.billingID', '=', 'billing.billingID')
-            ->leftJoin('booking', 'billing.bookingID', '=', 'booking.bookingID')
-            ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
+    ->leftJoin('guest', 'payment.guestID', '=', 'guest.guestID')
+    ->leftJoin('billing', 'payment.billingID', '=', 'billing.billingID')
+    ->leftJoin('booking', 'billing.bookingID', '=', 'booking.bookingID')
+    ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
 
-            // --- ROOM BOOKINGS ---
-            ->leftJoin('roombook', 'booking.bookingID', '=', 'roombook.bookingID')
-            ->leftJoin('rooms', 'roombook.roomID', '=', 'rooms.roomID')
+    // --- ROOM BOOKINGS ---
+    ->leftJoin('roombook', 'booking.bookingID', '=', 'roombook.bookingID')
+    ->leftJoin('rooms', 'roombook.roomID', '=', 'rooms.roomID')
+    ->leftJoin('room_type', 'rooms.roomtypeID', '=', 'room_type.roomtypeID') // NEW JOIN
 
-            // --- COTTAGE BOOKINGS ---
-            ->leftJoin('cottagebook', 'booking.bookingID', '=', 'cottagebook.bookingID')
-            ->leftJoin('cottages', 'cottagebook.cottageID', '=', 'cottages.cottageID')
+    // --- COTTAGE BOOKINGS ---
+    ->leftJoin('cottagebook', 'booking.bookingID', '=', 'cottagebook.bookingID')
+    ->leftJoin('cottages', 'cottagebook.cottageID', '=', 'cottages.cottageID')
 
-            // --- MENU BOOKINGS ---
-            ->leftJoin('menu_bookings', 'booking.bookingID', '=', 'menu_bookings.booking_id')
+    // --- MENU BOOKINGS ---
+    ->leftJoin('menu_bookings', 'booking.bookingID', '=', 'menu_bookings.booking_id')
 
-            // --- ADDITIONAL CHARGES ---
-            ->leftJoin('additionalcharges', 'billing.chargeID', '=', 'additionalcharges.chargeID')
+    // --- ADDITIONAL CHARGES ---
+    ->leftJoin('additionalcharges', 'billing.chargeID', '=', 'additionalcharges.chargeID')
 
-            ->select(
-                'payment.paymentID',
-                'payment.totaltender',
-                DB::raw('CONCAT(guest.firstname, " ", guest.lastname) AS guestname'),
-                'billing.totalamount',
+    ->select(
+        'payment.paymentID',
+        'payment.totaltender',
+        DB::raw('CONCAT(guest.firstname, " ", guest.lastname) AS guestname'),
+        'billing.totalamount',
 
-                // --- Amenity breakdown ---
-                DB::raw('
-                    (booking.adultguest * amenities.adultprice + booking.childguest * amenities.childprice)
-                    AS amenity_total
-                '),
+        // --- Amenity breakdown ---
+        DB::raw('(booking.adultguest * amenities.adultprice + booking.childguest * amenities.childprice) AS amenity_total'),
 
-                // --- Menu breakdown ---
-                DB::raw('
-                    COALESCE(SUM(menu_bookings.price * menu_bookings.quantity), 0)
-                    AS menu_total
-                '),
+        // --- Menu breakdown ---
+        DB::raw('COALESCE(SUM(menu_bookings.price * menu_bookings.quantity), 0) AS menu_total'),
 
-                // --- Room breakdown ---
-                DB::raw('
-                    COALESCE(SUM(rooms.price), 0)
-                    AS room_total
-                '),
+        // --- Room breakdown ---
+        DB::raw('COALESCE(SUM(room_type.price), 0) AS room_total'), // <-- use room_types.price
 
-                // --- Cottage breakdown ---
-                DB::raw('
-                    COALESCE(SUM(cottages.price), 0)
-                    AS cottage_total
-                '),
+        // --- Cottage breakdown ---
+        DB::raw('COALESCE(SUM(cottages.price), 0) AS cottage_total'),
 
-                // --- Additional Charges breakdown ---
-                DB::raw('
-                    COALESCE(SUM(additionalcharges.amount), 0)
-                    AS additional_total
-                ')
-            )
+        // --- Additional Charges breakdown ---
+        DB::raw('COALESCE(SUM(additionalcharges.amount), 0) AS additional_total')
+    )
 
-            ->groupBy(
-                'payment.paymentID',
-                'payment.totaltender',
-                'guest.firstname',
-                'guest.lastname',
-                'billing.totalamount',
-                'booking.adultguest',
-                'booking.childguest',
-                'amenities.adultprice',
-                'amenities.childprice'
-            )
+    ->groupBy(
+        'payment.paymentID',
+        'payment.totaltender',
+        'guest.firstname',
+        'guest.lastname',
+        'billing.totalamount',
+        'booking.adultguest',
+        'booking.childguest',
+        'amenities.adultprice',
+        'amenities.childprice'
+    )
+    ->orderBy('payment.paymentID', 'desc')
+    ->paginate(10);
 
-            ->orderBy('payment.paymentID', 'desc')
-            ->paginate(10);
 
         return view('receptionist.billing', compact('payments'));
     }

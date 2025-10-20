@@ -88,10 +88,11 @@
         display: flex;
         flex-direction: row;
         height:100vh;
+        width:100%;
     }
     #main-layout{
         padding:1rem;
-        margin-left:12rem;
+        margin-left:15rem;
         display:flex;
         flex-direction: row;
         gap:1rem;

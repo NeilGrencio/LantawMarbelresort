@@ -25,6 +25,9 @@ use App\Notifications\BookingUpdateNotification;
 use App\Models\RoomBookTable;
 use App\Models\CottageBookTable;
 use App\Models\ChargeTable;
+use App\Models\InclusionTable;
+use App\Models\RoomTypeTable;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Types\Relations\Car;
 
 class BookingController extends Controller
@@ -182,11 +185,37 @@ class BookingController extends Controller
 
     public function createBooking()
     {
-        $rooms = RoomTable::where('status', 'Available')->get();
+        // Fetch only room types that have at least one room
+        $rooms = RoomTypeTable::join('rooms', 'room_type.roomtypeID', '=', 'rooms.roomtypeID')
+            ->leftJoin('discount', 'room_type.discountID', '=', 'discount.discountID')
+            ->select(
+                'room_type.roomtypeID',
+                'room_type.roomtype',
+                'room_type.basecapacity',
+                'room_type.maxcapacity',
+                'room_type.price',
+                'room_type.extra',
+                'room_type.description',
+                'room_type.image',
+                'discount.name as discount_name',
+                'discount.flatamount as discount_amount'
+            )
+            ->distinct() // make sure each room type appears only once
+            ->get();
+
+        // Add image URL
+        foreach ($rooms as $room) {
+            $room->image_url = $room->image
+                ? route('room.image', ['filename' => basename($room->image)])
+                : asset('images/default-room.jpg');
+        }
+
         $cottages = CottageTable::where('status', 'Available')->get();
         $amenities = AmenityTable::where('amenityname', 'Kiddy Pool')->get();
+        $inclusions = InclusionTable::with(['roomtype', 'amenity', 'menu'])->get();
+        $extras = AmenityTable::where('type', 'Items')->get();
 
-        // Get all bookings with their dates
+        // Fetch booked items
         $roomBookings = RoomBookTable::select('roomID', 'bookingDate')->get();
         $cottageBookings = CottageBookTable::select('cottageID', 'bookingDate')->get();
         $amenityBookings = BookingTable::whereNotNull('amenityID')
@@ -199,145 +228,316 @@ class BookingController extends Controller
             'amenities' => $amenityBookings,
         ];
 
-        return view('receptionist.create_booking', compact('rooms', 'cottages', 'amenities', 'bookedItems'));
+        return view('receptionist.create_booking', compact('rooms', 'cottages', 'amenities', 'bookedItems', 'inclusions', 'extras'));
+    }
+
+    public function getRoomInclusions(Request $request)
+    {
+        $roomIDs = $request->input('roomIDs', []);
+
+        if (empty($roomIDs)) {
+            return response()->json([]);
+        }
+
+        $inclusions = InclusionTable::leftJoin('amenity_table', 'inclusions.amenityID', '=', 'amenity_table.amenityID')
+            ->leftJoin('menu_table', 'inclusions.menuID', '=', 'menu_table.menuID')
+            ->select(
+                'inclusions.inclusionID',
+                'inclusions.roomID',
+                'amenity_table.amenityname',
+                'menu_table.menuname'
+            )
+            ->whereIn('inclusions.roomID', $roomIDs)
+            ->get();
+
+        // Deduplicate inclusions (same amenity/menu across multiple rooms)
+        $unique = $inclusions->unique(function ($item) {
+            return ($item->amenityname ?? '') . '|' . ($item->menuname ?? '');
+        })->values();
+
+        return response()->json($unique);
     }
 
     public function submitBooking(Request $request, OCRService $ocrService)
-    {
-        $validated = $request->validate([
-            'room' => 'nullable|array',
-            'room.*' => 'integer|exists:rooms,roomID',
-            'cottage' => 'nullable|array',
-            'cottage.*' => 'integer|exists:cottages,cottageID',
-            'amenity' => 'nullable|array',
-            'amenity.*' => 'integer|exists:amenities,amenityID',
-            'guestamount' => 'required|integer|min:1',
-            'amenity_adult_guest' => 'required|integer|min:0',
-            'amenity_child_guest' => 'required|integer|min:0',
-            'firstname' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
-            'lastname'  => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
-            'contactnum' => 'nullable|string|max:20',
-            'email'     => 'nullable|email|max:255',
-            'gender'    => 'nullable|string',
-            'birthday'  => ['nullable', 'date', 'before_or_equal:' . now()->subYears(18)->toDateString()],
-            'validID'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'username' => 'nullable|min:5|max:20|unique:users,username',
-            'password' => [
-                'nullable',
-                'min:8',
-                'max:20',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/'
-            ],
-            'password_confirmation' => 'nullable|string|same:password',
-            'checkin' => 'required|date',
-            'checkout' => 'required|date|after_or_equal:checkin',
-        ]);
+{
+    $validated = $request->validate([
+        'room' => 'required|array',
+        'room.*' => 'integer|min:0',
+        'cottage' => 'nullable|array',
+        'cottage.*' => 'integer|exists:cottages,cottageID',
+        'amenity' => 'nullable|array',
+        'amenity.*' => 'integer|exists:amenities,amenityID',
+        'extra' => 'nullable|array',
+        'extra.*' => 'integer|exists:amenities,amenityID',
+        'guestamount' => 'required|integer|min:1',
+        'amenity_adult_guest' => 'required|integer|min:0',
+        'amenity_child_guest' => 'required|integer|min:0',
+        'firstname' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
+        'lastname'  => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
+        'contactnum' => 'nullable|string|max:20',
+        'email'     => 'nullable|email|max:255',
+        'gender'    => 'nullable|string',
+        'birthday'  => ['nullable', 'date', 'before_or_equal:' . now()->subYears(18)->toDateString()],
+        'validID'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        'username' => 'nullable|min:5|max:20|unique:users,username',
+        'password' => [
+            'nullable',
+            'min:8',
+            'max:20',
+            'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/'
+        ],
+        'password_confirmation' => 'nullable|string|same:password',
+        'checkin' => 'required|date',
+        'checkout' => 'required|date|after_or_equal:checkin',
+    ]);
 
-        if (empty($validated['room']) && empty($validated['cottage']) && empty($validated['amenity'])) {
-            return redirect()->back()
-                ->withErrors(['selection' => 'Please select at least a room, a cottage, or an amenity.'])
-                ->withInput();
-        }
+    // ✅ FIX: ensure at least one room has quantity > 0
+    $hasSelectedRoom = collect($validated['room'] ?? [])
+        ->some(fn($qty) => (int)$qty > 0);
 
-        $availabilityError = $this->checkAvailability($validated);
-        if ($availabilityError) {
-            return redirect()->back()
-                ->withErrors(['availability' => $availabilityError])
-                ->withInput();
-        }
-
-        $path = null; // initialize variable
-
-        if ($request->hasFile('validID')) {
-            $file = $request->file('validID');
-
-            // Store the file
-            $path = $file->storeAs(
-                'temp_valid_ids',
-                uniqid() . '.' . $file->getClientOriginalExtension(),
-                'public'
-            );
-
-            $absolutePath = storage_path('app/public/' . $path);
-
-            // Call OCR service
-            $result = $ocrService->verify($absolutePath);
-
-            if (!$result['isValid']) {
-                return back()
-                    ->withErrors(['validID' => 'The uploaded ID is not a valid Philippine National ID.'])
-                    ->with('ocrtext', $result['ocrText']);
-            }
-            $validated['validID'] = $path;
-
-            // Dump the OCR result
-            //dd([
-            //    'isValid' => $result['isValid'],
-            //    'ocrText' => $result['ocrText'],
-            //    'filePath' => $absolutePath,
-            // ]);
-        } else {
-            $validated['validID'] = null;
-        }
-        $prices = $this->calculatePrices($validated);
-
-        $bookingSessionID = (string) Str::uuid();
-        session([
-            'booking_data_' . $bookingSessionID => $validated,
-            'booking_prices_' . $bookingSessionID => $prices,
-        ]);
-
-        return redirect()->route('receptionist.booking_receipt', ['sessionID' => $bookingSessionID]);
+    if (!$hasSelectedRoom) {
+        return back()->withErrors(['room' => 'Please select at least one room.'])->withInput();
     }
 
+    // ===== Availability Check =====
+    $availabilityError = $this->checkAvailability($validated);
+    if ($availabilityError) {
+        return back()->withErrors(['availability' => $availabilityError])->withInput();
+    }
 
+    // ===== OCR ID Verification =====
+    $validated['validID'] = null;
+    if ($request->hasFile('validID')) {
+        $file = $request->file('validID');
+        $path = $file->storeAs('temp_valid_ids', uniqid() . '.' . $file->getClientOriginalExtension(), 'public');
+        $absolutePath = storage_path('app/public/' . $path);
+        $result = $ocrService->verify($absolutePath);
+        if (!$result['isValid']) {
+            return back()->withErrors(['validID' => 'The uploaded ID is not a valid Philippine National ID.']);
+        }
+        $validated['validID'] = $path;
+    }
+
+    // ===== Duration Calculation =====
+    $checkin = \Carbon\Carbon::parse($validated['checkin']);
+    $checkout = \Carbon\Carbon::parse($validated['checkout']);
+    $days = max(1, $checkin->diffInDays($checkout));
+
+    // ===== Pricing Calculations =====
+    $totalGuests = (int) $validated['guestamount'];
+    $roomprice = 0;
+    $totalBaseCapacity = 0;
+    $roomDetails = [];
+
+    if (!empty($validated['room'])) {
+        foreach ($validated['room'] as $roomID => $qty) {
+            if ((int)$qty <= 0) continue; // ✅ skip unselected rooms
+
+            $room = RoomTable::find($roomID);
+            if (!$room) continue;
+
+            $roomprice += $room->price * $qty;
+            $totalBaseCapacity += $room->basecapacity * $qty;
+
+            $roomDetails[] = [
+                'roomID' => $roomID,
+                'roomtype' => $room->roomtype,
+                'quantity' => $qty,
+                'price' => $room->price,
+                'basecapacity' => $room->basecapacity,
+                'extra' => $room->extra,
+            ];
+        }
+    }
+
+    // ===== Extra Guests Beyond Base Capacity =====
+    if ($totalGuests > $totalBaseCapacity) {
+        $excess = $totalGuests - $totalBaseCapacity;
+        $extraSelected = AmenityTable::whereIn('amenityID', $validated['extra'] ?? [])
+            ->where('amenityname', 'like', '%breakfast%')
+            ->exists();
+        $extraRate = $extraSelected ? 900 : 700;
+        $roomprice += $excess * $extraRate;
+    }
+
+    // ===== Cottage Pricing =====
+    $cottageprice = 0;
+    if (!empty($validated['cottage'])) {
+        $cottages = CottageTable::whereIn('cottageID', $validated['cottage'])->get();
+        foreach ($cottages as $cottage) {
+            $cottageprice += $cottage->price;
+        }
+    }
+
+    // ===== Amenity Pricing =====
+    $adultprice = 0;
+    $childprice = 0;
+    if (!empty($validated['amenity'])) {
+        $amenities = AmenityTable::whereIn('amenityID', $validated['amenity'])->get();
+        foreach ($amenities as $amenity) {
+            $adultprice += $amenity->adultprice * $validated['amenity_adult_guest'];
+            $childprice += $amenity->childprice * $validated['amenity_child_guest'];
+        }
+    }
+
+    // ===== Extra Amenities =====
+    $extraPrice = 0;
+    if (!empty($validated['extra'])) {
+        $extras = AmenityTable::whereIn('amenityID', $validated['extra'])->get();
+        foreach ($extras as $extra) {
+            $extraPrice += $extra->adultprice * $validated['amenity_adult_guest'];
+            $extraPrice += $extra->childprice * $validated['amenity_child_guest'];
+        }
+    }
+
+    // ===== Multiply room & cottage prices by # of days =====
+    $roomprice *= $days;
+    $cottageprice *= $days;
+    $totalprice = $roomprice + $cottageprice + $adultprice + $childprice + $extraPrice;
+
+    // ===== Store Prices in Session =====
+    $prices = [
+        'roomprice' => $roomprice,
+        'cottageprice' => $cottageprice,
+        'adultprice' => $adultprice,
+        'childprice' => $childprice,
+        'amenityprice' => $adultprice + $childprice,
+        'extraPrice' => $extraPrice,
+        'totalprice' => $totalprice,
+        'rooms' => $roomDetails,
+    ];
+
+    $bookingSessionID = (string) Str::uuid();
+    session([
+        'booking_data_' . $bookingSessionID => $validated,
+        'booking_prices_' . $bookingSessionID => $prices,
+    ]);
+
+    return redirect()->route('receptionist.booking_receipt', ['sessionID' => $bookingSessionID]);
+}
 
     public function receiptBooking($sessionID)
-    {
-        $data = session('booking_data_' . $sessionID);
-        $prices = session('booking_prices_' . $sessionID);
+{
+    // Retrieve booking data and prices from session
+    $data = session('booking_data_' . $sessionID);
+    $prices = session('booking_prices_' . $sessionID);
 
-        if (!$data || !$prices) {
-            return redirect()->route('receptionist.create_booking')
-                ->with('error', 'Booking session expired.');
-        }
-
-        $selectedRooms = RoomTable::whereIn('roomID', data_get($data, 'room', []))->get();
-        $selectedCottages = CottageTable::whereIn('cottageID', data_get($data, 'cottage', []))->get();
-        $selectedAmenities = AmenityTable::whereIn('amenityID', data_get($data, 'amenity', []))->get();
-        $discounts = DiscountTable::where('status', 'Available')->get();
-
-        return view('receptionist/receipt_booking', [
-            'booking' => $data,
-            'sessionID' => $sessionID,
-            'room' => $selectedRooms,
-            'cottage' => $selectedCottages,
-            'amenity' => $selectedAmenities,
-            'discount' => $discounts,
-            'roomprice' => $prices['roomprice'],
-            'cottageprice' => $prices['cottageprice'],
-            'adultprice' => $prices['adultprice'],
-            'childprice' => $prices['childprice'],
-            'amenityprice' => $prices['amenityprice'],
-            'totalprice' => $prices['totalprice'],
-        ]);
+    if (!$data || !$prices) {
+        return redirect()->route('receptionist.create_booking')
+            ->with('error', 'Booking session expired.');
     }
+
+    // Calculate nights between check-in and check-out
+    $checkin = \Carbon\Carbon::parse($data['checkin']);
+    $checkout = \Carbon\Carbon::parse($data['checkout']);
+    $nights = $checkin->diffInDays($checkout);
+    if ($nights <= 0) $nights = 1; // Default to 1 night if same-day booking
+
+    // Retrieve selected rooms with quantities and compute per-night cost
+    $selectedRooms = [];
+    $roomTotal = 0;
+    if (!empty($prices['rooms'])) {
+        foreach ($prices['rooms'] as $roomData) {
+            $room = RoomTypeTable::find($roomData['roomID']);
+            if ($room) {
+                $room->quantity = $roomData['quantity'];
+                $room->nights = $nights;
+                $room->price_per_night = $room->price;
+                $room->subtotal = $room->price_per_night * $room->quantity * $nights;
+                $selectedRooms[] = $room;
+                $roomTotal += $room->subtotal;
+            }
+        }
+    }
+
+    // Retrieve selected cottages
+    $selectedCottages = [];
+    if (!empty($data['cottage'])) {
+        $selectedCottages = CottageTable::whereIn('cottageID', $data['cottage'])->get();
+    }
+
+    // Retrieve selected amenities
+    $selectedAmenities = [];
+    if (!empty($data['amenity'])) {
+        $selectedAmenities = AmenityTable::whereIn('amenityID', $data['amenity'])->get();
+    }
+
+    // Retrieve discounts
+    $discounts = DiscountTable::where('status', 'Available')->where('type', 'Discount')->get();
+
+    // Get room inclusions
+    $inclusionsByRoom = [];
+    foreach ($selectedRooms as $room) {
+        $roomInclusions = InclusionTable::leftJoin('amenities', 'inclusions.amenityID', '=', 'amenities.amenityID')
+            ->leftJoin('menu', 'inclusions.menuID', '=', 'menu.menuID')
+            ->select('amenities.amenityname', 'menu.menuname')
+            ->where('inclusions.roomtypeID', $room->roomtypeID)
+            ->get()
+            ->map(fn($item) => $item->amenityname ?? $item->menuname)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $inclusionsByRoom[$room->roomtype] = $roomInclusions;
+    }
+
+    // Update roomprice total
+    $prices['roomprice'] = $roomTotal;
+
+    //  Compute new total price based on updated room totals
+    $roomTotal = $roomTotal ?? 0;
+    $cottageTotal = $prices['cottageprice'] ?? 0;
+    $amenityTotal = $prices['amenityprice'] ?? 0;
+    $adultTotal = $prices['adultprice'] ?? 0;
+    $childTotal = $prices['childprice'] ?? 0;
+    $extraTotal = $prices['extraPrice'] ?? 0;
+
+    // Recalculate total properly
+    $totalprice = $roomTotal + $cottageTotal + $amenityTotal + $adultTotal + $childTotal + $extraTotal;
+
+
+    // Pass data to view
+    return view('receptionist.receipt_booking', [
+        'booking'           => $data,
+        'sessionID'         => $sessionID,
+        'rooms'             => collect($selectedRooms),
+        'cottage'           => collect($selectedCottages),
+        'amenity'           => collect($selectedAmenities),
+        'discount'          => $discounts,
+        'roomprice'         => $roomTotal,
+        'cottageprice'      => $prices['cottageprice'] ?? 0,
+        'adultprice'        => $prices['adultprice'] ?? 0,
+        'childprice'        => $prices['childprice'] ?? 0,
+        'amenityprice'      => $prices['amenityprice'] ?? 0,
+        'extraPrice'        => $prices['extraPrice'] ?? 0,
+        'totalprice'        => $totalprice ?? 0,
+        'inclusionsByRoom'  => $inclusionsByRoom,
+        'nights'            => $nights,
+    ]);
+}
+
 
     private function parseDate($dateString)
     {
         try {
-            $formats = ['m/d/Y', 'Y-m-d', 'd/m/Y', 'm-d-Y'];
+            $formats = ['m/d/Y', 'Y-m-d', 'Y/m/d', 'd/m/Y', 'm-d-Y'];
             foreach ($formats as $format) {
-                $date = Carbon::createFromFormat($format, $dateString);
-                if ($date) {
-                    return $date; // Return Carbon object instead of formatted string
+                try {
+                    $date = Carbon::createFromFormat($format, $dateString);
+                    if ($date) {
+                        return $date; // Return Carbon object (DB will store as Y-m-d)
+                    }
+                } catch (\Exception $e) {
+                    continue;
                 }
             }
+            // Fallback to Carbon parse
             return Carbon::parse($dateString);
         } catch (\Exception $e) {
             return null;
         }
     }
+
     public function confirmBooking(Request $request, $sessionID)
     {
         $data = session('booking_data_' . $sessionID);
@@ -348,19 +548,7 @@ class BookingController extends Controller
                 ->with('error', 'Booking session has expired. Please start again.');
         }
 
-        $birthday = null;
-        if (!empty($data['birthday'])) {
-            try {
-                $birthday = Carbon::createFromFormat('m/d/Y', $data['birthday'])->format('Y-m-d');
-            } catch (\Exception $e) {
-                try {
-                    $birthday = Carbon::createFromFormat('Y-m-d', $data['birthday'])->format('Y-m-d');
-                } catch (\Exception $e) {
-                    $birthday = null;
-                }
-            }
-        }
-
+        // Validate payment inputs
         $validated = $request->validate([
             'cashamount'   => 'required_if:payment,cash|nullable|numeric|min:0',
             'discount'     => 'nullable',
@@ -368,61 +556,64 @@ class BookingController extends Controller
             'payment'      => 'required|in:cash,gcash',
         ]);
 
-        try {
-            $validIDPath = $data['validID'] ?? null;
-            $defaultAvatar = 'images/profile.jpg';
-
-            $userID = null;
-
-            if (!empty($data['username']) && !empty($data['password'])) {
-                $user = UserTable::firstOrCreate(
-                    ['username' => $data['username']],
-                    ['password' => bcrypt($data['password'])]
-                );
-                $userID = $user->userID;
+        // Parse birthday
+        $birthday = null;
+        if (!empty($data['birthday'])) {
+            try {
+                $birthday = Carbon::parse($data['birthday'])->format('Y-m-d');
+            } catch (\Exception $e) {
+                $birthday = null;
             }
-            $avatarPath = !empty($data['avatar']) ? $data['avatar'] : $defaultAvatar;
-
-            $guest = GuestTable::firstOrCreate(
-                [
-                    'firstname' => $data['firstname'],
-                    'lastname'  => $data['lastname'],
-                ],
-                [
-                    'mobilenum' => $data['contactnum'] ?? null,
-                    'email'     => $data['email'] ?? null,
-                    'gender'    => $data['gender'] ?? null,
-                    'birthday'  => $birthday ?? null,
-                    'validID'   => $validIDPath,
-                    'role'      => 'guest',
-                    'avatar'    => $avatarPath,
-                    'userID'    => $userID,
-                ]
-            );
-
-            if ($guest && $userID && $guest->userID === null) {
-                $guest->update(['userID' => $userID]);
-            }
-
-            if (!$guest) {
-                return redirect()->back()->with('error', 'Unable to process guest information.');
-            }
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error processing guest information: ' . $e->getMessage());
         }
 
-        $originalAmount = (float) str_replace(',', '', $prices['totalprice']);
+        // ====== Guest + User Handling ======
+        $userID = null;
+        if (!empty($data['username']) && !empty($data['password'])) {
+            $user = UserTable::firstOrCreate(
+                ['username' => $data['username']],
+                ['password' => bcrypt($data['password'])]
+            );
+            $userID = $user->userID;
+        }
+
+        $avatarPath = !empty($data['avatar']) ? $data['avatar'] : 'images/profile.jpg';
+
+        $guest = GuestTable::firstOrCreate(
+            ['firstname' => $data['firstname'], 'lastname' => $data['lastname']],
+            [
+                'mobilenum' => $data['contactnum'] ?? null,
+                'email'     => $data['email'] ?? null,
+                'gender'    => $data['gender'] ?? null,
+                'birthday'  => $birthday,
+                'validID'   => $data['validID'] ?? null,
+                'role'      => 'guest',
+                'avatar'    => $avatarPath,
+                'userID'    => $userID,
+            ]
+        );
+
+        if ($guest && $userID && $guest->userID === null) {
+            $guest->update(['userID' => $userID]);
+        }
+
+        if (!$guest) {
+            return redirect()->back()->with('error', 'Unable to process guest information.');
+        }
+
+        // ====== Discount & Payment Calculations ======
+        $originalAmount = (float) $prices['totalprice'];
         $discountAmount = 0;
 
         if (!empty($validated['discount'])) {
-            $discount = DB::table('discount')->where('discountID', $validated['discount'])->first();
+            $discount = DiscountTable::find($validated['discount']);
             if ($discount && isset($discount->amount)) {
-                $discountAmount = $originalAmount * (float) $discount->amount;
+                $discountAmount = $originalAmount * ((float) $discount->amount / 100);
             }
         }
 
         $discountedAmount = $originalAmount - $discountAmount;
-        $requiredAmount   = $validated['payment_type'] === 'downpayment'
+
+        $requiredAmount = $validated['payment_type'] === 'downpayment'
             ? $discountedAmount * 0.5
             : $discountedAmount;
 
@@ -440,25 +631,19 @@ class BookingController extends Controller
 
         $remainingBalance = $discountedAmount - $amountPaid;
 
+        // ====== Save Booking & Billing ======
         try {
             DB::beginTransaction();
 
-            $checkinDate  = $this->parseDate($data['checkin']);
-            $checkoutDate = $this->parseDate($data['checkout']);
+            $checkinDate  = Carbon::parse($data['checkin']);
+            $checkoutDate = Carbon::parse($data['checkout']);
+            $status = $checkinDate->lessThanOrEqualTo(Carbon::now()) ? 'Ongoing' : 'Booked';
 
-            if (!$checkinDate || !$checkoutDate) {
-                throw new \Exception('Invalid date format');
-            }
-
-            $status = 'Booked';
-            if ($checkinDate->lessThanOrEqualTo(Carbon::now())) {
-                $status = 'Ongoing';
-            }
-
+            // Create Booking
             $booking = BookingTable::create([
                 'bookingcreated' => Carbon::now(),
-                'bookingstart'   => $checkinDate,
-                'bookingend'     => $checkoutDate,
+                'bookingstart'   => $checkinDate->format('Y-m-d'),
+                'bookingend'     => $checkoutDate->format('Y-m-d'),
                 'guestamount'    => (int) $data['guestamount'],
                 'childguest'     => (int) ($data['amenity_child_guest'] ?? 0),
                 'adultguest'     => (int) ($data['amenity_adult_guest'] ?? 0),
@@ -469,38 +654,44 @@ class BookingController extends Controller
                 'guestID'        => $guest->guestID,
             ]);
 
+            // Auto check-in if today
             if ($status === 'Ongoing') {
                 CheckTable::create([
-                    'date'      => Carbon::now(),
+                    'date'      => Carbon::now()->format('Y-m-d'),
                     'status'    => 'Checked In',
                     'guestID'   => $guest->guestID,
                     'bookingID' => $booking->bookingID,
                 ]);
             }
 
-            if (!empty($data['room'])) {
-                foreach ($data['room'] as $roomID) {
-                    RoomBookTable::create([
-                        'bookingID' => $booking->bookingID,
-                        'roomID'    => (int) $roomID,
-                        'bookingDate' => Carbon::now(),
-                    ]);
+            // ====== Rooms ======
+            if (!empty($prices['rooms'])) {
+                foreach ($prices['rooms'] as $roomData) {
+                    for ($i = 0; $i < $roomData['quantity']; $i++) {
+                        RoomBookTable::create([
+                            'bookingID'   => $booking->bookingID,
+                            'roomID'      => $roomData['roomID'],
+                            'bookingDate' => Carbon::now()->format('Y-m-d'),
+                        ]);
+                    }
                 }
             }
 
+            // ====== Cottages ======
             if (!empty($data['cottage'])) {
                 foreach ($data['cottage'] as $cottageID) {
                     CottageBookTable::create([
-                        'bookingID'  => $booking->bookingID,
-                        'cottageID'  => (int) $cottageID,
-                        'bookingDate' => Carbon::now(),
+                        'bookingID'   => $booking->bookingID,
+                        'cottageID'   => (int) $cottageID,
+                        'bookingDate' => Carbon::now()->format('Y-m-d'),
                     ]);
                 }
             }
 
+            // ====== Billing ======
             $billing = BillingTable::create([
                 'totalamount' => $remainingBalance,
-                'datebilled'  => Carbon::now(),
+                'datebilled'  => Carbon::now()->format('Y-m-d'),
                 'status'      => $remainingBalance <= 0 ? 'Paid' : ($amountPaid > 0 ? 'Partial' : 'Unpaid'),
                 'bookingID'   => $booking->bookingID,
                 'orderID'     => null,
@@ -512,16 +703,17 @@ class BookingController extends Controller
                 'guestID'     => $guest->guestID,
             ]);
 
+            // ====== Payment ======
             PaymentTable::create([
                 'billingID'   => $billing->billingID,
                 'guestID'     => $guest->guestID,
                 'totaltender' => $amountPaid,
                 'totalchange' => $change,
-                'datepayment' => Carbon::now(),
+                'datepayment' => Carbon::now()->format('Y-m-d'),
             ]);
 
+            // ====== Log Activity ======
             $userID = $request->session()->get('user_id');
-
             if ($userID) {
                 SessionLogTable::create([
                     'userID'   => $userID,
@@ -532,15 +724,18 @@ class BookingController extends Controller
 
             DB::commit();
 
+            // Clear session
             session()->forget(['booking_data_' . $sessionID, 'booking_prices_' . $sessionID]);
 
             return redirect()->route('receptionist.booking')
                 ->with('success', 'Booking confirmed successfully!' . ($change > 0 ? ' Change: ₱' . number_format($change, 2) : ''));
+
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Booking failed: ' . $e->getMessage());
         }
     }
+
 
     // Helper methods to make code more readable and maintainable
 
@@ -553,7 +748,7 @@ class BookingController extends Controller
             $roomConflict = RoomBookTable::whereIn('roombook.roomID', $validated['room'])
                 ->join('booking', 'roombook.bookingID', '=', 'booking.bookingID')
                 ->where(function ($query) use ($dateRange, $validated) {
-                    $query->whereBetween('booking.bookingstart', $dateRange)
+                    $query->whereBetween('booking.bookingstart', $dateRange) // check for dates existing in the range
                         ->orWhereBetween('booking.bookingend', $dateRange)
                         ->orWhere(function ($query) use ($validated) {
                             $query->where('booking.bookingstart', '<=', $validated['checkin'])
@@ -854,7 +1049,7 @@ class BookingController extends Controller
         // Load booking with relationships
         $booking = BookingTable::with([
             'Guest',
-            'roomBookings.Room',
+            'roomBookings.Room.RoomType', // include RoomType relationship
             'cottageBookings.Cottage',
             'Amenity',
             'billing.Payments',
@@ -865,14 +1060,37 @@ class BookingController extends Controller
             return redirect()->back()->with('error', 'Booking not found');
         }
 
-        // Fetch all rooms, cottages, amenities
-        $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
-        $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
+        // Gather room and cottage IDs from booking
+        $roomIDs = $booking->roomBookings->pluck('roomID')->toArray();
+        $cottageIDs = $booking->cottageBookings->pluck('cottageID')->toArray();
+
+        // Fetch all booked rooms and cottages
+        $rooms = RoomTable::whereIn('roomID', $roomIDs)->with('RoomType')->get();
+        $cottages = CottageTable::whereIn('cottageID', $cottageIDs)->get();
         $amenities = AmenityTable::all();
 
-        // Prepare structured booking data for view
+        // Calculate room total
+        $roomTotal = $rooms->sum(function($room) use ($booking) {
+            return $room->price ?? 0; // assuming `price` column exists in RoomTable
+        });
+
+        // Calculate cottage total
+        $cottageTotal = $cottages->sum(function($cottage) use ($booking) {
+            return $cottage->price ?? 0; // assuming `price` column exists in CottageTable
+        });
+
+        // Add any additional totals, e.g., menuOrders
+        $menuTotal = $booking->menuBookings->sum(function($menu) {
+            return ($menu->price ?? 0) * ($menu->pivot->quantity ?? 1); // adjust if using pivot
+        });
+
+        // Total
+        $totalBooking = $roomTotal + $cottageTotal + $menuTotal;
+
+        // Prepare structured booking data
         $bookingData = (object) [
             'bookingID' => $booking->bookingID,
+            'status' => $booking->status ?? 'Pending',
             'firstname' => $booking->Guest->firstname ?? '',
             'lastname' => $booking->Guest->lastname ?? '',
             'guestamount' => $booking->guestamount,
@@ -880,19 +1098,77 @@ class BookingController extends Controller
             'childguest' => $booking->childguest,
             'checkin' => $booking->bookingstart,
             'checkout' => $booking->bookingend,
-            'rooms' => $booking->roomBookings->pluck('roomID')->toArray(),
-            'cottages' => $booking->cottageBookings->pluck('cottageID')->toArray(),
+            'rooms' => $roomIDs,
+            'cottages' => $cottageIDs,
             'amenities' => $booking->Amenity ? [$booking->Amenity->amenityID] : [],
             'billing' => $booking->billing,
             'payments' => $booking->billing ? $booking->billing->payments : [],
-            'menuOrders' => $booking->menuBookings ?? []
+            'menuOrders' => $booking->menuBookings ?? [],
+            'total' => $totalBooking,
+            'pricePerNight' => $rooms->first()->price ?? 0 // if extending, use first room price or define logic
         ];
 
-        // Log the booking data for debugging
-        Log::info('Booking Data for viewBooking:', (array) $bookingData);
 
-        return view('receptionist.view_booking', compact('rooms', 'cottages', 'amenities', 'bookingData'));
+        // Gather inclusions per booked room type
+        $inclusionsByRoom = [];
+
+        foreach ($rooms as $room) {
+            if (!$room->RoomType) continue;
+
+            $roomTypeID = $room->RoomType->roomtypeID;
+
+            $roomInclusions = InclusionTable::leftJoin('amenities', 'inclusions.amenityID', '=', 'amenities.amenityID')
+                ->leftJoin('menu', 'inclusions.menuID', '=', 'menu.menuID')
+                ->select('amenities.amenityname', 'menu.menuname')
+                ->where('inclusions.roomtypeID', $roomTypeID)
+                ->get()
+                ->map(fn($item) => $item->amenityname ?? $item->menuname)
+                ->filter()
+                ->unique()
+                ->values();
+
+            // Key by room number for easy display
+            $inclusionsByRoom[$room->roomnum] = $roomInclusions;
+        }
+
+        // Log for debugging
+        Log::info('Booking Data for viewBooking:', (array) $bookingData);
+        Log::info('Inclusions By Room:', $inclusionsByRoom);
+
+        // Pass data to view
+        return view('receptionist.view_booking', compact(
+            'rooms',
+            'cottages',
+            'amenities',
+            'bookingData',
+            'inclusionsByRoom'
+        ));
     }
+
+    public function extendBooking(Request $request, $bookingID)
+    {
+        $booking = BookingTable::find($bookingID);
+
+        if (!$booking) {
+            return redirect()->back()->with('error', 'Booking not found');
+        }
+
+        $extraNights = (int) $request->input('extra_nights', 0);
+
+        if ($extraNights < 1) {
+            return redirect()->back()->with('error', 'Invalid number of nights');
+        }
+
+        $newCheckout = \Carbon\Carbon::parse($booking->bookingend)->addDays($extraNights);
+        $newTotal = $booking->price * $extraNights + $booking->total; // add to existing total
+
+        $booking->bookingend = $newCheckout;
+        $booking->totalprice = $newTotal;
+        $booking->save();
+
+        return view('receptionist/booking_list')->with('success', 'Booking extended successfully!');
+    }
+
 
     private function getSelectedRooms($bookingID)
     {
@@ -930,8 +1206,8 @@ class BookingController extends Controller
                 ->join('booking', 'roombook.bookingID', '=', 'booking.bookingID')
                 ->where('booking.bookingstart', '<=', $checkout)
                 ->where('booking.bookingend', '>=', $checkin)
-                ->pluck('roombook.roomID')
-                ->unique()
+                ->pluck('roombook.roomID') // take all the rooms that are in the range  count if any exist for the selected roomtype
+                ->unique()                 // if no rooms left -> return there are no more rooms left for this type [roomtype]
                 ->values()
                 ->toArray();
 
@@ -1121,6 +1397,7 @@ class BookingController extends Controller
             ->where('booking.status', 'Booked')
             ->orderBy('booking.bookingstart', 'desc')
             ->paginate(10);
+        
 
         return view('receptionist.checkin', compact('checkin', 'today'));
     }
@@ -1140,247 +1417,334 @@ class BookingController extends Controller
     }
 
     public function checkInBooking(Request $request, $bookingID)
-    {
-        $today = Carbon::now()->format('m/d/Y');
-        $todayDB = Carbon::now()->format('Y-m-d');
+{
+    $now = Carbon::now();
+    $today = $now->format('m/d/Y');
+    $todayDB = $now->format('Y-m-d');
 
-        $booking = BookingTable::where('bookingID', $bookingID)
-            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
-            ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
-            ->select(
-                'booking.*',
-                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname"),
-                'amenities.amenityname',
-                'amenities.adultprice',
-                'amenities.childprice'
-            )
-            ->first();
+    // Fetch booking with guest and amenities
+    $booking = BookingTable::where('bookingID', $bookingID)
+        ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+        ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
+        ->select(
+            'booking.*',
+            DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname"),
+            'amenities.amenityname',
+            'amenities.adultprice',
+            'amenities.childprice'
+        )
+        ->first();
 
-        $billing = BillingTable::where('bookingID', $bookingID)
-            ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
-            ->select('billing.*', 'discount.amount')
-            ->first();
+    // Fetch billing with discount safely
+    $billingQuery = BillingTable::where('bookingID', $bookingID)
+        ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
+        ->select('billing.*');
 
-        $payment = PaymentTable::where('billingID', $billing->billingID)->first();
+    if (Schema::hasColumn('discount', 'amount')) {
+        $billingQuery->addSelect('discount.amount as discount_amount');
+    }
 
-        $room = RoomBookTable::where('bookingID', $bookingID)
-            ->leftJoin('rooms', 'roombook.roomID', '=', 'rooms.roomID')
-            ->select('roombook.*', 'rooms.roomnum', 'rooms.price')
-            ->get();
+    $billing = $billingQuery->first();
 
-        $cottage = CottageBookTable::where('bookingID', $bookingID)
-            ->leftJoin('cottages', 'cottagebook.cottageID', '=', 'cottages.cottageID')
-            ->select('cottagebook.*', 'cottages.cottagename', 'cottages.price')
-            ->get();
+    $payment = $billing ? PaymentTable::where('billingID', $billing->billingID)->first() : null;
 
-        if ($request->isMethod('get')) {
-            return view('receptionist.checkInBooking', compact('booking', 'today', 'room', 'cottage', 'billing', 'payment'));
-        }
+    $room = RoomBookTable::where('bookingID', $bookingID)
+        ->leftJoin('rooms', 'roombook.roomID', '=', 'rooms.roomID')
+        ->leftJoin('room_type', 'rooms.roomtypeID', '=', 'room_type.roomtypeID')
+        ->select(
+            'roombook.*',
+            'rooms.roomnum',
+            'room_type.price',
+            'room_type.extra',
+            'room_type.roomtype',
+            'room_type.description'
+        )
+        ->get();
 
-        if ($request->isMethod('post')) {
-            $validated = $request->validate([
-                'payment' => 'required|in:cash,gcash',
-                'amount_paid' => 'nullable|numeric|min:0',
+    $cottage = CottageBookTable::where('bookingID', $bookingID)
+        ->leftJoin('cottages', 'cottagebook.cottageID', '=', 'cottages.cottageID')
+        ->select('cottagebook.*', 'cottages.cottagename', 'cottages.price')
+        ->get();
+
+    // Calculate late check-in fee
+    $lateFee = 0;
+    $bookingStart = Carbon::parse($booking->bookingstart);
+    if ($bookingStart->lt($now)) {
+        // Booking is in the past? No late fee
+        $lateFee = 0;
+    } elseif ($bookingStart->gt($now)) {
+        // Booking is in the future, calculate hours difference
+        $hoursLate = ceil($bookingStart->diffInMinutes($now) / 60); // round up to next hour
+        $lateFee = $hoursLate * 200;
+    }
+
+    // Adjust total amount due
+    $totalAmountDue = ($billing->totalamount ?? 0) + $lateFee;
+
+    if ($request->isMethod('get')) {
+        return view('receptionist.checkInBooking', compact(
+            'booking', 'today', 'room', 'cottage', 'billing', 'payment', 'lateFee', 'totalAmountDue'
+        ));
+    }
+
+    if ($request->isMethod('post')) {
+        $validated = $request->validate([
+            'payment' => 'required|in:cash,gcash',
+            'cashamount' => 'nullable|numeric|min:0',
+        ]);
+
+        try {
+            $remainingBalance = $totalAmountDue;
+
+            if ($validated['payment'] === 'gcash') {
+                $validated['amount_paid'] = $remainingBalance;
+            }
+
+            if ($validated['payment'] === 'cash' && $validated['cashamount'] < $remainingBalance) {
+                return redirect()->back()->with('error', 'Insufficient payment amount. Remaining balance: ₱' . number_format($remainingBalance, 2));
+            }
+
+            $change = $validated['payment'] === 'cash'
+                ? max(0, $validated['cashamount'] - $remainingBalance)
+                : 0;
+
+            PaymentTable::create([
+                'totaltender' => $validated['cashamount'],
+                'totalchange' => $change,
+                'datepayment' => $todayDB,
+                'guestID' => $booking->guestID,
+                'billingID' => $billing->billingID,
             ]);
 
-            try {
-                $today = Carbon::now();
-                $remainingBalance = $billing->total_amount;
+            // Update billing
+            $billing->totalamount = 0;
+            $billing->status = 'Paid';
+            $billing->save();
 
-                if ($validated['payment'] === 'gcash') {
-                    $validated['amount_paid'] = $remainingBalance;
-                }
+            // Update booking
+            $booking->status = 'Ongoing';
+            $booking->save();
 
-                if ($validated['payment'] === 'cash' && $validated['amount_paid'] < $remainingBalance) {
-                    return redirect()->back()->with('error', 'Insufficient payment amount. Remaining balance: ₱' . number_format($remainingBalance, 2));
-                }
+            // Add check-in log
+            CheckTable::create([
+                'date' => $todayDB,
+                'status' => 'Checked In',
+                'guestID' => $booking->guestID,
+                'bookingID' => $bookingID,
+            ]);
 
-                $change = $validated['payment'] === 'cash'
-                    ? max(0, $validated['amount_paid'] - $remainingBalance)
-                    : 0;
-
-                PaymentTable::create([
-                    'totaltender' => $validated['amount_paid'],
-                    'totalchange' => $change,
-                    'datepayment' => $todayDB,
-                    'guestID' => $booking->guestID,
-                    'billingID' => $billing->billingID,
+            // Log user activity
+            $userID = $request->session()->get('user_id');
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID'   => $userID,
+                    'activity' => 'User Checked-In a Guest',
+                    'date'     => now(),
                 ]);
-
-                $billing->totalamount = 0;
-                $billing->status = 'Paid';
-                $billing->save();
-
-                $booking->status = 'Ongoing';
-                $booking->save();
-
-                CheckTable::create([
-                    'date' => $todayDB,
-                    'status' => 'Checked In',
-                    'guestID' => $booking->guestID,
-                    'bookingID' => $bookingID,
-                ]);
-
-                foreach ($room as $roomBook) {
-                    RoomTable::where('roomID', $roomBook->roomID)->update(['status' => 'Booked']);
-                }
-
-                foreach ($cottage as $cottageBook) {
-                    CottageTable::where('cottageID', $cottageBook->cottageID)->update(['status' => 'Booked']);
-                }
-
-                if ($booking->amenityID) {
-                    AmenityTable::where('amenityID', $booking->amenityID)->update(['status' => 'Booked']);
-                }
-
-                $userID = $request->session()->get('user_id');
-
-                if ($userID) {
-                    SessionLogTable::create([
-                        'userID'   => $userID,
-                        'activity' => 'User Checked-In a Guest',
-                        'date'     => now(),
-                    ]);
-                }
-
-                return redirect()->route('receptionist.view_check')->with('success', 'Booking successfully checked in.');
-            } catch (\Exception $e) {
-                return back()->withInput()->with('error', 'Failed to check-in booking: ' . $e->getMessage());
             }
+
+            return redirect()->route('receptionist.view_check')->with('success', 'Booking successfully checked in.');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Failed to check-in booking: ' . $e->getMessage());
         }
     }
+}
 
     public function checkOutBooking(Request $request, $bookingID)
-    {
-        $today = Carbon::now()->format('m/d/Y');
+{
+    $today = Carbon::now()->format('m/d/Y');
+    $todayDB = Carbon::now()->format('Y-m-d');
 
-        $booking = BookingTable::where('bookingID', $bookingID)
-            ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
-            ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
-            ->select(
-                'booking.*',
-                DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname"),
-                'amenities.amenityname',
-                'amenities.adultprice',
-                'amenities.childprice'
-            )
-            ->first();
+    // Fetch booking with guest and amenities
+    $booking = BookingTable::where('bookingID', $bookingID)
+        ->leftJoin('guest', 'booking.guestID', '=', 'guest.guestID')
+        ->leftJoin('amenities', 'booking.amenityID', '=', 'amenities.amenityID')
+        ->select(
+            'booking.*',
+            DB::raw("CONCAT(guest.firstname, ' ', guest.lastname) AS guestname"),
+            'amenities.amenityname',
+            'amenities.adultprice',
+            'amenities.childprice'
+        )
+        ->first();
 
-        $billing = BillingTable::where('bookingID', $bookingID)
-            ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
-            ->select('billing.*', 'discount.amount')
-            ->first();
+    if (!$booking) {
+        return back()->with('error', 'Booking not found.');
+    }
 
-        $payment = PaymentTable::where('billingID', $billing->billingID)->first();
+    // Fetch billing with discount columns
+    $billing = BillingTable::where('bookingID', $bookingID)
+        ->leftJoin('discount', 'billing.discountID', '=', 'discount.discountID')
+        ->select('billing.*', 'discount.flatamount', 'discount.percentamount')
+        ->first();
 
-        $room = RoomBookTable::where('bookingID', $bookingID)
-            ->leftJoin('rooms', 'roombook.roomID', '=', 'rooms.roomID')
-            ->select('roombook.*', 'rooms.roomnum', 'rooms.price')
-            ->get();
+    if (!$billing) {
+        return back()->with('error', 'Billing not found.');
+    }
 
-        $cottage = CottageBookTable::where('bookingID', $bookingID)
-            ->leftJoin('cottages', 'cottagebook.cottageID', '=', 'cottages.cottageID')
-            ->select('cottagebook.*', 'cottages.cottagename', 'cottages.price')
-            ->get();
+    $payment = PaymentTable::where('billingID', $billing->billingID)->first();
 
-        if ($request->isMethod('get')) {
-            return view('receptionist.checkOutBooking', compact('booking', 'today', 'room', 'cottage', 'billing', 'payment'));
+    // Rooms
+    $room = RoomBookTable::where('bookingID', $bookingID)
+        ->leftJoin('rooms', 'roombook.roomID', '=', 'rooms.roomID')
+        ->leftJoin('room_type', 'rooms.roomtypeID', '=', 'room_type.roomtypeID')
+        ->select('roombook.*', 'rooms.roomnum', 'room_type.price', 'room_type.roomtype')
+        ->get();
+
+    // Cottages
+    $cottage = CottageBookTable::where('bookingID', $bookingID)
+        ->leftJoin('cottages', 'cottagebook.cottageID', '=', 'cottages.cottageID')
+        ->select('cottagebook.*', 'cottages.cottagename', 'cottages.price')
+        ->get();
+
+    // Handle GET request: show receipt
+    if ($request->isMethod('get')) {
+
+        // Calculate nights
+        $bookingStart = Carbon::parse($booking->bookingstart);
+        $bookingEnd = Carbon::parse($booking->bookingend);
+        $now = Carbon::now();
+        $nights = $bookingStart->diffInDays($bookingEnd);
+
+        // Room total
+        $roomTotal = $room->sum(function($r) use ($nights) {
+            return ($r->price ?? 0) * ($r->quantity ?? 1) * $nights;
+        });
+
+        // Cottage total
+        $cottageTotal = $cottage->sum(fn($c) => $c->price ?? 0);
+
+        // Amenity total
+        $amenityTotal = ($booking->adultprice ?? 0) * ($booking->adultguest ?? 0)
+                      + ($booking->childprice ?? 0) * ($booking->childguest ?? 0);
+
+        // Early check-in fee (if checking out before check-in date)
+        $earlyCheckInRate = 200;
+        $earlyCheckInHours = 0;
+        $earlyCheckInFee = 0;
+        if ($now->lt($bookingStart)) {
+            $earlyCheckInHours = ceil($bookingStart->diffInMinutes($now) / 60);
+            $earlyCheckInFee = $earlyCheckInHours * $earlyCheckInRate;
         }
 
-        if ($request->isMethod('post')) {
-            $validated = $request->validate([
-                'addcharge' => 'sometimes|numeric',
-                'chargedesc' => 'sometimes|string',
-                'payment' => 'required|in:cash,gcash',
-                'amount_paid' => 'nullable|numeric|min:0',
+        // Subtotal
+        $subtotal = $roomTotal + $cottageTotal + $amenityTotal + $earlyCheckInFee;
+
+        // Discount
+        $discountAmount = $billing->flatamount ?? 0;
+        if (!$discountAmount && $billing->percentamount) {
+            $discountAmount = $subtotal * ($billing->percentamount / 100);
+        }
+
+        $totalAfterDiscount = $subtotal - $discountAmount;
+
+        // Amount paid
+        $amountPaid = $payment->totaltender ?? 0;
+
+        // Remaining balance
+        $remainingBalance = max(0, $totalAfterDiscount - $amountPaid);
+
+        return view('receptionist.checkOutBooking', compact(
+            'booking', 'today', 'room', 'cottage', 'billing', 'payment',
+            'roomTotal', 'cottageTotal', 'amenityTotal', 'earlyCheckInFee', 
+            'earlyCheckInHours', 'subtotal', 'discountAmount', 'totalAfterDiscount', 
+            'amountPaid', 'remainingBalance', 'nights'
+        ));
+    }
+
+    // Handle POST request: submit checkout
+    if ($request->isMethod('post')) {
+        $validated = $request->validate([
+            'addcharge' => 'sometimes|numeric',
+            'chargedesc' => 'sometimes|string',
+            'payment' => 'required|in:cash,gcash',
+            'amount_paid' => 'nullable|numeric|min:0',
+        ]);
+
+        try {
+            // Include any additional charge
+            $additionalCharge = $validated['addcharge'] ?? 0;
+            $newTotal = ($billing->totalamount ?? 0) + $additionalCharge;
+
+            // GCash pays exact
+            if ($validated['payment'] === 'gcash') {
+                $validated['amount_paid'] = $newTotal;
+            }
+
+            if ($validated['payment'] === 'cash' && $validated['amount_paid'] < $newTotal) {
+                return redirect()->back()
+                    ->with('error', 'Insufficient payment amount. Remaining balance: ₱' . number_format($newTotal, 2));
+            }
+
+            $change = $validated['payment'] === 'cash'
+                ? max(0, $validated['amount_paid'] - $newTotal)
+                : 0;
+
+            // Record payment
+            $payment = PaymentTable::create([
+                'totaltender' => $validated['amount_paid'],
+                'totalchange' => $change,
+                'datepayment' => $todayDB,
+                'guestID' => $booking->guestID,
+                'billingID' => $billing->billingID,
             ]);
 
-            try {
-                $remainingBalance = $billing->totalamount;
-
-                // 🔸 Handle GCash: assume exact amount
-                if ($validated['payment'] === 'gcash') {
-                    $validated['amount_paid'] = $remainingBalance;
-                }
-
-                // 🔸 Validate cash payment
-                if ($validated['payment'] === 'cash' && $validated['amount_paid'] < $remainingBalance) {
-                    return redirect()->back()->with('error', 'Insufficient payment amount. Remaining balance: ₱' . number_format($remainingBalance, 2));
-                }
-
-                $change = $validated['payment'] === 'cash'
-                    ? max(0, $validated['amount_paid'] - $remainingBalance)
-                    : 0;
-
-                $todayDB = Carbon::now()->format('Y-m-d');
-
-                // 🔹 Create payment record
-                $payment = PaymentTable::create([
-                    'totaltender' => $validated['amount_paid'],
-                    'totalchange' => $change,
-                    'datepayment' => $todayDB,
-                    'guestID' => $booking->guestID,
-                    'billingID' => $billing->billingID,
-                ]);
-
-                // 🔹 Create additional charge record (if any)
-                $charge = ChargeTable::create([
-                    'amount' => $validated['addcharge'] ?? 0,
+            // Record additional charge if exists
+            if ($additionalCharge > 0) {
+                ChargeTable::create([
+                    'amount' => $additionalCharge,
                     'chargedescription' => $validated['chargedesc'] ?? 'N/A',
                 ]);
-
-                // 🔹 Update billing status and link charge
-                $newTotalPaidAmount = PaymentTable::where('billingID', $billing->billingID)->sum('totaltender');
-                $billing->update([
-                    'chargeID' => $charge->chargeID,
-                    'status' => ($newTotalPaidAmount >= $billing->totalamount) ? 'Paid' : 'Unpaid'
-                ]);
-
-                // 🔹 Update booking status
-                $booking->update(['status' => 'Finished']);
-
-                // 🔹 Record check-out
-                CheckTable::create([
-                    'date' => $todayDB,
-                    'status' => 'Checked Out',
-                    'guestID' => $booking->guestID,
-                    'bookingID' => $bookingID,
-                ]);
-
-                // 🔹 Update room statuses
-                foreach ($booking->roomBookings as $roomBook) {
-                    RoomTable::where('roomID', $roomBook->roomID)
-                        ->update(['status' => 'Available']);
-                }
-
-                // 🔹 Update cottage statuses
-                foreach ($booking->cottageBookings as $cottageBook) {
-                    CottageTable::where('cottageID', $cottageBook->cottageID)
-                        ->update(['status' => 'Available']);
-                }
-
-                // 🔹 Update amenity status (if any)
-                if ($booking->amenityID) {
-                    AmenityTable::where('amenityID', $booking->amenityID)
-                        ->update(['status' => 'Available']);
-                }
-
-                $userID = $request->session()->get('user_id');
-
-                if ($userID) {
-                    SessionLogTable::create([
-                        'userID'   => $userID,
-                        'activity' => 'User Checked-Out a Guest',
-                        'date'     => now(),
-                    ]);
-                }
-
-                return redirect()->route('receptionist.view_check')->with('success', 'Booking successfully checked out.');
-            } catch (\Exception $e) {
-                return back()->withInput()->with('error', 'Failed to check-out booking. ' . $e->getMessage());
             }
+
+            // Update billing status
+            $billing->update([
+                'status' => ($validated['amount_paid'] >= $newTotal) ? 'Paid' : 'Unpaid'
+            ]);
+
+            // Update booking status
+            $booking->update(['status' => 'Finished']);
+
+            // Record check-out
+            CheckTable::create([
+                'date' => $todayDB,
+                'status' => 'Checked Out',
+                'guestID' => $booking->guestID,
+                'bookingID' => $bookingID,
+            ]);
+
+            // Update rooms to Available
+            foreach ($room as $r) {
+                RoomTable::where('roomID', $r->roomID)->update(['status' => 'Available']);
+            }
+
+            // Update cottages to Available
+            foreach ($cottage as $c) {
+                CottageTable::where('cottageID', $c->cottageID)->update(['status' => 'Available']);
+            }
+
+            // Update amenities to Available
+            if ($booking->amenityID) {
+                AmenityTable::where('amenityID', $booking->amenityID)->update(['status' => 'Available']);
+            }
+
+            // Log session
+            $userID = $request->session()->get('user_id');
+            if ($userID) {
+                SessionLogTable::create([
+                    'userID' => $userID,
+                    'activity' => 'User Checked-Out a Guest',
+                    'date' => now(),
+                ]);
+            }
+
+            return redirect()->route('receptionist.view_check')->with('success', 'Booking successfully checked out.');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Failed to check-out booking. ' . $e->getMessage());
         }
     }
+}
+
 
     public function edit($bookingID)
     {
@@ -1397,7 +1761,7 @@ class BookingController extends Controller
         // Fetch all rooms, cottages, amenities for selection
         $rooms = RoomTable::whereIn('status', ['Available', 'Booked'])->get();
         $cottages = CottageTable::whereIn('status', ['Available', 'Booked'])->get();
-        $amenities = AmenityTable::all();
+        $amenities = AmenityTable::where('type', 'Items')->get();
 
         // Prepare data for form pre-filling
         $bookingData = (object) [
@@ -1547,11 +1911,26 @@ class BookingController extends Controller
     public function walkinBooking(Request $request, OCRService $ocrService)
     {
         // Fetch available items
-        $rooms = RoomTable::where('status', 'Available')->get();
+        $rooms = RoomTypeTable::join('rooms', 'room_type.roomtypeID', '=', 'rooms.roomtypeID')
+            ->leftJoin('discount', 'room_type.discountID', '=', 'discount.discountID')
+            ->select(
+                'room_type.roomtypeID',
+                'room_type.roomtype',
+                'room_type.basecapacity',
+                'room_type.maxcapacity',
+                'room_type.price',
+                'room_type.extra',
+                'room_type.description',
+                'room_type.image',
+                'discount.name as discount_name',
+                'discount.flatamount as discount_amount'
+            )
+            ->distinct() // make sure each room type appears only once
+            ->get();
+
         $cottages = CottageTable::where('status', 'Available')->get();
         $amenities = AmenityTable::where('amenityname', 'Kiddy Pool')->get();
 
-        // Get all bookings with their dates
         $roomBookings = RoomBookTable::select('roomID', 'bookingDate')->get();
         $cottageBookings = CottageBookTable::select('cottageID', 'bookingDate')->get();
         $amenityBookings = BookingTable::whereNotNull('amenityID')
@@ -1559,128 +1938,169 @@ class BookingController extends Controller
             ->get();
 
         $bookedItems = [
-            'rooms'     => $roomBookings,
-            'cottages'  => $cottageBookings,
+            'rooms' => $roomBookings,
+            'cottages' => $cottageBookings,
             'amenities' => $amenityBookings,
         ];
 
-        // GET request → Show booking form
+        // GET request → show booking form
         if ($request->isMethod('get')) {
             return view('receptionist.walk-booking', compact('rooms', 'cottages', 'amenities', 'bookedItems'));
         }
 
-        // POST request → Process booking
-        if ($request->isMethod('post')) {
-            $validated = $request->validate([
-                'room' => 'nullable|array',
-                'room.*' => 'integer|exists:rooms,roomID',
+        // POST request → validate & calculate, store in session
+        $validated = $request->validate([
+            'room' => 'nullable|array',
+            'room.*' => 'integer|min:0',
 
-                'cottage' => 'nullable|array',
-                'cottage.*' => 'integer|exists:cottages,cottageID',
+            'cottage' => 'nullable|array',
+            'cottage.*' => 'integer|exists:cottages,cottageID',
 
-                'amenity' => 'nullable|array',
-                'amenity.*' => 'integer|exists:amenities,amenityID',
+            'amenity' => 'nullable|array',
+            'amenity.*' => 'integer|exists:amenities,amenityID',
 
-                'guestamount' => 'required|integer|min:1',
-                'amenity_adult_guest' => 'required|integer|min:0',
-                'amenity_child_guest' => 'required|integer|min:0',
+            'extra' => 'nullable|array',
+            'extra.*' => 'integer|exists:amenities,amenityID',
 
-                'firstname' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
-                'lastname'  => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
-                'contactnum' => 'nullable|string|max:20',
-                'email'     => 'nullable|email|max:255',
-                'gender'    => 'nullable|string|in:Male,Female,Other',
-                'birthday'  => 'nullable|date',
-                'validID'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'guestamount' => 'required|integer|min:1',
+            'amenity_adult_guest' => 'required|integer|min:0',
+            'amenity_child_guest' => 'required|integer|min:0',
 
-                'username' => 'nullable|string|min:5|max:20|unique:users,username',
-                'password' => [
-                    'nullable',
-                    'string',
-                    'min:8',
-                    'max:20',
-                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/'
-                ],
-                'password_confirmation' => 'nullable|string|same:password',
+            'firstname' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
+            'lastname'  => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'\.]+$/',
+            'contactnum' => 'nullable|string|max:20',
+            'email'     => 'nullable|email|max:255',
+            'gender'    => 'nullable|string|in:Male,Female,Other',
+            'birthday'  => ['nullable','date','before_or_equal:' . now()->subYears(18)->toDateString()],
+            'validID'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
 
-                'checkin' => 'required|date',
-                'checkout' => 'required|date|after_or_equal:checkin',
-            ]);
+            'username' => 'nullable|string|min:5|max:20|unique:users,username',
+            'password' => [
+                'nullable',
+                'string',
+                'min:8',
+                'max:20',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/'
+            ],
+            'password_confirmation' => 'nullable|string|same:password',
 
-            // -------------------------------
-            // Handle Valid ID + OCR checking
-            // -------------------------------
-            $path = null; // initialize
-            if ($request->hasFile('validID')) {
-                $file = $request->file('validID');
+            'checkin' => 'required|date',
+            'checkout' => 'required|date|after_or_equal:checkin',
+        ]);
 
-                // Store temporarily
-                $path = $file->storeAs(
-                    'temp_valid_ids',
-                    uniqid() . '.' . $file->getClientOriginalExtension(),
-                    'public'
-                );
-
-                $absolutePath = storage_path('app/public/' . $path);
-
-                // Run OCR service
-                $result = $ocrService->verify($absolutePath);
-
-                // If OCR fails validation → reject booking
-                if (!$result['isValid']) {
-                    return back()
-                        ->withErrors(['validID' => 'The uploaded ID is not a valid Philippine National ID.'])
-                        ->with('ocrtext', $result['ocrText']);
-                }
-
-                // Passed OCR validation
-                $validated['validID'] = $path;
-            } else {
-                $validated['validID'] = null;
-            }
-
-            // Require at least 1 booking item
-            if (empty($validated['room']) && empty($validated['cottage']) && empty($validated['amenity'])) {
-                return redirect()->back()
-                    ->with('error', 'Please select at least a room, a cottage, or an amenity.')
-                    ->withInput();
-            }
-
-            // Check availability
-            $availabilityError = $this->checkAvailability($validated);
-            if ($availabilityError) {
-                return redirect()->back()->with('error', $availabilityError)->withInput();
-            }
-
-            // Calculate prices
-            $prices = $this->calculatePrices($validated);
-
-            // Add extra fields
-            $validated['password'] = bcrypt($validated['password']);
-            $validated['booking_type'] = 'Walk-In';
-
-            // Generate unique session ID
-            $bookingSessionID = (string) Str::uuid();
-
-            // Store in session
-            session([
-                'booking_data_' . $bookingSessionID => $validated,
-                'booking_prices_' . $bookingSessionID => $prices,
-            ]);
-
-            $userID = $request->session()->get('user_id');
-
-            if ($userID) {
-                SessionLogTable::create([
-                    'userID'   => $userID,
-                    'activity' => 'User Created a Booking',
-                    'date'     => now(),
-                ]);
-            }
-
-            // Redirect to receipt page
-            return redirect()->route('receptionist.booking_receipt', ['sessionID' => $bookingSessionID]);
+        // Ensure at least one room has quantity > 0
+        $hasSelectedRoom = collect($validated['room'] ?? [])->some(fn($qty) => (int)$qty > 0);
+        if (!$hasSelectedRoom) {
+            return back()->withErrors(['room' => 'Please select at least one room.'])->withInput();
         }
+
+        // OCR ID verification
+        $validated['validID'] = null;
+        if ($request->hasFile('validID')) {
+            $file = $request->file('validID');
+            $path = $file->storeAs('temp_valid_ids', uniqid() . '.' . $file->getClientOriginalExtension(), 'public');
+            $absolutePath = storage_path('app/public/' . $path);
+            $result = $ocrService->verify($absolutePath);
+            if (!$result['isValid']) {
+                return back()->withErrors(['validID' => 'The uploaded ID is not a valid Philippine National ID.']);
+            }
+            $validated['validID'] = $path;
+        }
+
+        // Duration in days
+        $checkin = \Carbon\Carbon::parse($validated['checkin']);
+        $checkout = \Carbon\Carbon::parse($validated['checkout']);
+        $days = max(1, $checkin->diffInDays($checkout));
+
+        // ===== Pricing Calculations =====
+        $totalGuests = (int) $validated['guestamount'];
+        $roomprice = 0;
+        $totalBaseCapacity = 0;
+        $roomDetails = [];
+
+        if (!empty($validated['room'])) {
+            foreach ($validated['room'] as $roomID => $qty) {
+                if ((int)$qty <= 0) continue;
+                $room = RoomTypeTable::find($roomID);
+                if (!$room) continue;
+
+                $roomprice += $room->price * $qty;
+                $totalBaseCapacity += $room->basecapacity * $qty;
+
+                $roomDetails[] = [
+                    'roomID' => $roomID,
+                    'roomtype' => $room->roomtype,
+                    'quantity' => $qty,
+                    'price' => $room->price,
+                    'basecapacity' => $room->basecapacity,
+                    'extra' => $room->extra,
+                ];
+            }
+        }
+
+        // Extra guests beyond base capacity
+        if ($totalGuests > $totalBaseCapacity) {
+            $excess = $totalGuests - $totalBaseCapacity;
+            $extraSelected = AmenityTable::whereIn('amenityID', $validated['extra'] ?? [])
+                ->where('amenityname','like','%breakfast%')->exists();
+            $extraRate = $extraSelected ? 900 : 700;
+            $roomprice += $excess * $extraRate;
+        }
+
+        // Cottage pricing
+        $cottageprice = 0;
+        if (!empty($validated['cottage'])) {
+            $cottages = CottageTable::whereIn('cottageID', $validated['cottage'])->get();
+            foreach ($cottages as $cottage) {
+                $cottageprice += $cottage->price;
+            }
+        }
+
+        // Amenity pricing
+        $adultprice = 0;
+        $childprice = 0;
+        if (!empty($validated['amenity'])) {
+            $amenities = AmenityTable::whereIn('amenityID', $validated['amenity'])->get();
+            foreach ($amenities as $amenity) {
+                $adultprice += $amenity->adultprice * $validated['amenity_adult_guest'];
+                $childprice += $amenity->childprice * $validated['amenity_child_guest'];
+            }
+        }
+
+        // Extra amenities pricing
+        $extraPrice = 0;
+        if (!empty($validated['extra'])) {
+            $extras = AmenityTable::whereIn('amenityID', $validated['extra'])->get();
+            foreach ($extras as $extra) {
+                $extraPrice += $extra->adultprice * $validated['amenity_adult_guest'];
+                $extraPrice += $extra->childprice * $validated['amenity_child_guest'];
+            }
+        }
+
+        // Multiply room & cottage prices by number of days
+        $roomprice *= $days;
+        $cottageprice *= $days;
+        $totalprice = $roomprice + $cottageprice + $adultprice + $childprice + $extraPrice;
+
+        // Store in session
+        $prices = [
+            'roomprice' => $roomprice,
+            'cottageprice' => $cottageprice,
+            'adultprice' => $adultprice,
+            'childprice' => $childprice,
+            'amenityprice' => $adultprice + $childprice,
+            'extraPrice' => $extraPrice,
+            'totalprice' => $totalprice,
+            'rooms' => $roomDetails,
+        ];
+
+        $bookingSessionID = (string) Str::uuid();
+        session([
+            'booking_data_' . $bookingSessionID => $validated,
+            'booking_prices_' . $bookingSessionID => $prices,
+        ]);
+
+        return redirect()->route('receptionist.booking_receipt', ['sessionID' => $bookingSessionID]);
     }
 
 

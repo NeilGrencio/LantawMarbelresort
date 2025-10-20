@@ -4,342 +4,277 @@
         exit;
     }
 @endphp
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
-        <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
-        <title>Lantaw-Marbel Resort</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-        <style>
-            * {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lantaw-Marbel Resort</title>
+    <link rel="icon" href="{{ asset('favico.ico')}}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('favico.ico') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         body {
-            font-family: Roboto, sans-serif;
-            padding: 0;
-            margin: 0;
-            background-color: #E1E5EA;
-            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            background: #f2f5f9;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
         }
+
+        /* --- Modern Sidebar --- */
         #sidebar {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            gap: 0.5rem;
-            color: #ffffff;
-            padding: 0.3rem;
-            cursor: pointer;
-            transition: width 0.3s ease-in;
-            width: 12rem;
-            background: rgb(0, 13, 49);
-            z-index: 1000;
-            border-top-right-radius: 1rem;
             position: fixed;
-        }
-        #sidebar div {
-            display: flex;
-            height: 2rem;
-            gap: 0.4rem;
-            cursor: pointer;
-            width: 100%;
-            padding-left: 0.4rem;
-            align-items: center;
-        }
-        .sidebar-item {
-            transition: all 0.3s ease-in;
-        }
-        .sidebar-item:hover {
-            background: rgb(255, 145, 0);
-            color: black;
-        }
-        .icons {
-            display: flex;
-            gap: 0.4rem;
-            width: 2.5rem;
-            align-items: center;
-            justify-content: center;
-            font-size: .8rem;
-        }
-        .label {
-            font-size: 10px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        #sidebar :nth-child(5),
-        #sidebar :nth-child(8),
-        #sidebar :nth-child(11),
-        #sidebar :nth-child(13) {
-            border-top: solid 1px #919191;
-        }
-        #sidebar :nth-child(4),
-        #sidebar :nth-child(7),
-        #sidebar :nth-child(10),
-        #sidebar :nth-child(12) {
-            margin-bottom: 0.6rem;
-            border-bottom: solid 1px #919191;
-        }
-        #profile-container {
-            display: flex;
-            flex-direction: row;
-            gap: 0.5rem;
-            align-items: center;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 240px;
+            background: linear-gradient(180deg, #001334 0%, #012A66 100%);
             color: white;
-            text-align: center;
-            cursor: pointer;
-            margin-top: auto;
-            font-size: 11px;
-            padding: 0.4rem 0;
-            margin-bottom:1rem;
-        }
-        #profile-container img {
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .more-action {
             display: flex;
-            position: absolute;
-            bottom: 60px; 
-            left: 2rem;    
-            width: 10%; 
-            height:auto;
-            background: white;
-            color: black;
-            border-radius: 0.7rem;
-            padding: 0.5rem;
             flex-direction: column;
-            align-items: flex-start;
-            font-size: 11px;
-            box-shadow: 0 0.3rem 0.5rem rgba(0,0,0,0.2);
-            z-index: 2000;
+            justify-content: space-between;
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.25);
+            transition: width 0.3s ease;
+            border-top-right-radius: 1rem;
+            z-index:9999;
+            overflow: hidden;
         }
 
-        .sidebar-select{
-            display:flex;
-            height:2rem;
-            font-size:.8rem;
-            padding:.5rem;
-            border-radius:0.3rem;
-            width:100%;
-            transition:all .2s ease;
-            background:#ffffff;
-            border:2px solid black;
+        #sidebar:hover {
+            width: 260px;
         }
-        .sidebar-select:hover {
-            background-color: rgb(255,145,0);
-            color:black;
+
+        .logo-container {
+            margin-top:1rem;
+            text-align: center;
+            height:3rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .logo-container img {
+            height:100%;
+            width: 80%;
+            max-width: 160px;
             object-fit: contain;
-            height: 2.5rem;
-            width: 100%;
         }
 
-        #logout-form {
-            width:100%;
-            height:100%;
+        .sidebar-menu {
+            flex: 1;
+            padding-top: 1rem;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: #d6e1f5;
+            border-left: 4px solid transparent;
+            cursor:pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .sidebar-item i {
+            font-size: 1.3rem;
+            min-width: 25px;
+            text-align: center;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border-left: 4px solid #ff9100;
+        }
+
+        .sidebar-item.active {
+            background: rgba(255,255,255,0.15);
+            border-left: 4px solid #ff9100;
+            color: white;
+        }
+
+        /* --- Profile Section --- */
+        #profile-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            cursor: pointer;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            transition: background 0.2s ease;
+        }
+
+        #profile-container:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        #profile-container img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ff9100;
+        }
+
+        #profile-container h2 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .more-action {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            background: white;
+            color: black;
+            border-radius: 0.5rem;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            width: 200px;
+            overflow: hidden;
+        }
+
+        .sidebar-select, #logout-side {
+            padding: 0.8rem 1rem;
+            font-size: 0.85rem;
+            border: none;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-select:hover, #logout-side:hover {
+            background-color: #ff9100;
+            color: white;
         }
 
         #logout-side {
-            display:flex;
-            padding:.5rem;
-            border-radius:0.3rem;
-            width:100%;
-            transition:all .2s ease;
-            cursor:pointer;
+            width: 100%;
         }
 
-        #logout-side:hover {
-            background-color: rgb(255,145,0);
-            color:black;
+        main {
+            flex: 1;
+            margin-left: 12rem;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
         }
-        </style>
-    </head>
-    <body>
-        <div id="sidebar" style="cursor:pointer">
+    </style>
+</head>
+<body>
+    <aside id="sidebar">
+        <div>
             <div class="logo-container">
-                <img src="{{ asset('images/logo.png')}}">
-            </div>
-            <div id="dashboard" class="sidebar-item" data-url="{{ route('manager.dashboard') }}" >
-                <div class="icons">
-                    <i class="fas fa-house fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span >Dashboard</span>
-                </div>
-            </div>
-            <div id="discount" class="sidebar-item" data-url="{{ url('manager/discount') }}">
-                <div class="icons">
-                <i class="fa-solid fa-tag fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span class="label">Discount</span>
-                </div>
-            </div>
-            <div id="inquiry" class="sidebar-item" data-url="{{ url('manager/chat') }}">
-                <div class="icons">
-                    <i class="fa-regular fa-message fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span>Inquiry</span>
-                </div>
+                <img src="{{ asset('images/logo.png')}}" alt="Lantaw-Marbel Resort">
             </div>
 
-            <div id="user" class="sidebar-item" data-url="{{ url('manager/manage_user') }}">
-                <div class="icons">
-                    <i class="fas fa-users fa-2x"></i>
+            <div class="sidebar-menu">
+                <div id="dashboard" class="sidebar-item" data-url="{{ route('manager.dashboard') }}">
+                    <i class="fas fa-house"></i> <span>Dashboard</span>
                 </div>
-                <div class="label">
-                    <span >Users</span>
+                <div id="discount" class="sidebar-item" data-url="{{ url('manager/discount') }}">
+                    <i class="fa-solid fa-tag"></i> <span>Discount</span>
                 </div>
-            </div>
-            <div id="guest" class="sidebar-item" data-url="{{ url('manager/guest_list') }}">
-                <div class="icons">
-                    <i class="fas fa-person-walking-luggage fa-2x"></i>
+                <div id="inquiry" class="sidebar-item" data-url="{{ url('manager/chat') }}">
+                    <i class="fa-regular fa-message"></i> <span>Inquiry</span>
                 </div>
-                <div class="label">
-                    <span >Guests</span>
+                <div id="user" class="sidebar-item" data-url="{{ url('manager/manage_user') }}">
+                    <i class="fas fa-users"></i> <span>Users</span>
                 </div>
-            </div>
-            <div id="session" class="sidebar-item" data-url="{{ url('manager/session_logs') }}">
-                <div class="icons">
-                <i class="fas fa-chart-line fa-2x"></i>
+                <div id="guest" class="sidebar-item" data-url="{{ url('manager/guest_list') }}">
+                    <i class="fas fa-person-walking-luggage"></i> <span>Guests</span>
                 </div>
-                <div class="label">
-                    <span >Session Logs</span>
+                <div id="session" class="sidebar-item" data-url="{{ url('manager/session_logs') }}">
+                    <i class="fas fa-chart-line"></i> <span>Session Logs</span>
                 </div>
-            </div>
-
-            <div id="rooms" class="sidebar-item" data-url="{{ url('manager/room_list') }}">
-                <div class="icons">
-                    <i class="fas fa-bed fa-2x"></i>
+                <div id="rooms" class="sidebar-item" data-url="{{ url('manager/room_list') }}">
+                    <i class="fas fa-bed"></i> <span>Rooms</span>
                 </div>
-                <div class="label">
-                    <span>Rooms</span>
+                <div id="amenities" class="sidebar-item" data-url="{{ url('manager/amenity_list') }}">
+                    <i class="fas fa-person-swimming"></i> <span>Amenities</span>
                 </div>
-            </div>
-            <div id="amenities" class="sidebar-item" data-url="{{ url('manager/amenity_list') }}">
-                <div class="icons">
-                    <i class="fas fa-person-swimming fa-2x"></i>
+                <div id="cottages" class="sidebar-item" data-url="{{ url('manager/cottage_list') }}">
+                    <i class="fas fa-campground"></i> <span>Cottages</span>
                 </div>
-                <div class="label">
-                    <span>Amenities</span>
+                <div id="menu" class="sidebar-item" data-url="{{ url('manager/menu_list') }}">
+                    <i class="fas fa-utensils"></i> <span>Menu</span>
                 </div>
-            </div>
-            <div id="cottages" class="sidebar-item" data-url="{{ url('manager/cottage_list') }}">
-                <div class="icons">
-                    <i class="fas fa-campground fa-2x"></i>
+                <div id="service" class="sidebar-item" data-url="{{ url('manager/services_list') }}">
+                    <i class="fas fa-bell-concierge"></i> <span>Service</span>
                 </div>
-                <div class="label">
-                    <span >Cottages</span>
+                <div id="report" class="sidebar-item" data-url="{{ url('manager/report') }}">
+                    <i class="fas fa-chart-simple"></i> <span>Report</span>
                 </div>
-            </div>
-            <div id="menu" class="sidebar-item" data-url="{{ url('manager/menu_list') }}">
-                <div class="icons">
-                    <i class="fas fa-utensils fa-2x"></i>
+                <div id="feedback" class="sidebar-item" data-url="{{ url('manager/feedback') }}">
+                    <i class="fas fa-star"></i> <span>Feedback</span>
                 </div>
-                <div class="label">
-                    <span>Menu</span>
-                </div>
-            </div>
-            <div id="service" class="sidebar-item" data-url="{{ url('manager/services_list') }}">
-                <div class="icons">
-                    <i class="fas fa-bell-concierge fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span>Service</span>
-                </div>
-            </div>
-            <div id="report" class="sidebar-item" data-url="{{ url('manager/report') }}">
-                <div class="icons">
-                    <i class="fas fa-chart-simple fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span>Report</span>
-                </div>
-            </div>
-
-            <div id="feedback" class="sidebar-item" data-url="{{ url('manager/feedback') }}">
-                <div class="icons">
-                    <i class="fas fa-star fa-2x"></i>
-                </div>
-                <div class="label">
-                    <span>Feedback</span>
-                </div>
-            </div>
-
-            <div id="profile-container">
-                <img src="{{ session('avatar') }}" alt="Avatar" />
-                <h2>{{ session('username') }}</h2>
-                <i class="fas fa-chevron-down fa-lg"></i>
             </div>
         </div>
-        <div class="more-action" style="display:none;">
 
+        <div id="profile-container">
+            <img src="{{ session('avatar') }}" alt="Avatar" />
+            <h2>{{ session('username') }}</h2>
+            <i class="fas fa-chevron-down fa-lg"></i>
+        </div>
+
+        <div class="more-action">
             <div class="sidebar-select" data-url="{{ url('manager/view_profile/' . session()->get('user_id')) }}">
                 Profile
             </div>
             <div class="sidebar-select" data-url="{{ url('manager/notifications') }}">
                 Notifications
             </div>
-                
             <form id="logout-form" action="{{ route('logout') }}" method="POST">
-                <div>
                 @csrf
                 <button id="logout-side" type="submit">Log Out</button>
-                </div>
             </form>
-            
         </div>
+    </aside>
+
+    <main>
+        <!-- Your main page content -->
+    </main>
 
     <script>
-
         document.addEventListener('DOMContentLoaded', () => {
-            const toggleButton = document.getElementById('sidebar-container'); // now correctly points to the toggle
-            const sidebar = document.getElementById('sidebar');
-            const body = document.body; // fallback for layout expansion if no #main-layout
-
-            const sidebarItems = sidebar.querySelectorAll('[data-url]');
-            const labels = sidebar.querySelectorAll('.label');
             const profile = document.getElementById('profile-container');
             const dropdown = document.querySelector('.more-action');
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            const extraItems = document.querySelectorAll('.sidebar-select');
 
-            profile.addEventListener('click', function () {
-                dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
+            profile.addEventListener('click', () => {
+                dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
             });
 
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function (event) {
-                if (!profile.contains(event.target)) {
+            document.addEventListener('click', (e) => {
+                if (!profile.contains(e.target) && !dropdown.contains(e.target)) {
                     dropdown.style.display = 'none';
                 }
             });
 
-            // Handle navigation clicks inside the dropdown
-            document.querySelectorAll('.more-action div').forEach(item => {
-                item.addEventListener('click', function () {
-                    const url = this.dataset.url;
-                    if (url) {
-                        window.location.href = url; 
-                    }
+            extraItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const url = item.dataset.url;
+                    if (url) window.location.href = url;
                 });
             });
 
             sidebarItems.forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.stopPropagation(); // prevent sidebar toggle from closing it
-                    const targetURL = item.dataset.url;
-                    if (targetURL) {
-                        window.location.href = targetURL;
-                    }
+                item.addEventListener('click', () => {
+                    const url = item.dataset.url;
+                    if (url) window.location.href = url;
                 });
             });
         });
-
     </script>
-    </body>
+</body>
+</html>

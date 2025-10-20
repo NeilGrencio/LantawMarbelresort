@@ -18,6 +18,7 @@
         display: flex;
         flex-direction: row;
         height:100vh;
+        width: 100%;
     }
     #main-layout{
         display:flex;
@@ -26,7 +27,7 @@
         width:100%;
         gap:.5rem;
         transition: width 0.3s ease-in-out;
-        margin-left:12rem;
+        margin-left:15rem;
         margin-right:.7rem;
         overflow-y: hidden;
         overflow-x: hidden;

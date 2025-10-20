@@ -98,6 +98,7 @@
         display: flex;
         flex-direction: row;
         height: 100vh;
+        width:100%;
     }
     #main-layout {
         display: flex;
@@ -105,7 +106,7 @@
         padding: 1rem;
         width: 100%;
         transition: width 0.3s ease-in-out;
-        margin-left: 12rem;
+        margin-left: 15rem;
     }
     #layout-header {
         display: flex;

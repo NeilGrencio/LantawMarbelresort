@@ -146,14 +146,15 @@
         display: flex;
         flex-direction: row;
         height:100vh;
+        width: 100%;
     }
     #main-layout{
         display:flex;
         flex-direction: column;
         padding:1rem;
-        width:100%;
+        width:calc(100% - 15rem);
         transition: width 0.3s ease-in-out;
-        margin-left:12rem;
+        margin-left:15rem;
     }
      #layout-header {
         display: flex;
@@ -250,12 +251,13 @@
         display:flex;
         flex-direction: row;
         width:100%;
-        height: 3rem;
+        height: 4rem;
         gap:1rem;
         padding:1rem;
         justify-content:center;
         align-items:center;
-        -webkit-overflow-scrolling: touch;
+        overflow-x:auto;
+        overflow-y: hidden;
     }
 
     .navbar-item{
