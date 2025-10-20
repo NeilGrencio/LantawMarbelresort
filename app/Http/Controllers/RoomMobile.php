@@ -49,7 +49,13 @@ class RoomMobile extends Controller
 
             // Attach image URLs (same logic as roomList)
             foreach ($availableRooms as $room) {
-                $room->image_url = route('room.image', ['filename' => basename($room->image)]);
+                if (!empty($room->image)) {
+                    $room->image_url = route('room.image', ['filename' => basename($room->image)]);
+                } else {
+                    // Fallback for missing images
+                    $room->image_url = asset('images/default-room.jpg');
+                    Log::warning("Room ID {$room->roomID} has no image file.");
+                }
             }
 
             // ✅ Return JSON same as roomList
