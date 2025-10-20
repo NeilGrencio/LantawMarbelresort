@@ -68,6 +68,7 @@ Route::get('/notifications/{user_id}', function ($user_id) {
 });
 // Mobile API routes
 Route::get('/rooms', [RoomMobile::class, 'roomList']);
+Route::get('/rooms/available', [RoomMobile::class, 'availableRoomsByDate']);
 Route::get('/amenities', [AmenityController::class, 'index']);
 Route::get('/menus', [MenuController::class, 'index']);
 Route::get('/cottages', [CottageController::class, 'index']);
