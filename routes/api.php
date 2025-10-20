@@ -72,6 +72,7 @@ Route::get('/rooms/available', [RoomMobile::class, 'availableRoomsByDate']);
 Route::get('/amenities', [AmenityController::class, 'index']);
 Route::get('/menus', [MenuController::class, 'index']);
 Route::get('/cottages', [CottageController::class, 'index']);
+Route::get('/cottages/available', [CottageController::class, 'availableCottagesByDate']);
 Route::post('/signup', [ApiAuthController::class, 'signup']);
 Route::post('/login', [ApiAuthController::class, 'login']);
 Route::post('/gcash/create-payment', [PaymentController::class, 'createGcashPayment']);
