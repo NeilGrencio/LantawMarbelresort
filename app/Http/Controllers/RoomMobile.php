@@ -40,18 +40,19 @@ class RoomMobile extends Controller
 
             Log::info('Booked Room IDs for ' . $date . ':', $bookedRoomIds);
 
-            // Get all available rooms that are NOT in the booked list
-            $availableRooms = \App\Models\RoomTable::whereNotIn('roomID', $bookedRoomIds)
-                ->where('status', 'available')
+            // Get all rooms that are marked as available and not booked
+            $availableRooms = \App\Models\RoomTable::where('status', 'available')
+                ->whereNotIn('roomID', $bookedRoomIds)
                 ->get();
 
             Log::info('Found ' . $availableRooms->count() . ' available rooms for ' . $date);
 
-            // Attach image URLs
+            // Attach image URLs (same logic as roomList)
             foreach ($availableRooms as $room) {
                 $room->image_url = route('room.image', ['filename' => basename($room->image)]);
             }
 
+            // ✅ Return JSON same as roomList
             return response()->json($availableRooms);
         } catch (\Exception $e) {
             Log::error('Error in availableRoomsByDate: ' . $e->getMessage(), [
